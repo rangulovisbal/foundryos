@@ -45,8 +45,9 @@ export default function AdminLoginPage() {
           Access the operating back office.
         </h1>
         <p className="mt-4 body-lg">
-          The admin panel is gated behind an environment token. It can later be
-          replaced with SSO or managed auth if the product expands access.
+          This bootstrap flow creates an internal admin session for preview
+          operations. It is strictly for MVP testing while managed admin auth
+          and live billing controls remain out of scope.
         </p>
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
