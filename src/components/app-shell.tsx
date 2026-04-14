@@ -18,6 +18,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const plan = getPlanDefinition(context.workspace.plan);
+  const isInternalAdmin = context.user.globalRole === "internal_admin";
 
   return (
     <div className="page-shell space-y-6 pt-0">
@@ -67,6 +68,14 @@ export function AppShell({
                 {item.label}
               </Link>
             ))}
+            {isInternalAdmin ? (
+              <Link
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-muted transition hover:bg-white/90 hover:text-ink"
+                href="/admin"
+              >
+                Admin
+              </Link>
+            ) : null}
             <form action="/api/auth/logout" method="post">
               <button
                 className="mt-2 w-full rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-left text-sm font-semibold text-muted transition hover:text-ink"

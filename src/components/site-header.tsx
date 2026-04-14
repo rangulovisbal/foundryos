@@ -3,8 +3,7 @@ import Link from "next/link";
 const links = [
   { href: "/pricing", label: "Pricing" },
   { href: "/security", label: "Security" },
-  { href: "/dashboard", label: "Sample output" },
-  { href: "/pricing#plans", label: "Get Snapshot" }
+  { href: "/dashboard", label: "Sample output" }
 ];
 
 export function SiteHeader() {
@@ -25,17 +24,34 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-3 text-sm font-medium text-muted">
-          {links.map((link) => (
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+          <nav className="flex flex-wrap items-center gap-3 text-sm font-medium text-muted">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                className="rounded-full px-3 py-2 transition hover:bg-white/90 hover:text-ink"
+                href={link.href}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex flex-wrap items-center gap-3">
             <Link
-              key={link.href}
-              className="rounded-full px-3 py-2 transition hover:bg-white/90 hover:text-ink"
-              href={link.href}
+              className="rounded-full border border-[color:var(--border)] bg-white/80 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-white"
+              href="/login"
             >
-              {link.label}
+              Log in
             </Link>
-          ))}
-        </nav>
+            <Link
+              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-sand transition hover:opacity-90"
+              href="/signup"
+            >
+              Start preview
+            </Link>
+          </div>
+        </div>
       </div>
     </header>
   );

@@ -28,6 +28,18 @@ export function SiteFooter() {
             )}
           </div>
         </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-[color:var(--border)] pt-4 text-sm text-muted">
+          <a className="transition hover:text-ink" href="/login">
+            Customer login
+          </a>
+          <a className="transition hover:text-ink" href="/signup">
+            Create account
+          </a>
+          <a className="transition hover:text-ink" href="/admin/login">
+            Internal admin
+          </a>
+        </div>
       </div>
     </footer>
   );

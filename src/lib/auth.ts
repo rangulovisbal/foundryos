@@ -313,10 +313,16 @@ export async function authenticateUser(input: {
   password: string;
 }) {
   const email = normalizeEmail(input.email);
-  const user = await findUserByEmail(email);
+  let user = await findUserByEmail(email);
 
   if (!user || !verifyPassword(input.password, user.passwordHash)) {
     throw new Error("Invalid email or password.");
+  }
+
+  if (resolveGlobalRole(email) === "internal_admin" && user.globalRole !== "internal_admin") {
+    user = (await updateUser(user.id, {
+      globalRole: "internal_admin"
+    })) as AppUser;
   }
 
   if (!user.emailVerifiedAt) {
