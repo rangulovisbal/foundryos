@@ -4,26 +4,32 @@ export const pricingPlans = [
   {
     id: "snapshot" as const,
     name: "AI Snapshot",
-    price: "EUR79-EUR99",
+    price: "€99",
     cadence: "one-off",
     description:
-      "Diagnostic, score, quick wins and 30-day priorities for teams that need clarity fast."
+      "A paid diagnostic with score, roadmap and first operating priorities for teams that need clarity fast.",
+    checkoutEnabled: true,
+    ctaLabel: "Buy AI Snapshot"
   },
   {
     id: "growth-os" as const,
     name: "AI Growth OS",
-    price: "EUR149-EUR249",
+    price: "€199",
     cadence: "per month",
     description:
-      "Recurring operating layer with monthly refresh, dashboard, SOPs and automation backlog."
+      "Recurring operating layer with monthly refresh, dashboard, SOPs and automation backlog.",
+    checkoutEnabled: true,
+    ctaLabel: "Start Growth OS"
   },
   {
     id: "operator" as const,
     name: "AI Operator",
-    price: "EUR499-EUR999",
-    cadence: "per month",
+    price: "Custom",
+    cadence: "contact sales",
     description:
-      "Higher-touch plan with connectors, active automations, reporting and priority support."
+      "Custom rollout for teams that need integrations, active workflows and deeper implementation support.",
+    checkoutEnabled: false,
+    ctaLabel: "Talk to us"
   }
 ];
 

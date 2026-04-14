@@ -3,8 +3,8 @@ import Link from "next/link";
 const links = [
   { href: "/pricing", label: "Pricing" },
   { href: "/security", label: "Security" },
-  { href: "/dashboard", label: "Dashboard demo" },
-  { href: "/onboarding", label: "Snapshot intake" }
+  { href: "/dashboard", label: "Sample output" },
+  { href: "/pricing#plans", label: "Get Snapshot" }
 ];
 
 export function SiteHeader() {

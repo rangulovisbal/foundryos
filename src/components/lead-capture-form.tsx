@@ -25,7 +25,21 @@ const defaultState: LeadState = {
   consent: true
 };
 
-export function LeadCaptureForm() {
+type LeadCaptureFormProps = {
+  id?: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  buttonLabel?: string;
+};
+
+export function LeadCaptureForm({
+  id = "snapshot-request",
+  eyebrow = "Request your Snapshot",
+  title = "Get your AI Snapshot and receive first outputs in 24 hours.",
+  description = "Use this form to request the Snapshot or tell us if you need a deeper Operator rollout. Payments are handled securely by Stripe once checkout is enabled for your plan.",
+  buttonLabel = "Request Snapshot"
+}: LeadCaptureFormProps) {
   const [form, setForm] = useState<LeadState>(defaultState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -84,7 +98,7 @@ export function LeadCaptureForm() {
   }
 
   return (
-    <section className="surface p-6 md:p-8">
+    <section className="surface p-6 md:p-8" id={id}>
       {siteKey ? (
         <Script
           defer
@@ -95,15 +109,11 @@ export function LeadCaptureForm() {
 
       <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <span className="eyebrow">Lead capture</span>
+          <span className="eyebrow">{eyebrow}</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-            Request a paid Snapshot or an implementation call.
+            {title}
           </h2>
-          <p className="mt-4 body-lg">
-            This form stores leads, keeps UTM data, can verify Cloudflare
-            Turnstile and can notify the team through Resend when those services
-            are configured.
-          </p>
+          <p className="mt-4 body-lg">{description}</p>
         </div>
 
         <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -198,7 +208,7 @@ export function LeadCaptureForm() {
             disabled={isSubmitting}
             type="submit"
           >
-            {isSubmitting ? "Submitting..." : "Request Snapshot"}
+            {isSubmitting ? "Submitting..." : buttonLabel}
           </button>
 
           {status !== "idle" ? (

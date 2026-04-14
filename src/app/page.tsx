@@ -1,54 +1,155 @@
 import Link from "next/link";
-import { ArrowRight, ChartSpline, Layers3, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Clock3,
+  LayoutDashboard,
+  Lock,
+  Sparkles,
+  Workflow,
+  Wrench
+} from "lucide-react";
 
 import { LeadCaptureForm } from "@/components/lead-capture-form";
+import { pricingPlans } from "@/lib/pricing";
+import { generateSnapshotReport, sampleIntake } from "@/lib/snapshot";
 
-const productLadder = [
-  {
-    name: "AI Snapshot",
-    price: "EUR79-EUR99",
-    description: "Paid entry point for diagnostic, scoring and 30-day priorities."
-  },
-  {
-    name: "AI Growth OS",
-    price: "EUR149-EUR249/mo",
-    description: "Core recurring layer with roadmap, assets, SOPs and monthly refresh."
-  },
-  {
-    name: "AI Operator",
-    price: "EUR499-EUR999/mo",
-    description: "Premium plan with active automations, deeper reporting and priority support."
-  }
+const report = generateSnapshotReport(sampleIntake);
+
+const heroBullets = [
+  "Built for startups and lean teams already selling something real",
+  "First outputs in 24 hours",
+  "No need to hire a full senior growth and ops team"
 ];
 
-const pillars = [
+const firstValue = [
   {
     icon: Sparkles,
-    title: "Diagnose before automating",
-    body: "The product starts with business understanding, not with random AI gimmicks."
+    title: "1 business scorecard",
+    body: "A maturity read, primary bottleneck and business score that tells you where the drag really is."
   },
   {
-    icon: Layers3,
-    title: "Structure before scale",
-    body: "Every account gets a clear operating rhythm, decision stack and prioritized backlog."
+    icon: Workflow,
+    title: "1 roadmap for the next 30 days",
+    body: "A focused execution plan with concrete priorities instead of a vague strategy document."
   },
   {
-    icon: ChartSpline,
-    title: "Execution with visibility",
-    body: "The dashboard exposes score, priorities, risks, assets and refresh cadence."
+    icon: Wrench,
+    title: "SOP and automation opportunities",
+    body: "A shortlist of the repeated tasks that should become systems before you add more people."
   },
   {
-    icon: ShieldCheck,
-    title: "Serious by default",
-    body: "Security, compliance, async support and scope protection are built into the offer."
+    icon: LayoutDashboard,
+    title: "A structured operating view",
+    body: "Priority cards, risks, quick wins and dashboard logic that make the next move obvious."
   }
 ];
 
-const launchSequence = [
-  "Sell the paid Snapshot first and use it to validate the wedge.",
-  "Keep the delivery semimanual where needed, but make the product feel structured.",
-  "Automate only what proves repeatable and margin-positive.",
-  "Use Barcelona Activa to refine viability, legal structure and acceleration."
+const steps = [
+  {
+    title: "Tell us how the business runs today",
+    body: "You complete a structured intake covering offer, channel mix, team size, goals and bottlenecks."
+  },
+  {
+    title: "AI Growth OS scores and structures the work",
+    body: "The system translates your inputs into a scorecard, roadmap, automation backlog and execution priorities."
+  },
+  {
+    title: "You receive outputs that are usable immediately",
+    body: "You get a plan you can execute, not a slide deck you need to reinterpret."
+  }
+];
+
+const dashboardBlocks = [
+  {
+    title: "Business scorecard",
+    items: [
+      `${report.score}/100 operating score`,
+      `${report.maturity} maturity stage`,
+      report.headline
+    ]
+  },
+  {
+    title: "Priority roadmap",
+    items: report.priorities.slice(0, 3).map((priority) => priority.title)
+  },
+  {
+    title: "SOP starter",
+    items: [
+      "Weekly growth review cadence",
+      "Lead-to-onboarding handoff checklist",
+      "Async operating review template"
+    ]
+  },
+  {
+    title: "Automation shortlist",
+    items: report.automationOpportunities.slice(0, 3)
+  }
+];
+
+const fit = {
+  yes: [
+    "Startups and digital businesses with validated demand",
+    "Lean teams that need a clearer operating system",
+    "Founders who want structure before adding headcount",
+    "Teams open to workflows, dashboards and async execution"
+  ],
+  no: [
+    "Businesses that need a fully custom agency relationship",
+    "Teams expecting unlimited calls and open-ended revisions",
+    "Companies that want card processing or support handled outside Stripe",
+    "High-touch consulting engagements without product boundaries"
+  ]
+};
+
+const trustPoints = [
+  "Payments handled securely by Stripe",
+  "No payment card data stored by the product",
+  "Security page, legal pack and public trust layer ready",
+  "Lead capture protected with rate limiting and optional Cloudflare Turnstile"
+];
+
+const beforeAfter = {
+  before: [
+    "Priorities live in the founder's head",
+    "Tasks keep moving without one operating model",
+    "Manual work grows faster than the team",
+    "Strategy exists, but execution stays fragmented"
+  ],
+  after: [
+    "One scorecard tells the team what matters now",
+    "The next 30 days are turned into visible priorities",
+    "SOP and automation opportunities become obvious",
+    "The product creates a clearer path from diagnosis to execution"
+  ]
+};
+
+const faqs = [
+  {
+    question: "What do I get first?",
+    answer:
+      "The first deliverable is AI Snapshot: a business scorecard, 30-day roadmap, quick wins, key risks and a recommended starter stack."
+  },
+  {
+    question: "How fast is the first value?",
+    answer:
+      "The product is positioned to deliver first outputs within 24 hours after intake and payment, with deeper recurring value inside Growth OS."
+  },
+  {
+    question: "Do you store payment data?",
+    answer:
+      "No. Checkout and billing are handled by Stripe. The product does not process or store payment card details."
+  },
+  {
+    question: "Who should start with Snapshot?",
+    answer:
+      "Teams that need clarity first. Snapshot is the fastest way to understand whether the next step should be a one-off diagnostic, Growth OS or a custom Operator rollout."
+  },
+  {
+    question: "Is everything fully automated?",
+    answer:
+      "No, and that is intentional. The system is productized and structured, but the priority is useful outputs and good decisions, not automation theater."
+  }
 ];
 
 export default function HomePage() {
@@ -59,11 +160,11 @@ export default function HomePage() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description:
-      "AI-first operating system for small businesses and startups that need growth and operations structure without hiring a full senior team.",
+      "AI-first operating system for small businesses and startups that need a 30-day plan, better execution and cleaner operations without hiring a full senior team.",
     offers: {
       "@type": "AggregateOffer",
-      lowPrice: "79",
-      highPrice: "999",
+      lowPrice: "99",
+      highPrice: "699",
       priceCurrency: "EUR"
     }
   };
@@ -76,96 +177,102 @@ export default function HomePage() {
       />
 
       <section className="surface overflow-hidden px-6 py-8 md:px-9 md:py-10">
-        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative">
             <div className="grid-lines absolute inset-0 rounded-[32px] opacity-50" />
             <div className="relative z-10 space-y-6">
-              <span className="eyebrow">AI-first operating layer for lean companies</span>
+              <span className="eyebrow">
+                AI-first operating system for startups and lean teams
+              </span>
               <div className="space-y-4">
                 <h1 className="display max-w-4xl">
-                  Clarity, execution and automation for small teams that cannot
-                  afford operational chaos.
+                  Get a 30-day operating plan and execution roadmap without
+                  hiring a full team.
                 </h1>
-                <p className="max-w-2xl body-lg">
-                  AI Growth OS packages strategy, marketing and operations into a
-                  productized system. It diagnoses the business, prioritizes
-                  actions, suggests automations and keeps the operating plan alive
-                  month after month.
+                <p className="max-w-3xl body-lg">
+                  AI Growth OS gives you a business scorecard, roadmap, SOP
+                  starters and automation opportunities in a structured
+                  AI-first workflow built for lean teams.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-wrap items-center gap-4">
                 <Link
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
-                  href="/onboarding"
+                  href="/pricing#plans"
                 >
-                  Start the Snapshot <ArrowRight className="h-4 w-4" />
+                  Get your AI Snapshot <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border)] bg-white/75 px-6 py-4 text-sm font-semibold uppercase tracking-[0.18em]"
-                  href="/dashboard"
+                  className="text-sm font-semibold uppercase tracking-[0.18em] text-ink underline-offset-4 hover:underline"
+                  href="#sample-output"
                 >
-                  Open dashboard demo
+                  See sample output
                 </Link>
               </div>
 
-              <div className="grid gap-4 pt-4 md:grid-cols-3">
-                <div className="metric-card">
-                  <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                    Outcome
-                  </p>
-                  <p className="mt-3 text-xl font-semibold">
-                    30-day operating plan in days, not months
-                  </p>
-                </div>
-                <div className="metric-card">
-                  <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                    Delivery
-                  </p>
-                  <p className="mt-3 text-xl font-semibold">
-                    Dashboard, priorities, SOPs and automations
-                  </p>
-                </div>
-                <div className="metric-card">
-                  <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                    Promise
-                  </p>
-                  <p className="mt-3 text-xl font-semibold">
-                    Less manual chaos. More guided execution.
-                  </p>
-                </div>
-              </div>
+              <ul className="grid gap-3 text-sm text-muted md:grid-cols-3">
+                {heroBullets.map((item) => (
+                  <li
+                    key={item}
+                    className="rounded-[22px] border border-[color:var(--border)] bg-white/85 px-4 py-4"
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="surface-strong p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                Primary wedge
+                First value
               </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
-                AI Growth OS for companies with validated product and limited internal team.
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-muted">
-                Not a classic agency. Not &quot;AI for everything&quot;. A product that
-                understands the business, exposes bottlenecks and keeps pushing
-                the next best move.
-              </p>
+              <div className="mt-4 grid gap-4">
+                <div className="metric-card">
+                  <p className="text-sm uppercase tracking-[0.18em] text-muted">
+                    Operating score
+                  </p>
+                  <div className="mt-3 flex items-end justify-between gap-4">
+                    <p className="text-5xl font-semibold">{report.score}</p>
+                    <span className="pill bg-teal/15 text-teal">
+                      {report.maturity}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
+                  <p className="text-sm uppercase tracking-[0.18em] text-muted">
+                    Next 30 days
+                  </p>
+                  <ul className="mt-4 space-y-3 text-sm text-muted">
+                    {report.priorities.slice(0, 3).map((priority) => (
+                      <li
+                        key={priority.title}
+                        className="rounded-2xl border border-[color:var(--border)] bg-sand/60 px-4 py-3"
+                      >
+                        {priority.title}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <div className="surface-strong p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                What the customer is really buying
+                What this replaces
               </p>
               <ul className="mt-4 space-y-3 text-sm text-muted">
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Clarity instead of guesswork
+                  Random task lists with no operating logic
                 </li>
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Velocity instead of drift
+                  Strategy docs that never become an execution plan
                 </li>
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  System instead of scattered effort
+                  Manual chaos that grows faster than the team can handle
                 </li>
               </ul>
             </div>
@@ -173,70 +280,315 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-wrap">
-        <div className="surface p-6 md:p-8">
-          <span className="eyebrow">Product ladder</span>
-          <div className="mt-6 space-y-4">
-            {productLadder.map((item) => (
-              <article
-                key={item.name}
-                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <h3 className="text-2xl font-semibold tracking-[-0.03em]">
-                    {item.name}
-                  </h3>
-                  <span className="pill bg-teal/15 text-teal">{item.price}</span>
-                </div>
-                <p className="mt-3 text-muted">{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <div className="surface p-6 md:p-8">
-          <span className="eyebrow">Go-to-market sequence</span>
-          <div className="mt-6 space-y-4">
-            {launchSequence.map((step, index) => (
-              <article
-                key={step}
-                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                  Step {index + 1}
-                </p>
-                <p className="mt-3 text-base text-muted">{step}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="surface px-6 py-8 md:px-9 md:py-9">
+      <section className="surface p-6 md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow">Operating principles</span>
+            <span className="eyebrow">What you get in 24 hours</span>
             <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-              The product must feel serious, fast and useful.
+              The first deliverable is tangible, not conceptual.
             </h2>
           </div>
-          <p className="max-w-2xl text-sm leading-7 text-muted">
-            The brand should not feel like hype. It should feel like a credible
-            operating layer for teams that want guidance, structure and leverage.
+          <p className="max-w-2xl body-lg">
+            The product should show value immediately: a scorecard, next actions,
+            system recommendations and a clearer operating view.
           </p>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {pillars.map(({ icon: Icon, title, body }) => (
+          {firstValue.map(({ icon: Icon, title, body }) => (
             <article
               key={title}
-              className="rounded-[26px] border border-[color:var(--border)] bg-white/80 p-6"
+              className="rounded-[26px] border border-[color:var(--border)] bg-white/85 p-6"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ink text-sand">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-xl font-semibold">{title}</h3>
               <p className="mt-3 text-sm leading-7 text-muted">{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="surface p-6 md:p-8">
+        <span className="eyebrow">How it works</span>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {steps.map((step, index) => (
+            <article
+              key={step.title}
+              className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                Step {index + 1}
+              </p>
+              <h3 className="mt-3 text-xl font-semibold">{step.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-muted">{step.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="surface p-6 md:p-8" id="sample-output">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="eyebrow">What the dashboard includes</span>
+            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
+              Scorecards, roadmap cards, SOP starters and automation queue.
+            </h2>
+          </div>
+          <p className="max-w-2xl body-lg">
+            This is the kind of output the system is designed to deliver:
+            visible priorities, next steps and operating logic in one place.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-[28px] border border-[color:var(--border)] bg-ink p-6 text-sand">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-sand/70">
+                  Sample account
+                </p>
+                <h3 className="mt-2 text-3xl font-semibold">
+                  {sampleIntake.companyName}
+                </h3>
+              </div>
+              <div className="rounded-[22px] border border-white/10 bg-white/5 px-5 py-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-sand/70">
+                  Operating score
+                </p>
+                <p className="mt-2 text-5xl font-semibold">{report.score}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-sand/70">
+                  Immediate focus
+                </p>
+                <ul className="mt-3 space-y-3 text-sm text-sand/85">
+                  {report.monthlyFocus.slice(0, 3).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-sand/70">
+                  Quick wins
+                </p>
+                <ul className="mt-3 space-y-3 text-sm text-sand/85">
+                  {report.quickWins.slice(0, 3).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {dashboardBlocks.map((block) => (
+              <article
+                key={block.title}
+                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+              >
+                <p className="text-sm uppercase tracking-[0.18em] text-muted">
+                  {block.title}
+                </p>
+                <ul className="mt-4 space-y-3 text-sm text-muted">
+                  {block.items.map((item) => (
+                    <li
+                      key={item}
+                      className="rounded-2xl border border-[color:var(--border)] bg-sand/65 px-4 py-3"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-wrap">
+        <div className="surface p-6 md:p-8">
+          <span className="eyebrow">Before AI Growth OS</span>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
+            The usual starting point is operational noise.
+          </h2>
+          <ul className="mt-6 space-y-3 text-sm text-muted">
+            {beforeAfter.before.map((item) => (
+              <li
+                key={item}
+                className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="surface p-6 md:p-8">
+          <span className="eyebrow">After AI Growth OS</span>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
+            The goal is a business that knows what to do next.
+          </h2>
+          <ul className="mt-6 space-y-3 text-sm text-muted">
+            {beforeAfter.after.map((item) => (
+              <li
+                key={item}
+                className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="section-wrap">
+        <div className="surface p-6 md:p-8">
+          <span className="eyebrow">Who it is for</span>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
+            Best fit for teams that need structure before scale.
+          </h2>
+          <ul className="mt-6 space-y-3 text-sm text-muted">
+            {fit.yes.map((item) => (
+              <li
+                key={item}
+                className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="surface p-6 md:p-8">
+          <span className="eyebrow">Who it is not for</span>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
+            Not built for open-ended service work.
+          </h2>
+          <ul className="mt-6 space-y-3 text-sm text-muted">
+            {fit.no.map((item) => (
+              <li
+                key={item}
+                className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="surface p-6 md:p-8" id="plans">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="eyebrow">Plans</span>
+            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
+              Start with the right level of operating support.
+            </h2>
+          </div>
+          <p className="max-w-2xl body-lg">
+            Snapshot is the main starting point. Growth OS is the recurring
+            layer. Operator is for teams that need deeper implementation.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 xl:grid-cols-3">
+          {pricingPlans.map((plan) => (
+            <article
+              key={plan.id}
+              className={`rounded-[28px] border p-6 ${
+                plan.id === "snapshot"
+                  ? "border-ink bg-ink text-sand"
+                  : "border-[color:var(--border)] bg-white/85"
+              }`}
+            >
+              <p
+                className={`text-sm uppercase tracking-[0.2em] ${
+                  plan.id === "snapshot" ? "text-sand/70" : "text-muted"
+                }`}
+              >
+                {plan.cadence}
+              </p>
+              <h3 className="mt-3 text-3xl font-semibold">{plan.name}</h3>
+              <p className="mt-3 text-4xl font-semibold">{plan.price}</p>
+              <p
+                className={`mt-4 text-sm leading-7 ${
+                  plan.id === "snapshot" ? "text-sand/80" : "text-muted"
+                }`}
+              >
+                {plan.description}
+              </p>
+
+              <div className="mt-6">
+                <Link
+                  className={`inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] ${
+                    plan.id === "snapshot"
+                      ? "text-sand"
+                      : "text-ink underline-offset-4 hover:underline"
+                  }`}
+                  href={plan.id === "operator" ? "#snapshot-request" : "/pricing"}
+                >
+                  {plan.id === "snapshot"
+                    ? "See plan details"
+                    : plan.id === "growth-os"
+                      ? "Compare recurring plan"
+                      : "Request Operator"}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="surface p-6 md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="eyebrow">Security and trust</span>
+            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
+              Trust has to be visible, especially for an AI-first product.
+            </h2>
+          </div>
+          <p className="max-w-2xl body-lg">
+            The commercial promise is simple: secure checkout, clear data
+            handling and structured outputs without hype or black-box pricing.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {trustPoints.map((item, index) => {
+            const icons = [Lock, BadgeCheck, Clock3, LayoutDashboard];
+            const Icon = icons[index];
+
+            return (
+              <article
+                key={item}
+                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ink text-sand">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <p className="mt-4 text-base font-medium text-muted">{item}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="surface p-6 md:p-8">
+        <span className="eyebrow">FAQ</span>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {faqs.map((faq) => (
+            <article
+              key={faq.question}
+              className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+            >
+              <h3 className="text-lg font-semibold">{faq.question}</h3>
+              <p className="mt-3 text-sm leading-7 text-muted">{faq.answer}</p>
             </article>
           ))}
         </div>

@@ -5,14 +5,14 @@ const report = generateSnapshotReport(sampleIntake);
 
 const metrics = [
   {
-    label: "MRR target",
-    value: "EUR4.5k",
-    note: "Base-case month 6 with 12 core and 3 premium accounts."
+    label: "First read",
+    value: "30-day plan",
+    note: "The output is structured around immediate priorities, not generic advice."
   },
   {
-    label: "Primary KPI",
-    value: "Snapshot -> subscription",
-    note: "The wedge has to convert into recurring value, not just one-off audits."
+    label: "Visible value",
+    value: "Score + roadmap",
+    note: "The sample output combines diagnosis, priorities and action logic in one view."
   },
   {
     label: "Support model",
@@ -36,15 +36,15 @@ export default function DashboardPage() {
       <section className="surface p-6 md:p-8">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow">Dashboard demo</span>
+            <span className="eyebrow">Sample output</span>
             <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em]">
-              Example operating dashboard for an early account.
+              See the kind of operating view the product is designed to deliver.
             </h1>
           </div>
           <p className="max-w-2xl body-lg">
             This view is seeded from a sample account and the same scoring engine
-            used by the intake flow. It gives the product a working core even
-            before live data integrations are connected.
+            used by the intake flow. The goal is to make priorities, quick wins
+            and automation opportunities visible at a glance.
           </p>
         </div>
 

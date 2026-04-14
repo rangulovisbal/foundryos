@@ -8,14 +8,13 @@ export function SiteFooter() {
               AI Growth OS
             </p>
             <p className="mt-2 max-w-2xl text-sm text-muted">
-              Built as a web-first MVP for small companies that need structured
-              growth, cleaner operations and async leverage without building a
-              full internal team from day one.
+              AI-first operating system for startups and lean teams that need a
+              clearer growth plan, better execution and less operational drag.
             </p>
           </div>
           <div className="text-sm text-muted">
-            <p>Stack: Next.js, Vercel, Supabase, Stripe, PostHog, OpenAI</p>
-            <p>Prepared for Barcelona Activa presentation and early validation.</p>
+            <p>Secure checkout handled by Stripe.</p>
+            <p>No payment card data is stored by the product.</p>
           </div>
         </div>
       </div>
