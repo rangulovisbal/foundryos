@@ -27,3 +27,4 @@ coverage
 data/*.json
 .playwright-cli
 *.tsbuildinfo
+.vercel
