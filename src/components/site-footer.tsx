@@ -1,4 +1,6 @@
 export function SiteFooter() {
+  const hasLiveCheckout = Boolean(process.env.STRIPE_SECRET_KEY);
+
   return (
     <footer className="page-shell pt-0">
       <div className="surface px-6 py-6 md:px-8">
@@ -13,8 +15,17 @@ export function SiteFooter() {
             </p>
           </div>
           <div className="text-sm text-muted">
-            <p>Secure checkout handled by Stripe.</p>
-            <p>No payment card data is stored by the product.</p>
+            {hasLiveCheckout ? (
+              <>
+                <p>Secure checkout handled by Stripe.</p>
+                <p>No payment card data is stored by the product.</p>
+              </>
+            ) : (
+              <>
+                <p>Checkout is being enabled for this deployment.</p>
+                <p>Use the request form if you want access before billing is live.</p>
+              </>
+            )}
           </div>
         </div>
       </div>

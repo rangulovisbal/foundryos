@@ -71,6 +71,7 @@ Optional but prepared:
 - `RESEND_FROM_EMAIL`
 - `RESEND_TO_EMAIL`
 - `OPENAI_API_KEY`
+- `OPENAI_SNAPSHOT_MODEL`
 - `NEXT_PUBLIC_POSTHOG_KEY`
 - `NEXT_PUBLIC_POSTHOG_HOST`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
@@ -79,6 +80,10 @@ Optional but prepared:
 ## Database
 
 The project is ready for Neon using Drizzle. If `DATABASE_URL` is missing, lead and subscription data falls back to local JSON in `data/` for local-only testing.
+
+## Snapshot engine behavior
+
+`/api/snapshot` always returns a valid report. By default it uses the local heuristic engine. If `OPENAI_API_KEY` is present, the API route refines that heuristic report with OpenAI and silently falls back to the heuristic result if the external call fails or times out.
 
 ## Validation commands
 

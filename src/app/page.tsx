@@ -105,7 +105,7 @@ const fit = {
 const trustPoints = [
   "Payments handled securely by Stripe",
   "No payment card data stored by the product",
-  "Security page, legal pack and public trust layer ready",
+  "Security page and launch-readiness checklist visible",
   "Lead capture protected with rate limiting and optional Cloudflare Turnstile"
 ];
 
@@ -138,7 +138,7 @@ const faqs = [
   {
     question: "Do you store payment data?",
     answer:
-      "No. Checkout and billing are handled by Stripe. The product does not process or store payment card details."
+      "No. When checkout is enabled, billing is handled by Stripe. The product does not process or store payment card details."
   },
   {
     question: "Who should start with Snapshot?",

@@ -45,3 +45,11 @@ export function getStripePriceId(planId: PlanId) {
       return undefined;
   }
 }
+
+export function isPlanCheckoutConfigured(planId: PlanId) {
+  if (planId === "operator") {
+    return false;
+  }
+
+  return Boolean(process.env.STRIPE_SECRET_KEY && getStripePriceId(planId));
+}

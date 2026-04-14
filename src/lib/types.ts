@@ -60,6 +60,14 @@ export const businessIntakeSchema = z.object({
 
 export type BusinessIntake = z.infer<typeof businessIntakeSchema>;
 
+export const snapshotPrioritySchema = z.object({
+  title: z.string().min(3).max(160),
+  impact: z.enum(["High", "Medium"]),
+  effort: z.enum(["Low", "Medium", "High"]),
+  owner: z.string().min(2).max(120),
+  rationale: z.string().min(12).max(280)
+});
+
 export type SnapshotPriority = {
   title: string;
   impact: "High" | "Medium";
@@ -67,6 +75,20 @@ export type SnapshotPriority = {
   owner: string;
   rationale: string;
 };
+
+export const snapshotReportSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  maturity: z.enum(["Early", "Developing", "Structured", "Scaling"]),
+  headline: z.string().min(12).max(180),
+  summary: z.string().min(24).max(360),
+  recommendedPlan: z.enum(["AI Snapshot", "AI Growth OS", "AI Operator"]),
+  quickWins: z.array(z.string().min(8).max(200)).min(3).max(5),
+  risks: z.array(z.string().min(8).max(200)).min(2).max(4),
+  suggestedStack: z.array(z.string().min(5).max(120)).min(3).max(6),
+  automationOpportunities: z.array(z.string().min(8).max(200)).min(3).max(5),
+  monthlyFocus: z.array(z.string().min(8).max(200)).min(3).max(5),
+  priorities: z.array(snapshotPrioritySchema).min(3).max(5)
+});
 
 export type SnapshotReport = {
   score: number;

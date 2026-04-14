@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { generateSnapshotReport } from "@/lib/snapshot";
+import { generateSnapshotReportWithAI } from "@/lib/snapshot-ai";
 import { businessIntakeSchema } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
     const json = await request.json();
     const intake = businessIntakeSchema.parse(json);
-    const report = generateSnapshotReport(intake);
+    const report = await generateSnapshotReportWithAI(intake);
 
     return NextResponse.json(report);
   } catch (error) {

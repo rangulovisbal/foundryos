@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BadgeCheck, Lock, Receipt, ShieldCheck } from "lucide-react";
 
 import { CheckoutButton } from "@/components/checkout-button";
-import { pricingPlans } from "@/lib/pricing";
+import { isPlanCheckoutConfigured, pricingPlans } from "@/lib/pricing";
 
 const planIncludes: Record<string, string[]> = {
   snapshot: [
@@ -46,7 +46,7 @@ const purchaseSteps = [
 const trustItems = [
   "Payments handled securely by Stripe",
   "No payment card data stored locally",
-  "Security page and legal pack visible",
+  "Security page and launch-readiness checklist visible",
   "Clear plan boundaries and no hidden scope creep"
 ];
 
@@ -60,6 +60,10 @@ const notIncluded = [
 ];
 
 export default function PricingPage() {
+  const hasLiveCheckout = pricingPlans.some(
+    (plan) => plan.checkoutEnabled && isPlanCheckoutConfigured(plan.id)
+  );
+
   return (
     <div className="page-shell space-y-8 pt-0">
       <section className="surface p-6 md:p-8">
@@ -72,6 +76,13 @@ export default function PricingPage() {
           Choose Growth OS if you want a recurring operating layer. Use Operator
           when the work includes deeper implementation and integrations.
         </p>
+        {!hasLiveCheckout ? (
+          <p className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
+            This deployment is running in request-access mode. Public checkout is
+            not enabled yet, so use the request form and we will follow up
+            manually.
+          </p>
+        ) : null}
       </section>
 
       <section className="grid gap-5 xl:grid-cols-3" id="plans">
@@ -109,14 +120,14 @@ export default function PricingPage() {
             </ul>
 
             <div className="mt-6">
-              {plan.checkoutEnabled ? (
+              {plan.checkoutEnabled && isPlanCheckoutConfigured(plan.id) ? (
                 <CheckoutButton planId={plan.id}>{plan.ctaLabel}</CheckoutButton>
               ) : (
                 <Link
                   className="inline-flex w-full items-center justify-center rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand transition hover:opacity-90"
                   href="/#snapshot-request"
                 >
-                  {plan.ctaLabel}
+                  {plan.checkoutEnabled ? "Request access" : plan.ctaLabel}
                 </Link>
               )}
             </div>

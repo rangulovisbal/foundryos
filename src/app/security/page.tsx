@@ -21,8 +21,12 @@ const docs = [
   "Incident response plan"
 ];
 
+const hasLiveCheckout = Boolean(process.env.STRIPE_SECRET_KEY);
+
 const handling = [
-  "Payments are handled by Stripe Checkout and Stripe Billing.",
+  hasLiveCheckout
+    ? "Payments are handled by Stripe Checkout and Stripe Billing."
+    : "Checkout is designed to run through Stripe once billing is enabled on this deployment.",
   "The product does not store payment card details.",
   "Lead capture can be protected with rate limiting and Cloudflare Turnstile.",
   "Critical outputs should remain subject to human review."
@@ -61,7 +65,12 @@ export default function SecurityPage() {
 
         <div className="surface p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            Public legal pack
+            Launch and compliance checklist
+          </p>
+          <p className="mt-4 text-sm leading-7 text-muted">
+            These are the required public-facing trust documents for a full
+            launch. This page makes the checklist visible, but it does not mean
+            each document has been drafted, reviewed, and published yet.
           </p>
           <div className="mt-4 space-y-3">
             {docs.map((item) => (
