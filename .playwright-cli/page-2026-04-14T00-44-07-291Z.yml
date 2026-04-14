@@ -1,0 +1,156 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AG AI Growth OS Growth + operations for lean teams" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AG
+        - generic [ref=e6]:
+          - paragraph [ref=e7]: AI Growth OS
+          - paragraph [ref=e8]: Growth + operations for lean teams
+      - navigation [ref=e9]:
+        - link "Pricing" [ref=e10] [cursor=pointer]:
+          - /url: /pricing
+        - link "Security" [ref=e11] [cursor=pointer]:
+          - /url: /security
+        - link "Dashboard demo" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Snapshot intake" [ref=e13] [cursor=pointer]:
+          - /url: /onboarding
+  - main [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e17]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: AI-first operating layer for lean companies
+          - generic [ref=e22]:
+            - heading "Clarity, execution and automation for small teams that cannot afford operational chaos." [level=1] [ref=e23]
+            - paragraph [ref=e24]: AI Growth OS packages strategy, marketing and operations into a productized system. It diagnoses the business, prioritizes actions, suggests automations and keeps the operating plan alive month after month.
+          - generic [ref=e25]:
+            - link "Start the Snapshot" [ref=e26] [cursor=pointer]:
+              - /url: /onboarding
+              - text: Start the Snapshot
+              - img [ref=e27]
+            - link "Open dashboard demo" [ref=e29] [cursor=pointer]:
+              - /url: /dashboard
+          - generic [ref=e30]:
+            - generic [ref=e31]:
+              - paragraph [ref=e32]: Outcome
+              - paragraph [ref=e33]: 30-day operating plan in days, not months
+            - generic [ref=e34]:
+              - paragraph [ref=e35]: Delivery
+              - paragraph [ref=e36]: Dashboard, priorities, SOPs and automations
+            - generic [ref=e37]:
+              - paragraph [ref=e38]: Promise
+              - paragraph [ref=e39]: Less manual chaos. More guided execution.
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - paragraph [ref=e42]: Primary wedge
+            - heading "AI Growth OS for companies with validated product and limited internal team." [level=2] [ref=e43]
+            - paragraph [ref=e44]: Not a classic agency. Not "AI for everything". A product that understands the business, exposes bottlenecks and keeps pushing the next best move.
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: What the customer is really buying
+            - list [ref=e47]:
+              - listitem [ref=e48]: Clarity instead of guesswork
+              - listitem [ref=e49]: Velocity instead of drift
+              - listitem [ref=e50]: System instead of scattered effort
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]: Product ladder
+          - generic [ref=e54]:
+            - article [ref=e55]:
+              - generic [ref=e56]:
+                - heading "AI Snapshot" [level=3] [ref=e57]
+                - generic [ref=e58]: EUR79-EUR99
+              - paragraph [ref=e59]: Paid entry point for diagnostic, scoring and 30-day priorities.
+            - article [ref=e60]:
+              - generic [ref=e61]:
+                - heading "AI Growth OS" [level=3] [ref=e62]
+                - generic [ref=e63]: EUR149-EUR249/mo
+              - paragraph [ref=e64]: Core recurring layer with roadmap, assets, SOPs and monthly refresh.
+            - article [ref=e65]:
+              - generic [ref=e66]:
+                - heading "AI Operator" [level=3] [ref=e67]
+                - generic [ref=e68]: EUR499-EUR999/mo
+              - paragraph [ref=e69]: Premium plan with active automations, deeper reporting and priority support.
+        - generic [ref=e70]:
+          - generic [ref=e71]: Go-to-market sequence
+          - generic [ref=e72]:
+            - article [ref=e73]:
+              - paragraph [ref=e74]: Step 1
+              - paragraph [ref=e75]: Sell the paid Snapshot first and use it to validate the wedge.
+            - article [ref=e76]:
+              - paragraph [ref=e77]: Step 2
+              - paragraph [ref=e78]: Keep the delivery semimanual where needed, but make the product feel structured.
+            - article [ref=e79]:
+              - paragraph [ref=e80]: Step 3
+              - paragraph [ref=e81]: Automate only what proves repeatable and margin-positive.
+            - article [ref=e82]:
+              - paragraph [ref=e83]: Step 4
+              - paragraph [ref=e84]: Use Barcelona Activa to refine viability, legal structure and acceleration.
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - generic [ref=e87]:
+            - generic [ref=e88]: Operating principles
+            - heading "The product must feel serious, fast and useful." [level=2] [ref=e89]
+          - paragraph [ref=e90]: The brand should not feel like hype. It should feel like a credible operating layer for teams that want guidance, structure and leverage.
+        - generic [ref=e91]:
+          - article [ref=e92]:
+            - img [ref=e94]
+            - heading "Diagnose before automating" [level=3] [ref=e96]
+            - paragraph [ref=e97]: The product starts with business understanding, not with random AI gimmicks.
+          - article [ref=e98]:
+            - img [ref=e100]
+            - heading "Structure before scale" [level=3] [ref=e104]
+            - paragraph [ref=e105]: Every account gets a clear operating rhythm, decision stack and prioritized backlog.
+          - article [ref=e106]:
+            - img [ref=e108]
+            - heading "Execution with visibility" [level=3] [ref=e111]
+            - paragraph [ref=e112]: The dashboard exposes score, priorities, risks, assets and refresh cadence.
+          - article [ref=e113]:
+            - img [ref=e115]
+            - heading "Serious by default" [level=3] [ref=e118]
+            - paragraph [ref=e119]: Security, compliance, async support and scope protection are built into the offer.
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: Lead capture
+          - heading "Request a paid Snapshot or an implementation call." [level=2] [ref=e124]
+          - paragraph [ref=e125]: This form stores leads, keeps UTM data, can verify Cloudflare Turnstile and can notify the team through Resend when those services are configured.
+        - generic [ref=e126]:
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - text: Name
+              - textbox "Name" [ref=e129]
+            - generic [ref=e130]:
+              - text: Email
+              - textbox "Email" [ref=e131]
+            - generic [ref=e132]:
+              - text: Company
+              - textbox "Company" [ref=e133]
+            - generic [ref=e134]:
+              - text: Website
+              - textbox "Website" [ref=e135]:
+                - /placeholder: https://example.com
+          - generic [ref=e136]:
+            - text: Team size
+            - combobox "Team size" [ref=e137]:
+              - option "Solo"
+              - option "2-5" [selected]
+              - option "6-10"
+              - option "11-20"
+              - option "20+"
+          - generic [ref=e138]:
+            - text: Context
+            - textbox "Context" [ref=e139]:
+              - /placeholder: Tell us what is blocking growth or operations right now.
+          - generic [ref=e140]:
+            - checkbox "I agree to be contacted about AI Growth OS and understand payment and future subscription processing is handled directly by Stripe." [checked] [ref=e141]
+            - generic [ref=e142]: I agree to be contacted about AI Growth OS and understand payment and future subscription processing is handled directly by Stripe.
+          - paragraph [ref=e143]: Cloudflare Turnstile is optional. Add the site and secret keys to enable bot protection on this form.
+          - button "Request Snapshot" [ref=e144] [cursor=pointer]
+  - contentinfo [ref=e145]:
+    - generic [ref=e147]:
+      - generic [ref=e148]:
+        - paragraph [ref=e149]: AI Growth OS
+        - paragraph [ref=e150]: Built as a web-first MVP for small companies that need structured growth, cleaner operations and async leverage without building a full internal team from day one.
+      - generic [ref=e151]:
+        - paragraph [ref=e152]: "Stack: Next.js, Vercel, Supabase, Stripe, PostHog, OpenAI"
+        - paragraph [ref=e153]: Prepared for Barcelona Activa presentation and early validation.

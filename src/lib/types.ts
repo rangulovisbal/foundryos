@@ -1,0 +1,83 @@
+import { z } from "zod";
+
+export const businessTypeOptions = [
+  "saas",
+  "service",
+  "agency",
+  "ecommerce",
+  "education",
+  "other"
+] as const;
+
+export const stageOptions = [
+  "pre-revenue",
+  "validated",
+  "growing",
+  "established"
+] as const;
+
+export const teamSizeOptions = [
+  "solo",
+  "2-5",
+  "6-10",
+  "11-20",
+  "20+"
+] as const;
+
+export const goalOptions = [
+  "increase-demand",
+  "improve-conversion",
+  "launch-offers",
+  "reduce-ops-load",
+  "build-system"
+] as const;
+
+export const bottleneckOptions = [
+  "growth-clarity",
+  "manual-operations",
+  "messaging",
+  "funnel-conversion",
+  "analytics",
+  "team-capacity"
+] as const;
+
+export const businessIntakeSchema = z.object({
+  companyName: z.string().min(2, "Company name is required."),
+  website: z.string().url("Enter a valid URL.").or(z.literal("")),
+  businessType: z.enum(businessTypeOptions),
+  stage: z.enum(stageOptions),
+  teamSize: z.enum(teamSizeOptions),
+  primaryGoal: z.enum(goalOptions),
+  biggestBottleneck: z.enum(bottleneckOptions),
+  mainChannel: z.string().min(2, "Main channel is required."),
+  currentTools: z.string().min(2, "Describe the current stack."),
+  monthlyRevenueBand: z.string().min(2, "Add a revenue band."),
+  hasDocumentedSOPs: z.boolean(),
+  hasAnalytics: z.boolean(),
+  openToAutomation: z.boolean(),
+  notes: z.string().max(1200).optional().default("")
+});
+
+export type BusinessIntake = z.infer<typeof businessIntakeSchema>;
+
+export type SnapshotPriority = {
+  title: string;
+  impact: "High" | "Medium";
+  effort: "Low" | "Medium" | "High";
+  owner: string;
+  rationale: string;
+};
+
+export type SnapshotReport = {
+  score: number;
+  maturity: "Early" | "Developing" | "Structured" | "Scaling";
+  headline: string;
+  summary: string;
+  recommendedPlan: "AI Snapshot" | "AI Growth OS" | "AI Operator";
+  quickWins: string[];
+  risks: string[];
+  suggestedStack: string[];
+  automationOpportunities: string[];
+  monthlyFocus: string[];
+  priorities: SnapshotPriority[];
+};

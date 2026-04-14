@@ -1,0 +1,18 @@
+metric,low_case,base_case,high_case,notes
+snapshot_price_eur,79,89,99,pago unico de entrada
+growth_os_price_eur_month,149,199,249,plan core
+ai_operator_price_eur_month,499,699,999,plan premium
+core_customers_month_6,10,12,15,meta de validacion controlada
+premium_customers_month_6,2,3,4,clientes de mayor ticket
+mrr_core_month_6_eur,1490,2388,3735,precio por numero de clientes core
+mrr_premium_month_6_eur,998,2097,3996,precio por numero de clientes premium
+total_mrr_month_6_eur,2488,4485,7731,suma core + premium
+vercel_monthly_cost,20,20,20,plan pro estimado
+supabase_monthly_cost,25,25,25,plan pro base
+n8n_monthly_cost,20,20,50,starter a pro
+email_domain_tools_monthly_cost,25,40,60,dominio email y utilidades
+accounting_legal_monthly_cost,150,250,400,gestoria y soporte legal
+llm_cost_per_active_account_eur,5,12,25,depende del routing y uso
+support_cost_per_active_account_eur,5,10,20,si el soporte se mantiene asincrono
+target_payback_months,3,3,4,objetivo de negocio sano
+target_logo_churn_monthly_pct,3,4,6,referencia para fase inicial
