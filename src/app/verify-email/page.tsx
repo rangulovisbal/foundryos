@@ -12,6 +12,8 @@ export default async function VerifyEmailPage({
   const copy =
     status === "invalid"
       ? "This verification link is invalid or expired. Sign up again or request a new link by logging in."
+      : status === "unavailable"
+        ? "Database-backed auth or transactional email is unavailable in this environment. Configure DATABASE_URL and email delivery before verifying accounts here."
       : "Check your inbox or use the preview verification link returned by signup. Once verified, you will be redirected into /app.";
 
   return (

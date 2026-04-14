@@ -25,6 +25,7 @@ pnpm-debug.log*
 coverage
 *.pem
 data/*.json
+data/foundation-db
 .playwright-cli
 *.tsbuildinfo
 .vercel

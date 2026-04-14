@@ -82,7 +82,8 @@ export const appSessions = pgTable(
   },
   (table) => [
     uniqueIndex("app_sessions_token_idx").on(table.tokenHash),
-    index("app_sessions_user_idx").on(table.userId)
+    index("app_sessions_user_idx").on(table.userId),
+    index("app_sessions_expires_idx").on(table.expiresAt)
   ]
 );
 
@@ -145,7 +146,8 @@ export const workspaceInvitations = pgTable(
   },
   (table) => [
     uniqueIndex("workspace_invitations_token_idx").on(table.tokenHash),
-    index("workspace_invitations_workspace_idx").on(table.workspaceId)
+    index("workspace_invitations_workspace_idx").on(table.workspaceId),
+    index("workspace_invitations_email_idx").on(table.email)
   ]
 );
 
@@ -161,7 +163,10 @@ export const emailVerificationTokens = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
   },
-  (table) => [uniqueIndex("email_verification_tokens_token_idx").on(table.tokenHash)]
+  (table) => [
+    uniqueIndex("email_verification_tokens_token_idx").on(table.tokenHash),
+    index("email_verification_tokens_user_idx").on(table.userId)
+  ]
 );
 
 export const passwordResetTokens = pgTable(
@@ -176,7 +181,10 @@ export const passwordResetTokens = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
   },
-  (table) => [uniqueIndex("password_reset_tokens_token_idx").on(table.tokenHash)]
+  (table) => [
+    uniqueIndex("password_reset_tokens_token_idx").on(table.tokenHash),
+    index("password_reset_tokens_user_idx").on(table.userId)
+  ]
 );
 
 export const workspaceUsageCounters = pgTable(
@@ -197,6 +205,32 @@ export const workspaceUsageCounters = pgTable(
     uniqueIndex("workspace_usage_counters_unique_idx").on(
       table.workspaceId,
       table.metricKey
-    )
+    ),
+    index("workspace_usage_counters_workspace_idx").on(table.workspaceId)
+  ]
+);
+
+export const adminAuditLogs = pgTable(
+  "admin_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    adminUserId: uuid("admin_user_id")
+      .notNull()
+      .references(() => appUsers.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    action: varchar("action", { length: 64 }).notNull(),
+    previousPlan: varchar("previous_plan", { length: 32 }),
+    nextPlan: varchar("next_plan", { length: 32 }),
+    previousAccountState: varchar("previous_account_state", { length: 32 }),
+    nextAccountState: varchar("next_account_state", { length: 32 }),
+    metadata: jsonb("metadata").$type<Record<string, unknown> | null>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("admin_audit_logs_workspace_idx").on(table.workspaceId),
+    index("admin_audit_logs_admin_idx").on(table.adminUserId),
+    index("admin_audit_logs_created_idx").on(table.createdAt)
   ]
 );

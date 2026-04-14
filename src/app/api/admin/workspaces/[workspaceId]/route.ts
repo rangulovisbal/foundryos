@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getCurrentUserSession } from "@/lib/auth";
+import { getCurrentUserSession, logWorkspaceAdminChange } from "@/lib/auth";
+import { findWorkspaceById, updateWorkspace } from "@/db/foundation";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceAdminUpdateSchema } from "@/lib/foundation";
-import { updateWorkspace } from "@/db/foundation";
 
 export async function PATCH(
   request: Request,
@@ -16,20 +17,43 @@ export async function PATCH(
     }
 
     const { workspaceId } = await params;
+    const existing = await findWorkspaceById(workspaceId);
+
+    if (!existing) {
+      return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
+    }
+
     const payload = workspaceAdminUpdateSchema.parse(await request.json());
     const workspace = await updateWorkspace(workspaceId, {
       accountState: payload.accountState,
       plan: payload.plan
     });
 
+    if (!workspace) {
+      return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
+    }
+
+    if (
+      existing.plan !== workspace.plan ||
+      existing.accountState !== workspace.accountState
+    ) {
+      await logWorkspaceAdminChange({
+        adminUserId: current.user.id,
+        workspaceId: workspace.id,
+        previousPlan: existing.plan,
+        nextPlan: workspace.plan,
+        previousAccountState: existing.accountState,
+        nextAccountState: workspace.accountState
+      });
+    }
+
     return NextResponse.json({ ok: true, workspace });
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Workspace state could not be updated."
+        error: getErrorMessage(error, "Workspace state could not be updated.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

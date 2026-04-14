@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createWorkspaceForUser, getCurrentUserSession } from "@/lib/auth";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceCreationSchema } from "@/lib/foundation";
 
 export async function POST(request: Request) {
@@ -22,10 +23,9 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Workspace could not be created."
+        error: getErrorMessage(error, "Workspace could not be created.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

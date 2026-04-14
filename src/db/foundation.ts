@@ -1,9 +1,10 @@
 import "server-only";
 
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 
-import { getDb } from "@/db/client";
+import { requireDb } from "@/db/client";
 import {
+  adminAuditLogs,
   appSessions,
   appUsers,
   emailVerificationTokens,
@@ -14,6 +15,7 @@ import {
   workspaces
 } from "@/db/schema";
 import type {
+  AdminAuditLogRecord,
   AppSession,
   AppUser,
   EmailVerificationRecord,
@@ -24,39 +26,145 @@ import type {
   WorkspaceMembershipView,
   WorkspaceRecord
 } from "@/lib/foundation";
-import {
-  readLocalEmailVerifications,
-  readLocalInvitations,
-  readLocalMemberships,
-  readLocalPasswordResets,
-  readLocalSessions,
-  readLocalUsageCounters,
-  readLocalUsers,
-  readLocalWorkspaces,
-  writeLocalEmailVerifications,
-  writeLocalInvitations,
-  writeLocalMemberships,
-  writeLocalPasswordResets,
-  writeLocalSessions,
-  writeLocalUsageCounters,
-  writeLocalUsers,
-  writeLocalWorkspaces
-} from "@/lib/local-auth-store";
 
 export type WorkspaceMemberRow = {
   membership: WorkspaceMembershipRecord;
   user: AppUser;
 };
 
-export async function createUser(record: AppUser) {
-  const db = getDb();
+export type AdminAuditLogRow = {
+  log: AdminAuditLogRecord;
+  adminUser: Pick<AppUser, "id" | "email" | "fullName">;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug">;
+};
 
-  if (!db) {
-    const users = await readLocalUsers();
-    users.unshift(record);
-    await writeLocalUsers(users);
-    return record;
-  }
+function mapUser(row: typeof appUsers.$inferSelect): AppUser {
+  return {
+    id: row.id,
+    email: row.email,
+    fullName: row.fullName,
+    passwordHash: row.passwordHash,
+    emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
+    globalRole: row.globalRole as AppUser["globalRole"],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapSession(row: typeof appSessions.$inferSelect): AppSession {
+  return {
+    id: row.id,
+    userId: row.userId,
+    tokenHash: row.tokenHash,
+    expiresAt: row.expiresAt.toISOString(),
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapWorkspace(row: typeof workspaces.$inferSelect): WorkspaceRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    ownerUserId: row.ownerUserId,
+    plan: row.plan as WorkspaceRecord["plan"],
+    accountState: row.accountState as WorkspaceRecord["accountState"],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapMembership(
+  row: typeof workspaceMemberships.$inferSelect
+): WorkspaceMembershipRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    userId: row.userId,
+    role: row.role as WorkspaceMembershipRecord["role"],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapInvitation(
+  row: typeof workspaceInvitations.$inferSelect
+): WorkspaceInvitationRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    email: row.email,
+    role: row.role as WorkspaceInvitationRecord["role"],
+    tokenHash: row.tokenHash,
+    invitedByUserId: row.invitedByUserId,
+    expiresAt: row.expiresAt.toISOString(),
+    acceptedAt: row.acceptedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapEmailVerification(
+  row: typeof emailVerificationTokens.$inferSelect
+): EmailVerificationRecord {
+  return {
+    id: row.id,
+    userId: row.userId,
+    email: row.email,
+    tokenHash: row.tokenHash,
+    expiresAt: row.expiresAt.toISOString(),
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapPasswordReset(
+  row: typeof passwordResetTokens.$inferSelect
+): PasswordResetRecord {
+  return {
+    id: row.id,
+    userId: row.userId,
+    email: row.email,
+    tokenHash: row.tokenHash,
+    expiresAt: row.expiresAt.toISOString(),
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapUsageCounter(
+  row: typeof workspaceUsageCounters.$inferSelect
+): UsageCounterRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    metricKey: row.metricKey as UsageCounterRecord["metricKey"],
+    limitCount: row.limitCount,
+    usedCount: row.usedCount,
+    periodStart: row.periodStart.toISOString(),
+    periodEnd: row.periodEnd.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapAdminAuditLog(
+  row: typeof adminAuditLogs.$inferSelect
+): AdminAuditLogRecord {
+  return {
+    id: row.id,
+    adminUserId: row.adminUserId,
+    workspaceId: row.workspaceId,
+    action: row.action,
+    previousPlan: (row.previousPlan as AdminAuditLogRecord["previousPlan"]) ?? null,
+    nextPlan: (row.nextPlan as AdminAuditLogRecord["nextPlan"]) ?? null,
+    previousAccountState:
+      (row.previousAccountState as AdminAuditLogRecord["previousAccountState"]) ?? null,
+    nextAccountState:
+      (row.nextAccountState as AdminAuditLogRecord["nextAccountState"]) ?? null,
+    metadata: (row.metadata as AdminAuditLogRecord["metadata"]) ?? null,
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+export async function createUser(record: AppUser) {
+  const db = await requireDb("user persistence");
 
   await db.insert(appUsers).values({
     id: record.id,
@@ -73,33 +181,14 @@ export async function createUser(record: AppUser) {
 }
 
 export async function listUsers() {
-  const db = getDb();
-
-  if (!db) {
-    return readLocalUsers();
-  }
-
+  const db = await requireDb("listing users");
   const rows = await db.select().from(appUsers).orderBy(desc(appUsers.createdAt));
-  return rows.map((row) => ({
-    id: row.id,
-    email: row.email,
-    fullName: row.fullName,
-    passwordHash: row.passwordHash,
-    emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
-    globalRole: row.globalRole as AppUser["globalRole"],
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  }));
+  return rows.map(mapUser);
 }
 
 export async function findUserByEmail(email: string) {
+  const db = await requireDb("user lookup");
   const normalizedEmail = email.trim().toLowerCase();
-  const db = getDb();
-
-  if (!db) {
-    const users = await readLocalUsers();
-    return users.find((user) => user.email === normalizedEmail) ?? null;
-  }
 
   const rows = await db
     .select()
@@ -107,72 +196,33 @@ export async function findUserByEmail(email: string) {
     .where(eq(appUsers.email, normalizedEmail))
     .limit(1);
 
-  const row = rows[0];
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    email: row.email,
-    fullName: row.fullName,
-    passwordHash: row.passwordHash,
-    emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
-    globalRole: row.globalRole as AppUser["globalRole"],
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  };
+  return rows[0] ? mapUser(rows[0]) : null;
 }
 
 export async function findUserById(userId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const users = await readLocalUsers();
-    return users.find((user) => user.id === userId) ?? null;
-  }
-
+  const db = await requireDb("user lookup");
   const rows = await db.select().from(appUsers).where(eq(appUsers.id, userId)).limit(1);
-  const row = rows[0];
-
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    email: row.email,
-    fullName: row.fullName,
-    passwordHash: row.passwordHash,
-    emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
-    globalRole: row.globalRole as AppUser["globalRole"],
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  };
+  return rows[0] ? mapUser(rows[0]) : null;
 }
 
 export async function updateUser(
   userId: string,
   patch: Partial<Pick<AppUser, "passwordHash" | "emailVerifiedAt" | "globalRole" | "fullName">>
 ) {
-  const db = getDb();
+  const db = await requireDb("user updates");
   const updatedAt = new Date().toISOString();
-
-  if (!db) {
-    const users = await readLocalUsers();
-    const nextUsers = users.map((user) =>
-      user.id === userId ? { ...user, ...patch, updatedAt } : user
-    );
-    await writeLocalUsers(nextUsers);
-    return nextUsers.find((user) => user.id === userId) ?? null;
-  }
 
   await db
     .update(appUsers)
     .set({
       fullName: patch.fullName,
       passwordHash: patch.passwordHash,
-      emailVerifiedAt: patch.emailVerifiedAt ? new Date(patch.emailVerifiedAt) : undefined,
+      emailVerifiedAt:
+        patch.emailVerifiedAt === undefined
+          ? undefined
+          : patch.emailVerifiedAt
+            ? new Date(patch.emailVerifiedAt)
+            : null,
       globalRole: patch.globalRole,
       updatedAt: new Date(updatedAt)
     })
@@ -182,14 +232,7 @@ export async function updateUser(
 }
 
 export async function createSession(record: AppSession) {
-  const db = getDb();
-
-  if (!db) {
-    const sessions = await readLocalSessions();
-    sessions.unshift(record);
-    await writeLocalSessions(sessions);
-    return record;
-  }
+  const db = await requireDb("session persistence");
 
   await db.insert(appSessions).values({
     id: record.id,
@@ -203,65 +246,35 @@ export async function createSession(record: AppSession) {
 }
 
 export async function findSessionByTokenHash(tokenHash: string) {
-  const now = new Date().toISOString();
-  const db = getDb();
-
-  if (!db) {
-    const sessions = await readLocalSessions();
-    return (
-      sessions.find(
-        (session) => session.tokenHash === tokenHash && session.expiresAt > now
-      ) ?? null
-    );
-  }
-
+  const db = await requireDb("session lookup");
   const rows = await db
     .select()
     .from(appSessions)
-    .where(and(eq(appSessions.tokenHash, tokenHash), gt(appSessions.expiresAt, new Date(now))))
+    .where(
+      and(
+        eq(appSessions.tokenHash, tokenHash),
+        gt(appSessions.expiresAt, new Date())
+      )
+    )
     .limit(1);
 
-  const row = rows[0];
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    userId: row.userId,
-    tokenHash: row.tokenHash,
-    expiresAt: row.expiresAt.toISOString(),
-    createdAt: row.createdAt.toISOString()
-  };
+  return rows[0] ? mapSession(rows[0]) : null;
 }
 
 export async function deleteSessionByTokenHash(tokenHash: string) {
-  const db = getDb();
-
-  if (!db) {
-    const sessions = await readLocalSessions();
-    await writeLocalSessions(sessions.filter((session) => session.tokenHash !== tokenHash));
-    return;
-  }
-
+  const db = await requireDb("session deletion");
   await db.delete(appSessions).where(eq(appSessions.tokenHash, tokenHash));
 }
 
+export async function deleteSessionsByUserId(userId: string) {
+  const db = await requireDb("session invalidation");
+  await db.delete(appSessions).where(eq(appSessions.userId, userId));
+}
+
 export async function createEmailVerification(record: EmailVerificationRecord) {
-  const db = getDb();
+  const db = await requireDb("email verification persistence");
 
-  if (!db) {
-    const tokens = (await readLocalEmailVerifications()).filter(
-      (token) => token.userId !== record.userId
-    );
-    tokens.unshift(record);
-    await writeLocalEmailVerifications(tokens);
-    return record;
-  }
-
-  await db
-    .delete(emailVerificationTokens)
-    .where(eq(emailVerificationTokens.userId, record.userId));
+  await db.delete(emailVerificationTokens).where(eq(emailVerificationTokens.userId, record.userId));
   await db.insert(emailVerificationTokens).values({
     id: record.id,
     userId: record.userId,
@@ -275,19 +288,7 @@ export async function createEmailVerification(record: EmailVerificationRecord) {
 }
 
 export async function consumeEmailVerification(tokenHash: string) {
-  const now = new Date().toISOString();
-  const db = getDb();
-
-  if (!db) {
-    const tokens = await readLocalEmailVerifications();
-    const match =
-      tokens.find((token) => token.tokenHash === tokenHash && token.expiresAt > now) ?? null;
-    if (!match) {
-      return null;
-    }
-    await writeLocalEmailVerifications(tokens.filter((token) => token.id !== match.id));
-    return match;
-  }
+  const db = await requireDb("email verification consumption");
 
   const rows = await db
     .select()
@@ -295,7 +296,7 @@ export async function consumeEmailVerification(tokenHash: string) {
     .where(
       and(
         eq(emailVerificationTokens.tokenHash, tokenHash),
-        gt(emailVerificationTokens.expiresAt, new Date(now))
+        gt(emailVerificationTokens.expiresAt, new Date())
       )
     )
     .limit(1);
@@ -306,32 +307,13 @@ export async function consumeEmailVerification(tokenHash: string) {
   }
 
   await db.delete(emailVerificationTokens).where(eq(emailVerificationTokens.id, row.id));
-
-  return {
-    id: row.id,
-    userId: row.userId,
-    email: row.email,
-    tokenHash: row.tokenHash,
-    expiresAt: row.expiresAt.toISOString(),
-    createdAt: row.createdAt.toISOString()
-  };
+  return mapEmailVerification(row);
 }
 
 export async function createPasswordReset(record: PasswordResetRecord) {
-  const db = getDb();
+  const db = await requireDb("password reset persistence");
 
-  if (!db) {
-    const tokens = (await readLocalPasswordResets()).filter(
-      (token) => token.userId !== record.userId
-    );
-    tokens.unshift(record);
-    await writeLocalPasswordResets(tokens);
-    return record;
-  }
-
-  await db
-    .delete(passwordResetTokens)
-    .where(eq(passwordResetTokens.userId, record.userId));
+  await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, record.userId));
   await db.insert(passwordResetTokens).values({
     id: record.id,
     userId: record.userId,
@@ -345,19 +327,7 @@ export async function createPasswordReset(record: PasswordResetRecord) {
 }
 
 export async function consumePasswordReset(tokenHash: string) {
-  const now = new Date().toISOString();
-  const db = getDb();
-
-  if (!db) {
-    const tokens = await readLocalPasswordResets();
-    const match =
-      tokens.find((token) => token.tokenHash === tokenHash && token.expiresAt > now) ?? null;
-    if (!match) {
-      return null;
-    }
-    await writeLocalPasswordResets(tokens.filter((token) => token.id !== match.id));
-    return match;
-  }
+  const db = await requireDb("password reset consumption");
 
   const rows = await db
     .select()
@@ -365,7 +335,7 @@ export async function consumePasswordReset(tokenHash: string) {
     .where(
       and(
         eq(passwordResetTokens.tokenHash, tokenHash),
-        gt(passwordResetTokens.expiresAt, new Date(now))
+        gt(passwordResetTokens.expiresAt, new Date())
       )
     )
     .limit(1);
@@ -376,15 +346,7 @@ export async function consumePasswordReset(tokenHash: string) {
   }
 
   await db.delete(passwordResetTokens).where(eq(passwordResetTokens.id, row.id));
-
-  return {
-    id: row.id,
-    userId: row.userId,
-    email: row.email,
-    tokenHash: row.tokenHash,
-    expiresAt: row.expiresAt.toISOString(),
-    createdAt: row.createdAt.toISOString()
-  };
+  return mapPasswordReset(row);
 }
 
 export async function createWorkspaceBundle({
@@ -396,22 +358,9 @@ export async function createWorkspaceBundle({
   membership: WorkspaceMembershipRecord;
   usage: UsageCounterRecord[];
 }) {
-  const db = getDb();
+  const db = await requireDb("workspace provisioning");
 
-  if (!db) {
-    const workspacesStore = await readLocalWorkspaces();
-    const membershipsStore = await readLocalMemberships();
-    const usageStore = await readLocalUsageCounters();
-    workspacesStore.unshift(workspace);
-    membershipsStore.unshift(membership);
-    usageStore.unshift(...usage);
-    await writeLocalWorkspaces(workspacesStore);
-    await writeLocalMemberships(membershipsStore);
-    await writeLocalUsageCounters(usageStore);
-    return workspace;
-  }
-
-  await db.insert(workspaces).values({
+  const insertWorkspace = db.insert(workspaces).values({
     id: workspace.id,
     name: workspace.name,
     slug: workspace.slug,
@@ -422,7 +371,7 @@ export async function createWorkspaceBundle({
     updatedAt: new Date(workspace.updatedAt)
   });
 
-  await db.insert(workspaceMemberships).values({
+  const insertMembership = db.insert(workspaceMemberships).values({
     id: membership.id,
     workspaceId: membership.workspaceId,
     userId: membership.userId,
@@ -432,7 +381,7 @@ export async function createWorkspaceBundle({
   });
 
   if (usage.length > 0) {
-    await db.insert(workspaceUsageCounters).values(
+    const insertUsage = db.insert(workspaceUsageCounters).values(
       usage.map((item) => ({
         id: item.id,
         workspaceId: item.workspaceId,
@@ -444,65 +393,26 @@ export async function createWorkspaceBundle({
         updatedAt: new Date(item.updatedAt)
       }))
     );
+
+    await insertWorkspace;
+    await insertMembership;
+    await insertUsage;
+    return workspace;
   }
 
+  await insertWorkspace;
+  await insertMembership;
   return workspace;
 }
 
 export async function findWorkspaceById(workspaceId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const workspacesStore = await readLocalWorkspaces();
-    return workspacesStore.find((workspace) => workspace.id === workspaceId) ?? null;
-  }
-
+  const db = await requireDb("workspace lookup");
   const rows = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).limit(1);
-  const row = rows[0];
-
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    ownerUserId: row.ownerUserId,
-    plan: row.plan as WorkspaceRecord["plan"],
-    accountState: row.accountState as WorkspaceRecord["accountState"],
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  };
+  return rows[0] ? mapWorkspace(rows[0]) : null;
 }
 
 export async function listUserWorkspaceMemberships(userId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const [membershipsStore, workspacesStore] = await Promise.all([
-      readLocalMemberships(),
-      readLocalWorkspaces()
-    ]);
-
-    return membershipsStore
-      .filter((membership) => membership.userId === userId)
-      .map((membership) => ({
-        membership,
-        workspace:
-          workspacesStore.find((workspace) => workspace.id === membership.workspaceId) ??
-          null
-      }))
-      .filter(
-        (
-          item
-        ): item is {
-          membership: WorkspaceMembershipRecord;
-          workspace: WorkspaceRecord;
-        } => Boolean(item.workspace)
-      );
-  }
-
+  const db = await requireDb("workspace membership lookup");
   const rows = await db
     .select({
       membership: workspaceMemberships,
@@ -515,41 +425,14 @@ export async function listUserWorkspaceMemberships(userId: string) {
 
   return rows.map(
     (row): WorkspaceMembershipView => ({
-      membership: {
-        id: row.membership.id,
-        workspaceId: row.membership.workspaceId,
-        userId: row.membership.userId,
-        role: row.membership.role as WorkspaceMembershipRecord["role"],
-        createdAt: row.membership.createdAt.toISOString(),
-        updatedAt: row.membership.updatedAt.toISOString()
-      },
-      workspace: {
-        id: row.workspace.id,
-        name: row.workspace.name,
-        slug: row.workspace.slug,
-        ownerUserId: row.workspace.ownerUserId,
-        plan: row.workspace.plan as WorkspaceRecord["plan"],
-        accountState: row.workspace.accountState as WorkspaceRecord["accountState"],
-        createdAt: row.workspace.createdAt.toISOString(),
-        updatedAt: row.workspace.updatedAt.toISOString()
-      }
+      membership: mapMembership(row.membership),
+      workspace: mapWorkspace(row.workspace)
     })
   );
 }
 
 export async function findWorkspaceMembership(workspaceId: string, userId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const membershipsStore = await readLocalMemberships();
-    return (
-      membershipsStore.find(
-        (membership) =>
-          membership.workspaceId === workspaceId && membership.userId === userId
-      ) ?? null
-    );
-  }
-
+  const db = await requireDb("workspace membership lookup");
   const rows = await db
     .select()
     .from(workspaceMemberships)
@@ -561,46 +444,11 @@ export async function findWorkspaceMembership(workspaceId: string, userId: strin
     )
     .limit(1);
 
-  const row = rows[0];
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    workspaceId: row.workspaceId,
-    userId: row.userId,
-    role: row.role as WorkspaceMembershipRecord["role"],
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  };
+  return rows[0] ? mapMembership(rows[0]) : null;
 }
 
 export async function listWorkspaceMembers(workspaceId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const [membershipsStore, usersStore] = await Promise.all([
-      readLocalMemberships(),
-      readLocalUsers()
-    ]);
-
-    return membershipsStore
-      .filter((membership) => membership.workspaceId === workspaceId)
-      .map((membership) => ({
-        membership,
-        user: usersStore.find((user) => user.id === membership.userId) ?? null
-      }))
-      .filter(
-        (
-          item
-        ): item is {
-          membership: WorkspaceMembershipRecord;
-          user: AppUser;
-        } => Boolean(item.user)
-      );
-  }
-
+  const db = await requireDb("workspace member lookup");
   const rows = await db
     .select({
       membership: workspaceMemberships,
@@ -613,59 +461,44 @@ export async function listWorkspaceMembers(workspaceId: string) {
 
   return rows.map(
     (row): WorkspaceMemberRow => ({
-      membership: {
-        id: row.membership.id,
-        workspaceId: row.membership.workspaceId,
-        userId: row.membership.userId,
-        role: row.membership.role as WorkspaceMembershipRecord["role"],
-        createdAt: row.membership.createdAt.toISOString(),
-        updatedAt: row.membership.updatedAt.toISOString()
-      },
-      user: {
-        id: row.user.id,
-        email: row.user.email,
-        fullName: row.user.fullName,
-        passwordHash: row.user.passwordHash,
-        emailVerifiedAt: row.user.emailVerifiedAt?.toISOString() ?? null,
-        globalRole: row.user.globalRole as AppUser["globalRole"],
-        createdAt: row.user.createdAt.toISOString(),
-        updatedAt: row.user.updatedAt.toISOString()
-      }
+      membership: mapMembership(row.membership),
+      user: mapUser(row.user)
     })
   );
 }
 
 export async function createWorkspaceMembership(record: WorkspaceMembershipRecord) {
-  const db = getDb();
+  const db = await requireDb("workspace membership creation");
 
-  if (!db) {
-    const membershipsStore = await readLocalMemberships();
-    membershipsStore.unshift(record);
-    await writeLocalMemberships(membershipsStore);
-    return record;
-  }
-
-  await db.insert(workspaceMemberships).values({
-    id: record.id,
-    workspaceId: record.workspaceId,
-    userId: record.userId,
-    role: record.role,
-    createdAt: new Date(record.createdAt),
-    updatedAt: new Date(record.updatedAt)
-  });
+  await db
+    .insert(workspaceMemberships)
+    .values({
+      id: record.id,
+      workspaceId: record.workspaceId,
+      userId: record.userId,
+      role: record.role,
+      createdAt: new Date(record.createdAt),
+      updatedAt: new Date(record.updatedAt)
+    })
+    .onConflictDoNothing({
+      target: [workspaceMemberships.workspaceId, workspaceMemberships.userId]
+    });
 
   return record;
 }
 
 export async function createWorkspaceInvitation(record: WorkspaceInvitationRecord) {
-  const db = getDb();
+  const db = await requireDb("workspace invitation creation");
 
-  if (!db) {
-    const invitations = await readLocalInvitations();
-    invitations.unshift(record);
-    await writeLocalInvitations(invitations);
-    return record;
-  }
+  await db
+    .delete(workspaceInvitations)
+    .where(
+      and(
+        eq(workspaceInvitations.workspaceId, record.workspaceId),
+        eq(workspaceInvitations.email, record.email),
+        isNull(workspaceInvitations.acceptedAt)
+      )
+    );
 
   await db.insert(workspaceInvitations).values({
     id: record.id,
@@ -683,125 +516,58 @@ export async function createWorkspaceInvitation(record: WorkspaceInvitationRecor
 }
 
 export async function listWorkspaceInvitations(workspaceId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const invitations = await readLocalInvitations();
-    return invitations
-      .filter((invitation) => invitation.workspaceId === workspaceId)
-      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-  }
-
+  const db = await requireDb("workspace invitation lookup");
   const rows = await db
     .select()
     .from(workspaceInvitations)
     .where(eq(workspaceInvitations.workspaceId, workspaceId))
     .orderBy(desc(workspaceInvitations.createdAt));
 
-  return rows.map((row) => ({
-    id: row.id,
-    workspaceId: row.workspaceId,
-    email: row.email,
-    role: row.role as WorkspaceInvitationRecord["role"],
-    tokenHash: row.tokenHash,
-    invitedByUserId: row.invitedByUserId,
-    expiresAt: row.expiresAt.toISOString(),
-    acceptedAt: row.acceptedAt?.toISOString() ?? null,
-    createdAt: row.createdAt.toISOString()
-  }));
+  return rows.map(mapInvitation);
 }
 
 export async function findInvitationByTokenHash(tokenHash: string) {
-  const now = new Date().toISOString();
-  const db = getDb();
-
-  if (!db) {
-    const invitations = await readLocalInvitations();
-    return (
-      invitations.find(
-        (invitation) =>
-          invitation.tokenHash === tokenHash &&
-          invitation.expiresAt > now &&
-          !invitation.acceptedAt
-      ) ?? null
-    );
-  }
-
+  const db = await requireDb("workspace invitation lookup");
   const rows = await db
     .select()
     .from(workspaceInvitations)
     .where(
       and(
         eq(workspaceInvitations.tokenHash, tokenHash),
-        gt(workspaceInvitations.expiresAt, new Date(now))
+        gt(workspaceInvitations.expiresAt, new Date())
       )
     )
     .limit(1);
 
-  const row = rows[0];
-  if (!row || row.acceptedAt) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    workspaceId: row.workspaceId,
-    email: row.email,
-    role: row.role as WorkspaceInvitationRecord["role"],
-    tokenHash: row.tokenHash,
-    invitedByUserId: row.invitedByUserId,
-    expiresAt: row.expiresAt.toISOString(),
-    acceptedAt: null,
-    createdAt: row.createdAt.toISOString()
-  };
+  return rows[0] ? mapInvitation(rows[0]) : null;
 }
 
 export async function acceptWorkspaceInvitation(invitationId: string, acceptedAt: string) {
-  const db = getDb();
-
-  if (!db) {
-    const invitations = await readLocalInvitations();
-    const nextInvitations = invitations.map((invitation) =>
-      invitation.id === invitationId ? { ...invitation, acceptedAt } : invitation
-    );
-    await writeLocalInvitations(nextInvitations);
-    return;
-  }
-
+  const db = await requireDb("workspace invitation acceptance");
   await db
     .update(workspaceInvitations)
     .set({ acceptedAt: new Date(acceptedAt) })
-    .where(eq(workspaceInvitations.id, invitationId));
+    .where(
+      and(
+        eq(workspaceInvitations.id, invitationId),
+        isNull(workspaceInvitations.acceptedAt)
+      )
+    );
 }
 
 export async function listWorkspaceUsage(workspaceId: string) {
-  const db = getDb();
-
-  if (!db) {
-    const usage = await readLocalUsageCounters();
-    return usage
-      .filter((counter) => counter.workspaceId === workspaceId)
-      .sort((left, right) => left.metricKey.localeCompare(right.metricKey));
-  }
-
+  const db = await requireDb("workspace usage lookup");
   const rows = await db
     .select()
     .from(workspaceUsageCounters)
-    .where(eq(workspaceUsageCounters.workspaceId, workspaceId));
+    .where(eq(workspaceUsageCounters.workspaceId, workspaceId))
+    .orderBy(desc(workspaceUsageCounters.metricKey));
 
-  return rows.map((row) => ({
-    id: row.id,
-    workspaceId: row.workspaceId,
-    metricKey: row.metricKey as UsageCounterRecord["metricKey"],
-    limitCount: row.limitCount,
-    usedCount: row.usedCount,
-    periodStart: row.periodStart.toISOString(),
-    periodEnd: row.periodEnd.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  }));
+  return rows.map(mapUsageCounter);
 }
 
 export async function syncSeatUsage(workspaceId: string) {
+  const db = await requireDb("workspace seat usage sync");
   const [members, usage] = await Promise.all([
     listWorkspaceMembers(workspaceId),
     listWorkspaceUsage(workspaceId)
@@ -812,41 +578,26 @@ export async function syncSeatUsage(workspaceId: string) {
     return;
   }
 
-  const nextUsedCount = members.length;
-  const updatedAt = new Date().toISOString();
-  const db = getDb();
-
-  if (!db) {
-    const counters = await readLocalUsageCounters();
-    const nextCounters = counters.map((counter) =>
-      counter.id === seatsCounter.id
-        ? { ...counter, usedCount: nextUsedCount, updatedAt }
-        : counter
-    );
-    await writeLocalUsageCounters(nextCounters);
-    return;
-  }
-
   await db
     .update(workspaceUsageCounters)
     .set({
-      usedCount: nextUsedCount,
-      updatedAt: new Date(updatedAt)
+      usedCount: members.length,
+      updatedAt: new Date()
     })
     .where(eq(workspaceUsageCounters.id, seatsCounter.id));
 }
 
 export async function updateWorkspace(workspaceId: string, patch: Partial<WorkspaceRecord>) {
-  const db = getDb();
-  const updatedAt = new Date().toISOString();
+  const db = await requireDb("workspace updates");
 
-  if (!db) {
-    const workspaceStore = await readLocalWorkspaces();
-    const nextWorkspaces = workspaceStore.map((workspace) =>
-      workspace.id === workspaceId ? { ...workspace, ...patch, updatedAt } : workspace
-    );
-    await writeLocalWorkspaces(nextWorkspaces);
-    return nextWorkspaces.find((workspace) => workspace.id === workspaceId) ?? null;
+  if (patch.ownerUserId) {
+    const ownerMembership = await findWorkspaceMembership(workspaceId, patch.ownerUserId);
+
+    if (!ownerMembership || ownerMembership.role !== "owner") {
+      throw new Error(
+        "Workspace ownership can only point at a user who already holds the owner membership."
+      );
+    }
   }
 
   await db
@@ -857,7 +608,7 @@ export async function updateWorkspace(workspaceId: string, patch: Partial<Worksp
       ownerUserId: patch.ownerUserId,
       plan: patch.plan,
       accountState: patch.accountState,
-      updatedAt: new Date(updatedAt)
+      updatedAt: new Date()
     })
     .where(eq(workspaces.id, workspaceId));
 
@@ -865,34 +616,63 @@ export async function updateWorkspace(workspaceId: string, patch: Partial<Worksp
 }
 
 export async function listWorkspaces() {
-  const db = getDb();
-
-  if (!db) {
-    const workspaceStore = await readLocalWorkspaces();
-    return workspaceStore.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-  }
-
+  const db = await requireDb("workspace listing");
   const rows = await db.select().from(workspaces).orderBy(desc(workspaces.createdAt));
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    ownerUserId: row.ownerUserId,
-    plan: row.plan as WorkspaceRecord["plan"],
-    accountState: row.accountState as WorkspaceRecord["accountState"],
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
-  }));
+  return rows.map(mapWorkspace);
 }
 
 export async function countUsers() {
-  const db = getDb();
+  const db = await requireDb("user counting");
+  const rows = await db.select({ id: appUsers.id }).from(appUsers);
+  return rows.length;
+}
 
-  if (!db) {
-    const users = await readLocalUsers();
-    return users.length;
-  }
+export async function createAdminAuditLog(record: AdminAuditLogRecord) {
+  const db = await requireDb("admin audit logging");
 
-  const users = await db.select({ id: appUsers.id }).from(appUsers);
-  return users.length;
+  await db.insert(adminAuditLogs).values({
+    id: record.id,
+    adminUserId: record.adminUserId,
+    workspaceId: record.workspaceId,
+    action: record.action,
+    previousPlan: record.previousPlan,
+    nextPlan: record.nextPlan,
+    previousAccountState: record.previousAccountState,
+    nextAccountState: record.nextAccountState,
+    metadata: record.metadata,
+    createdAt: new Date(record.createdAt)
+  });
+
+  return record;
+}
+
+export async function listAdminAuditLogs(limit = 20) {
+  const db = await requireDb("admin audit lookup");
+  const rows = await db
+    .select({
+      log: adminAuditLogs,
+      adminUser: appUsers,
+      workspace: workspaces
+    })
+    .from(adminAuditLogs)
+    .innerJoin(appUsers, eq(adminAuditLogs.adminUserId, appUsers.id))
+    .innerJoin(workspaces, eq(adminAuditLogs.workspaceId, workspaces.id))
+    .orderBy(desc(adminAuditLogs.createdAt))
+    .limit(limit);
+
+  return rows.map(
+    (row): AdminAuditLogRow => ({
+      log: mapAdminAuditLog(row.log),
+      adminUser: {
+        id: row.adminUser.id,
+        email: row.adminUser.email,
+        fullName: row.adminUser.fullName
+      },
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug
+      }
+    })
+  );
 }

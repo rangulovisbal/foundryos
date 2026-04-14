@@ -17,6 +17,7 @@ export function SignupForm({
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState(true);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -24,6 +25,7 @@ export function SignupForm({
     setLoading(true);
     setMessage(null);
     setPreviewUrl(null);
+    setEmailDelivery(true);
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -37,6 +39,7 @@ export function SignupForm({
       const payload = (await response.json()) as {
         error?: string;
         verificationPreviewUrl?: string | null;
+        emailDelivery?: boolean;
       };
 
       if (!response.ok) {
@@ -47,9 +50,17 @@ export function SignupForm({
         "Account created. Verify your email before accessing the authenticated preview."
       );
       setPreviewUrl(payload.verificationPreviewUrl ?? null);
+      setEmailDelivery(payload.emailDelivery ?? true);
 
-      if (!payload.verificationPreviewUrl) {
+      if (!payload.verificationPreviewUrl && (payload.emailDelivery ?? true)) {
         router.push("/verify-email?status=sent");
+        return;
+      }
+
+      if (!payload.verificationPreviewUrl && !(payload.emailDelivery ?? true)) {
+        setMessage(
+          "Account created, but transactional email is unavailable in this environment. Configure Resend or enable preview auth links before continuing."
+        );
         return;
       }
 
@@ -106,6 +117,11 @@ export function SignupForm({
               <a className="font-semibold text-ink underline" href={previewUrl}>
                 verify email
               </a>
+            </p>
+          ) : !emailDelivery ? (
+            <p className="mt-2">
+              Transactional email is unavailable in this environment. Configure
+              Resend or enable preview auth links before using signup here.
             </p>
           ) : null}
         </div>

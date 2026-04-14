@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { registerUser } from "@/lib/auth";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { signupSchema } from "@/lib/foundation";
 
 export async function POST(request: Request) {
@@ -16,9 +17,9 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Signup failed."
+        error: getErrorMessage(error, "Signup failed.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

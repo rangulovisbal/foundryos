@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { acceptWorkspaceInvite, getCurrentUserSession } from "@/lib/auth";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { acceptInvitationSchema } from "@/lib/foundation";
 
 export async function POST(request: Request) {
@@ -21,10 +22,9 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Invitation could not be accepted."
+        error: getErrorMessage(error, "Invitation could not be accepted.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

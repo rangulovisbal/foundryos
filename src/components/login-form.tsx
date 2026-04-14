@@ -16,6 +16,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState(true);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -23,6 +24,7 @@ export function LoginForm({
     setLoading(true);
     setMessage(null);
     setPreviewUrl(null);
+    setEmailDelivery(true);
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -37,12 +39,14 @@ export function LoginForm({
         error?: string;
         requiresVerification?: boolean;
         verificationPreviewUrl?: string | null;
+        emailDelivery?: boolean;
       };
 
       if (!response.ok) {
         if (payload.requiresVerification) {
           setMessage("Email verification required before login.");
           setPreviewUrl(payload.verificationPreviewUrl ?? null);
+          setEmailDelivery(payload.emailDelivery ?? true);
           return;
         }
         throw new Error(payload.error ?? "Login failed.");
@@ -92,6 +96,12 @@ export function LoginForm({
               <a className="font-semibold text-ink underline" href={previewUrl}>
                 verify email
               </a>
+            </p>
+          ) : !emailDelivery ? (
+            <p className="mt-2">
+              Verification email could not be delivered in this environment.
+              Configure Resend or enable preview auth links before using login
+              for unverified accounts.
             </p>
           ) : null}
         </div>

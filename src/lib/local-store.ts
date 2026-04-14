@@ -1,6 +1,8 @@
 import type { LeadRecord } from "@/lib/leads";
 import { readJsonArray, resolveDataFile, writeJsonArray } from "@/lib/local-json";
 
+// This module is intentionally limited to legacy marketing-preview fallbacks.
+// Auth, workspaces, memberships, and entitlement state must use the database.
 const LEADS_PATH = resolveDataFile("leads.json");
 const SUBSCRIPTIONS_PATH = resolveDataFile("subscriptions.json");
 

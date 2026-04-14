@@ -7,6 +7,7 @@ export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState(true);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -14,6 +15,7 @@ export function ForgotPasswordForm() {
     setLoading(true);
     setMessage(null);
     setPreviewUrl(null);
+    setEmailDelivery(true);
 
     try {
       const response = await fetch("/api/auth/forgot-password", {
@@ -27,6 +29,7 @@ export function ForgotPasswordForm() {
       const payload = (await response.json()) as {
         error?: string;
         previewUrl?: string | null;
+        emailDelivery?: boolean;
       };
 
       if (!response.ok) {
@@ -35,6 +38,7 @@ export function ForgotPasswordForm() {
 
       setMessage("If the account exists, a reset link has been prepared.");
       setPreviewUrl(payload.previewUrl ?? null);
+      setEmailDelivery(payload.emailDelivery ?? true);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Reset request failed.");
     } finally {
@@ -73,6 +77,11 @@ export function ForgotPasswordForm() {
               <a className="font-semibold text-ink underline" href={previewUrl}>
                 reset password
               </a>
+            </p>
+          ) : !emailDelivery ? (
+            <p className="mt-2">
+              Reset email delivery is unavailable in this environment. Configure
+              Resend or enable preview auth links before relying on reset here.
             </p>
           ) : null}
         </div>

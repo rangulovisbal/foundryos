@@ -1,7 +1,17 @@
+const vercelEnv = process.env.VERCEL_ENV ?? "development";
+const hasRemoteFoundationDb = Boolean(process.env.DATABASE_URL);
+const usesEmbeddedFoundationDb = !hasRemoteFoundationDb && vercelEnv === "development";
+
 export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  vercelEnv: process.env.VERCEL_ENV ?? "development",
-  hasNeon: Boolean(process.env.DATABASE_URL),
+  vercelEnv,
+  hasNeon: hasRemoteFoundationDb,
+  hasFoundationDb: hasRemoteFoundationDb || usesEmbeddedFoundationDb,
+  foundationDbMode: hasRemoteFoundationDb
+    ? ("remote" as const)
+    : usesEmbeddedFoundationDb
+      ? ("embedded" as const)
+      : ("missing" as const),
   hasSupabase: Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -21,5 +31,9 @@ export const env = {
   ),
   hasPostHog: Boolean(
     process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST
-  )
+  ),
+  allowAuthPreviewLinks:
+    process.env.AUTH_PREVIEW_LINKS === "true" ||
+    (process.env.AUTH_PREVIEW_LINKS !== "false" &&
+      vercelEnv !== "production")
 };

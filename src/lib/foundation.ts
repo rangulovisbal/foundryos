@@ -118,6 +118,19 @@ export type UsageCounterRecord = {
   updatedAt: string;
 };
 
+export type AdminAuditLogRecord = {
+  id: string;
+  adminUserId: string;
+  workspaceId: string;
+  action: string;
+  previousPlan: WorkspacePlan | null;
+  nextPlan: WorkspacePlan | null;
+  previousAccountState: WorkspaceAccountState | null;
+  nextAccountState: WorkspaceAccountState | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+};
+
 export type WorkspaceMembershipView = {
   membership: WorkspaceMembershipRecord;
   workspace: WorkspaceRecord;

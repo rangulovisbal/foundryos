@@ -49,6 +49,10 @@ export default function AdminLoginPage() {
           operations. It is strictly for MVP testing while managed admin auth
           and live billing controls remain out of scope.
         </p>
+        <div className="mt-6 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
+          If this bootstrap fails with a configuration error, the environment is
+          missing the database connection required for admin auth.
+        </div>
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="space-y-2 text-sm font-medium">

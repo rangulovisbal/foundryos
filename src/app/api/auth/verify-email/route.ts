@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { verifyEmailAndCreateSession } from "@/lib/auth";
+import { isConfigurationError } from "@/lib/errors";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -14,7 +15,13 @@ export async function GET(request: Request) {
     const response = NextResponse.redirect(new URL("/app?verified=1", request.url));
     await verifyEmailAndCreateSession(token, response);
     return response;
-  } catch {
+  } catch (error) {
+    if (isConfigurationError(error)) {
+      return NextResponse.redirect(
+        new URL("/verify-email?status=unavailable", request.url)
+      );
+    }
+
     return NextResponse.redirect(new URL("/verify-email?status=invalid", request.url));
   }
 }

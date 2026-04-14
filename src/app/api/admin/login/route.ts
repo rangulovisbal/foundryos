@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { bootstrapInternalAdminFromToken } from "@/lib/auth";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { adminBootstrapSchema } from "@/lib/foundation";
 
 export async function POST(request: Request) {
@@ -12,9 +13,9 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Login failed."
+        error: getErrorMessage(error, "Login failed.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

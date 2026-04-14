@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { env } from "@/lib/env";
+
 export function AuthShell({
   eyebrow,
   title,
@@ -24,6 +26,13 @@ export function AuthShell({
         </div>
         <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">{title}</h1>
         <p className="mt-4 body-lg">{description}</p>
+        {!env.hasFoundationDb ? (
+          <div className="mt-6 rounded-2xl border border-coral/30 bg-coral/10 px-4 py-3 text-sm text-coral">
+            Database-backed auth is unavailable until <code>DATABASE_URL</code> is
+            configured. The public preview can stay online, but account actions
+            are disabled in this environment.
+          </div>
+        ) : null}
         <div className="mt-8">{children}</div>
         {footer ? <div className="mt-6 text-sm text-muted">{footer}</div> : null}
       </section>

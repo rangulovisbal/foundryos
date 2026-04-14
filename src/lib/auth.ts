@@ -6,8 +6,10 @@ import { NextResponse } from "next/server";
 
 import {
   acceptWorkspaceInvitation,
+  deleteSessionsByUserId,
   consumeEmailVerification,
   consumePasswordReset,
+  createAdminAuditLog,
   createEmailVerification,
   createPasswordReset,
   createSession,
@@ -29,7 +31,9 @@ import {
   updateUser
 } from "@/db/foundation";
 import { env } from "@/lib/env";
+import { isConfigurationError } from "@/lib/errors";
 import {
+  type AdminAuditLogRecord,
   type AppUser,
   type WorkspaceContext,
   type WorkspaceRecord,
@@ -47,7 +51,10 @@ import {
 import { sendTransactionalEmail } from "@/lib/email";
 import { createRawToken, hashPassword, hashToken, verifyPassword } from "@/lib/security";
 
-const SESSION_COOKIE_NAME = "foundry_session";
+const SESSION_COOKIE_NAME =
+  process.env.NODE_ENV === "production"
+    ? "__Secure-foundry_session"
+    : "foundry_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 30;
 const INTERNAL_ADMIN_BOOTSTRAP_EMAIL = "internal-admin@preview.foundryos.local";
 
@@ -86,10 +93,14 @@ async function sendPreviewAwareEmail({
   const delivery = await sendTransactionalEmail({ to, subject, text });
 
   if (delivery.delivered) {
-    return { ...delivery, previewUrl: null };
+    return { ...delivery, previewUrl: null, deliveryMode: "email" as const };
   }
 
-  return { ...delivery, previewUrl };
+  if (env.allowAuthPreviewLinks) {
+    return { ...delivery, previewUrl, deliveryMode: "preview_link" as const };
+  }
+
+  return { ...delivery, previewUrl: null, deliveryMode: "unavailable" as const };
 }
 
 function resolveGlobalRole(email: string): AppUser["globalRole"] {
@@ -152,6 +163,7 @@ export async function getCurrentUserSession() {
 
   const user = await findUserById(session.userId);
   if (!user) {
+    await deleteSessionByTokenHash(hashToken(rawToken));
     return null;
   }
 
@@ -277,7 +289,8 @@ export async function registerUser(input: {
   return {
     user,
     verificationPreviewUrl: delivery.previewUrl,
-    emailDelivery: delivery.delivered
+    emailDelivery: delivery.delivered,
+    deliveryMode: delivery.deliveryMode
   };
 }
 
@@ -317,17 +330,34 @@ export async function authenticateUser(input: {
       createdAt: new Date().toISOString()
     });
 
+    const verificationPath = `/api/auth/verify-email?token=${rawToken}`;
+    const delivery = await sendPreviewAwareEmail({
+      to: user.email,
+      subject: "Verify your FoundryOS account",
+      text:
+        `Hi ${user.fullName},\n\n` +
+        `Verify your account to access the internal MVP preview:\n${buildAbsoluteUrl(
+          verificationPath
+        )}\n\n` +
+        "If you did not request this account, you can ignore this email.",
+      previewPath: verificationPath
+    });
+
     return {
       user: null,
       requiresVerification: true,
-      verificationPreviewUrl: buildAbsoluteUrl(`/api/auth/verify-email?token=${rawToken}`)
+      verificationPreviewUrl: delivery.previewUrl,
+      emailDelivery: delivery.delivered,
+      deliveryMode: delivery.deliveryMode
     };
   }
 
   return {
     user,
     requiresVerification: false,
-    verificationPreviewUrl: null
+    verificationPreviewUrl: null,
+    emailDelivery: true,
+    deliveryMode: "email" as const
   };
 }
 
@@ -337,7 +367,8 @@ export async function requestPasswordReset(email: string) {
   if (!user) {
     return {
       requested: true,
-      previewUrl: null
+      previewUrl: null,
+      emailDelivery: true
     };
   }
 
@@ -364,7 +395,8 @@ export async function requestPasswordReset(email: string) {
 
   return {
     requested: true,
-    previewUrl: delivery.previewUrl
+    previewUrl: delivery.previewUrl,
+    emailDelivery: delivery.delivered
   };
 }
 
@@ -378,6 +410,7 @@ export async function resetPasswordFromToken(token: string, password: string) {
   await updateUser(reset.userId, {
     passwordHash: hashPassword(password)
   });
+  await deleteSessionsByUserId(reset.userId);
 }
 
 async function createUniqueWorkspaceSlug(name: string) {
@@ -490,7 +523,8 @@ export async function inviteUserToWorkspace(input: {
 
   return {
     invitation,
-    previewUrl: delivery.previewUrl
+    previewUrl: delivery.previewUrl,
+    emailDelivery: delivery.delivered
   };
 }
 
@@ -510,7 +544,15 @@ export async function acceptWorkspaceInvite(rawToken: string, user: AppUser) {
     user.id
   );
   if (existingMembership) {
+    if (!invitation.acceptedAt) {
+      await acceptWorkspaceInvitation(invitation.id, new Date().toISOString());
+    }
+    await syncSeatUsage(invitation.workspaceId);
     return invitation.workspaceId;
+  }
+
+  if (invitation.acceptedAt) {
+    throw new Error("This invitation has already been accepted.");
   }
 
   const now = new Date().toISOString();
@@ -566,7 +608,13 @@ export async function logoutCurrentSession(response: NextResponse) {
   const rawToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (rawToken) {
-    await deleteSessionByTokenHash(hashToken(rawToken));
+    try {
+      await deleteSessionByTokenHash(hashToken(rawToken));
+    } catch (error) {
+      if (!isConfigurationError(error)) {
+        throw error;
+      }
+    }
   }
 
   clearSessionCookie(response);
@@ -574,4 +622,32 @@ export async function logoutCurrentSession(response: NextResponse) {
 
 export function redirectAfterAuth(target?: string | null) {
   return sanitizeRedirectPath(target);
+}
+
+export async function logWorkspaceAdminChange(input: {
+  adminUserId: string;
+  workspaceId: string;
+  previousPlan: WorkspaceRecord["plan"];
+  nextPlan: WorkspaceRecord["plan"];
+  previousAccountState: WorkspaceRecord["accountState"];
+  nextAccountState: WorkspaceRecord["accountState"];
+}) {
+  const audit: AdminAuditLogRecord = {
+    id: crypto.randomUUID(),
+    adminUserId: input.adminUserId,
+    workspaceId: input.workspaceId,
+    action: "workspace.state.updated",
+    previousPlan: input.previousPlan,
+    nextPlan: input.nextPlan,
+    previousAccountState: input.previousAccountState,
+    nextAccountState: input.nextAccountState,
+    metadata: null,
+    createdAt: new Date().toISOString()
+  };
+
+  await createAdminAuditLog(audit);
+}
+
+export function isAuthInfrastructureError(error: unknown) {
+  return isConfigurationError(error);
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { authenticateUser, startSessionForUser } from "@/lib/auth";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { loginSchema } from "@/lib/foundation";
 
 export async function POST(request: Request) {
@@ -13,7 +14,8 @@ export async function POST(request: Request) {
         {
           error: "Email verification required.",
           requiresVerification: true,
-          verificationPreviewUrl: result.verificationPreviewUrl
+          verificationPreviewUrl: result.verificationPreviewUrl,
+          emailDelivery: result.emailDelivery
         },
         { status: 403 }
       );
@@ -25,9 +27,9 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Login failed."
+        error: getErrorMessage(error, "Login failed.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

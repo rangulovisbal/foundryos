@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentWorkspaceContext, inviteUserToWorkspace } from "@/lib/auth";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { inviteMemberSchema } from "@/lib/foundation";
 
 export async function POST(request: Request) {
@@ -21,15 +22,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      previewUrl: result.previewUrl
+      previewUrl: result.previewUrl,
+      emailDelivery: result.emailDelivery
     });
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Invitation could not be created."
+        error: getErrorMessage(error, "Invitation could not be created.")
       },
-      { status: 400 }
+      { status: getErrorStatus(error, 400) }
     );
   }
 }

@@ -16,7 +16,7 @@ type SubscriptionInsert = {
 };
 
 export async function createLeadRecord(record: LeadRecord) {
-  const db = getDb();
+  const db = await getDb();
 
   if (!db) {
     await appendLocalLead(record);
@@ -41,11 +41,11 @@ export async function createLeadRecord(record: LeadRecord) {
     utmCampaign: record.utmCampaign || null
   });
 
-  return { storage: "neon" as const, record };
+  return { storage: "database" as const, record };
 }
 
 export async function listLeadRecords() {
-  const db = getDb();
+  const db = await getDb();
 
   if (!db) {
     return {
@@ -55,11 +55,11 @@ export async function listLeadRecords() {
   }
 
   const items = await db.select().from(leads).orderBy(desc(leads.createdAt));
-  return { storage: "neon" as const, items };
+  return { storage: "database" as const, items };
 }
 
 export async function upsertSubscriptionRecord(record: SubscriptionInsert) {
-  const db = getDb();
+  const db = await getDb();
 
   if (!db) {
     await appendLocalSubscription({
@@ -90,11 +90,12 @@ export async function upsertSubscriptionRecord(record: SubscriptionInsert) {
         })
         .where(eq(subscriptions.stripeSubscriptionId, record.stripeSubscriptionId));
 
-      return { storage: "neon" as const };
+      return { storage: "database" as const };
     }
   }
 
   await db.insert(subscriptions).values({
+    id: crypto.randomUUID(),
     email: record.email,
     company: record.company,
     planId: record.planId,
@@ -104,5 +105,5 @@ export async function upsertSubscriptionRecord(record: SubscriptionInsert) {
     metadata: record.metadata ?? null
   });
 
-  return { storage: "neon" as const };
+  return { storage: "database" as const };
 }
