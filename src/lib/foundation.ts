@@ -39,7 +39,20 @@ export const diagnosticJobStatusOptions = [
   "failed"
 ] as const;
 
+export const planningJobStatusOptions = diagnosticJobStatusOptions;
+
+export const planningJobTypeOptions = [
+  "roadmap_generation",
+  "thirty_day_plan_generation"
+] as const;
+
 export const outputLanguageOptions = ["en", "es"] as const;
+
+export const roadmapPhaseOptions = ["now", "next", "later"] as const;
+export const effortLevelOptions = ["low", "medium", "high"] as const;
+export const impactLevelOptions = ["low", "medium", "high"] as const;
+export const actionPriorityOptions = ["high", "medium", "low"] as const;
+export const actionStatusOptions = ["not_started", "in_progress", "blocked", "done"] as const;
 
 export type WorkspacePlan = (typeof workspacePlanOptions)[number];
 export type WorkspaceAccountState = (typeof workspaceAccountStateOptions)[number];
@@ -47,7 +60,14 @@ export type WorkspaceRole = (typeof workspaceRoleOptions)[number];
 export type UserGlobalRole = (typeof userGlobalRoleOptions)[number];
 export type UsageMetricKey = (typeof usageMetricKeyOptions)[number];
 export type DiagnosticJobStatus = (typeof diagnosticJobStatusOptions)[number];
+export type PlanningJobStatus = (typeof planningJobStatusOptions)[number];
+export type PlanningJobType = (typeof planningJobTypeOptions)[number];
 export type OutputLanguage = (typeof outputLanguageOptions)[number];
+export type RoadmapPhase = (typeof roadmapPhaseOptions)[number];
+export type EffortLevel = (typeof effortLevelOptions)[number];
+export type ImpactLevel = (typeof impactLevelOptions)[number];
+export type ActionPriority = (typeof actionPriorityOptions)[number];
+export type ActionStatus = (typeof actionStatusOptions)[number];
 
 export type AppUser = {
   id: string;
@@ -217,6 +237,93 @@ export type DiagnosticJobWithResult = {
   result: DiagnosticResultRecord | null;
 };
 
+export type PlanningJobRecord = {
+  id: string;
+  workspaceId: string;
+  requestedByUserId: string | null;
+  sourceDiagnosticResultId: string;
+  jobType: PlanningJobType;
+  status: PlanningJobStatus;
+  error: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RoadmapItem = {
+  title: string;
+  description: string;
+  phase: RoadmapPhase;
+  categoryTags: string[];
+  effortLevel: EffortLevel;
+  expectedImpact: ImpactLevel;
+  dependencies: string[];
+  reasoning: string;
+};
+
+export type RoadmapRecord = {
+  id: string;
+  jobId: string;
+  workspaceId: string;
+  sourceDiagnosticResultId: string;
+  summary: string;
+  items: RoadmapItem[];
+  createdAt: string;
+};
+
+export type PlanActionItem = {
+  title: string;
+  description: string;
+  priority: ActionPriority;
+  ownerSuggestion: string;
+  status: ActionStatus;
+  linkedCategory: string;
+  linkedReasoning: string;
+};
+
+export type ActionPlanRecord = {
+  id: string;
+  jobId: string;
+  workspaceId: string;
+  sourceDiagnosticResultId: string;
+  sourceRoadmapId: string | null;
+  actions: PlanActionItem[];
+  createdAt: string;
+};
+
+export type ThirtyDayPlanWeek = {
+  title: string;
+  objective: string;
+  actions: string[];
+  successSignal: string;
+};
+
+export type ThirtyDayPlanRecord = {
+  id: string;
+  jobId: string;
+  workspaceId: string;
+  sourceDiagnosticResultId: string;
+  monthObjective: string;
+  topPriorities: string[];
+  week1: ThirtyDayPlanWeek;
+  week2: ThirtyDayPlanWeek;
+  week3: ThirtyDayPlanWeek;
+  week4: ThirtyDayPlanWeek;
+  quickWins: string[];
+  risksToAvoid: string[];
+  successSignals: string[];
+  metricsToWatch: string[];
+  createdAt: string;
+};
+
+export type PlanningJobWithArtifacts = {
+  job: PlanningJobRecord;
+  roadmap: RoadmapRecord | null;
+  actionPlan: ActionPlanRecord | null;
+  thirtyDayPlan: ThirtyDayPlanRecord | null;
+};
+
 export type AdminAuditLogRecord = {
   id: string;
   adminUserId: string;
@@ -334,6 +441,9 @@ type PlanDefinition = {
     | "dashboard"
     | "profile"
     | "diagnostics"
+    | "roadmap"
+    | "actions"
+    | "thirty_day_plan"
     | "team"
     | "billing"
     | "monthly_refresh"
@@ -353,6 +463,9 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       dashboard: true,
       profile: true,
       diagnostics: true,
+      roadmap: true,
+      actions: true,
+      thirty_day_plan: true,
       team: false,
       billing: true,
       monthly_refresh: false,
@@ -374,6 +487,9 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       dashboard: true,
       profile: true,
       diagnostics: true,
+      roadmap: true,
+      actions: true,
+      thirty_day_plan: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -395,6 +511,9 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       dashboard: true,
       profile: true,
       diagnostics: true,
+      roadmap: true,
+      actions: true,
+      thirty_day_plan: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -495,6 +614,27 @@ export function canRunDiagnostics(context: WorkspaceContext) {
     canAccessWorkspace(context.workspace.accountState) &&
     canManageWorkspace(context.membership.role, context.workspace.accountState) &&
     hasUsageRemaining(context, "diagnostic_runs")
+  );
+}
+
+export function canGenerateRoadmap(context: WorkspaceContext) {
+  const plan = getPlanDefinition(context.workspace.plan);
+
+  return (
+    plan.features.roadmap &&
+    canAccessWorkspace(context.workspace.accountState) &&
+    canManageWorkspace(context.membership.role, context.workspace.accountState)
+  );
+}
+
+export function canGenerateThirtyDayPlan(context: WorkspaceContext) {
+  const plan = getPlanDefinition(context.workspace.plan);
+
+  return (
+    plan.features.actions &&
+    plan.features.thirty_day_plan &&
+    canAccessWorkspace(context.workspace.accountState) &&
+    canManageWorkspace(context.membership.role, context.workspace.accountState)
   );
 }
 

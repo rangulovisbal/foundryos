@@ -39,6 +39,9 @@ FoundryOS is currently in a controlled MVP preview phase.
 - Workspace plan entitlements and usage counters
 - Workspace business profile persistence
 - Structured diagnostics with persisted job history
+- Structured roadmap generation from the latest successful diagnostic result
+- Structured action plan and 30-day plan generation from profile, diagnostics,
+  roadmap, and workspace context
 
 ### Internal admin foundation
 
@@ -62,7 +65,6 @@ FoundryOS is currently in a controlled MVP preview phase.
 
 ### Product modules
 
-- Roadmap module
 - Assets module
 - SOPs module
 - Automations module
@@ -115,6 +117,10 @@ FoundryOS is currently in a controlled MVP preview phase.
   Workspace business profile setup and saved operating context.
 - `/app/diagnostics`
   Structured diagnostic runs, latest result, and persisted history.
+- `/app/roadmap`
+  Structured roadmap generation and persisted now/next/later roadmap history.
+- `/app/actions`
+  Structured action cards and persisted 30-day plan history.
 - `/app/team`
   Team members, invitations, and role-aware invite controls.
 - `/app/billing`
@@ -143,6 +149,8 @@ FoundryOS is currently in a controlled MVP preview phase.
 - `/api/auth/invitations/accept`
 - `/api/app/business-profile`
 - `/api/app/diagnostics/run`
+- `/api/app/roadmap/generate`
+- `/api/app/actions/generate`
 - `/api/admin/login`
 - `/api/admin/logout`
 - `/api/admin/workspaces/[workspaceId]`
@@ -194,6 +202,14 @@ FoundryOS is currently in a controlled MVP preview phase.
   Persisted diagnostic run lifecycle with queued, processing, completed, and failed states.
 - `diagnostic_results`
   Structured diagnostic outputs with scores, risks, bottlenecks, opportunities, actions, and evidence cards.
+- `planning_jobs`
+  Persisted roadmap and 30-day plan generation lifecycle with queued, processing, completed, and failed states.
+- `roadmaps`
+  Structured now/next/later roadmap artifacts linked to source diagnostic results.
+- `action_plans`
+  Structured action cards with priority, owner suggestion, status placeholder, category, and reasoning.
+- `thirty_day_plans`
+  Structured 30-day plan artifacts with weekly plans, priorities, risks, success signals, and metrics.
 - `admin_audit_logs`
   Admin changes to workspace plan/account state.
 
@@ -242,15 +258,15 @@ FoundryOS is currently in a controlled MVP preview phase.
 
 ## Next recommended slice
 
-Implement the next real workspace-scoped product module:
+Harden the planning layer before moving into assets or SOPs:
 
-`Diagnostic-to-roadmap operating plan`
+`Planning Review + Status Controls`
 
 That slice should include:
 
-- a workspace roadmap generated from the latest diagnostic result
-- persisted roadmap items with owner, priority, status, and due window
-- role-aware roadmap updates
-- plan-gated roadmap access
-- admin visibility into roadmap creation status
-- preview-safe labels that avoid claiming full automation is live
+- role-aware action status updates
+- founder/admin review controls for roadmap and 30-day plan outputs
+- basic item ownership and due-window editing
+- revision history for planning artifacts
+- clearer blocked-state handling before assets, SOPs, or automations are generated
+- preview-safe labels that avoid claiming delivery automation is live

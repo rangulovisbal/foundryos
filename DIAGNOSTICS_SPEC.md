@@ -157,7 +157,7 @@ Admin can still manually change workspace account state and plan for testing.
 - No live Stripe billing source of truth.
 - No background queue or worker process.
 - No OpenAI dependency for diagnostics.
-- No roadmap generation yet.
+- Roadmap generation is handled by the separate planning layer.
 - No export, PDF, or report sharing.
 - No customer-facing support workflow.
 
@@ -169,9 +169,9 @@ Admin can still manually change workspace account state and plan for testing.
 - Do not create roadmap items directly from diagnostics until the next slice adds a reviewable planning layer.
 - Keep live billing disabled until Stripe is intentionally promoted to source of truth.
 
-## Next slice
+## Downstream planning layer
 
-The next recommended product slice is a diagnostic-to-roadmap operating plan:
-persist roadmap items generated from the latest successful diagnostic result,
-allow role-aware status updates, and expose admin visibility into roadmap
-creation.
+Diagnostics now feed the persisted roadmap, action plan, and 30-day plan layer.
+The next planning hardening step should add role-aware status updates, review
+controls, ownership, due windows, and revision history before assets, SOPs, or
+automations are implemented.

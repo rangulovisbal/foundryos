@@ -5,12 +5,16 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { requireDb } from "@/db/client";
 import {
   adminAuditLogs,
+  actionPlans,
   appSessions,
   appUsers,
   diagnosticJobs,
   diagnosticResults,
   emailVerificationTokens,
   passwordResetTokens,
+  planningJobs,
+  roadmaps,
+  thirtyDayPlans,
   workspaceBusinessProfiles,
   workspaceInvitations,
   workspaceMemberships,
@@ -28,7 +32,13 @@ import type {
   DiagnosticResultRecord,
   EmailVerificationRecord,
   PasswordResetRecord,
+  ActionPlanRecord,
   UsageCounterRecord,
+  PlanningJobRecord,
+  PlanningJobType,
+  PlanningJobWithArtifacts,
+  RoadmapRecord,
+  ThirtyDayPlanRecord,
   WorkspaceInvitationRecord,
   WorkspaceMembershipRecord,
   WorkspaceMembershipView,
@@ -54,6 +64,15 @@ export type AdminDiagnosticJobRow = {
     DiagnosticResultRecord,
     "id" | "overallMaturityScore" | "confidence" | "createdAt"
   > | null;
+};
+
+export type AdminPlanningJobRow = {
+  job: PlanningJobRecord;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+  roadmap: Pick<RoadmapRecord, "id" | "createdAt"> | null;
+  actionPlan: Pick<ActionPlanRecord, "id" | "createdAt"> | null;
+  thirtyDayPlan: Pick<ThirtyDayPlanRecord, "id" | "createdAt"> | null;
 };
 
 function mapUser(row: typeof appUsers.$inferSelect): AppUser {
@@ -221,6 +240,66 @@ function mapDiagnosticResult(
     recommendedNextActions: row.recommendedNextActions,
     evidenceCards: row.evidenceCards,
     summary: row.summary,
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapPlanningJob(row: typeof planningJobs.$inferSelect): PlanningJobRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    requestedByUserId: row.requestedByUserId,
+    sourceDiagnosticResultId: row.sourceDiagnosticResultId,
+    jobType: row.jobType as PlanningJobRecord["jobType"],
+    status: row.status as PlanningJobRecord["status"],
+    error: row.error,
+    startedAt: row.startedAt?.toISOString() ?? null,
+    completedAt: row.completedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapRoadmap(row: typeof roadmaps.$inferSelect): RoadmapRecord {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    workspaceId: row.workspaceId,
+    sourceDiagnosticResultId: row.sourceDiagnosticResultId,
+    summary: row.summary,
+    items: row.items as RoadmapRecord["items"],
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapActionPlan(row: typeof actionPlans.$inferSelect): ActionPlanRecord {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    workspaceId: row.workspaceId,
+    sourceDiagnosticResultId: row.sourceDiagnosticResultId,
+    sourceRoadmapId: row.sourceRoadmapId,
+    actions: row.actions as ActionPlanRecord["actions"],
+    createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapThirtyDayPlan(row: typeof thirtyDayPlans.$inferSelect): ThirtyDayPlanRecord {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    workspaceId: row.workspaceId,
+    sourceDiagnosticResultId: row.sourceDiagnosticResultId,
+    monthObjective: row.monthObjective,
+    topPriorities: row.topPriorities,
+    week1: row.week1,
+    week2: row.week2,
+    week3: row.week3,
+    week4: row.week4,
+    quickWins: row.quickWins,
+    risksToAvoid: row.risksToAvoid,
+    successSignals: row.successSignals,
+    metricsToWatch: row.metricsToWatch,
     createdAt: row.createdAt.toISOString()
   };
 }
@@ -838,6 +917,186 @@ export async function listDiagnosticJobsWithResults(
   }));
 }
 
+export async function createPlanningJob(record: PlanningJobRecord) {
+  const db = await requireDb("planning job persistence");
+
+  await db.insert(planningJobs).values({
+    id: record.id,
+    workspaceId: record.workspaceId,
+    requestedByUserId: record.requestedByUserId,
+    sourceDiagnosticResultId: record.sourceDiagnosticResultId,
+    jobType: record.jobType,
+    status: record.status,
+    error: record.error,
+    startedAt: record.startedAt ? new Date(record.startedAt) : null,
+    completedAt: record.completedAt ? new Date(record.completedAt) : null,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt)
+  });
+
+  return record;
+}
+
+export async function updatePlanningJob(
+  jobId: string,
+  patch: Partial<
+    Pick<PlanningJobRecord, "status" | "error" | "startedAt" | "completedAt">
+  >
+) {
+  const db = await requireDb("planning job updates");
+
+  await db
+    .update(planningJobs)
+    .set({
+      status: patch.status,
+      error: patch.error,
+      startedAt:
+        patch.startedAt === undefined
+          ? undefined
+          : patch.startedAt
+            ? new Date(patch.startedAt)
+            : null,
+      completedAt:
+        patch.completedAt === undefined
+          ? undefined
+          : patch.completedAt
+            ? new Date(patch.completedAt)
+            : null,
+      updatedAt: new Date()
+    })
+    .where(eq(planningJobs.id, jobId));
+}
+
+export async function createRoadmap(record: RoadmapRecord) {
+  const db = await requireDb("roadmap persistence");
+
+  await db.insert(roadmaps).values({
+    id: record.id,
+    jobId: record.jobId,
+    workspaceId: record.workspaceId,
+    sourceDiagnosticResultId: record.sourceDiagnosticResultId,
+    summary: record.summary,
+    items: record.items,
+    createdAt: new Date(record.createdAt)
+  });
+
+  return record;
+}
+
+export async function createActionPlan(record: ActionPlanRecord) {
+  const db = await requireDb("action plan persistence");
+
+  await db.insert(actionPlans).values({
+    id: record.id,
+    jobId: record.jobId,
+    workspaceId: record.workspaceId,
+    sourceDiagnosticResultId: record.sourceDiagnosticResultId,
+    sourceRoadmapId: record.sourceRoadmapId,
+    actions: record.actions,
+    createdAt: new Date(record.createdAt)
+  });
+
+  return record;
+}
+
+export async function createThirtyDayPlan(record: ThirtyDayPlanRecord) {
+  const db = await requireDb("30-day plan persistence");
+
+  await db.insert(thirtyDayPlans).values({
+    id: record.id,
+    jobId: record.jobId,
+    workspaceId: record.workspaceId,
+    sourceDiagnosticResultId: record.sourceDiagnosticResultId,
+    monthObjective: record.monthObjective,
+    topPriorities: record.topPriorities,
+    week1: record.week1,
+    week2: record.week2,
+    week3: record.week3,
+    week4: record.week4,
+    quickWins: record.quickWins,
+    risksToAvoid: record.risksToAvoid,
+    successSignals: record.successSignals,
+    metricsToWatch: record.metricsToWatch,
+    createdAt: new Date(record.createdAt)
+  });
+
+  return record;
+}
+
+export async function getLatestRoadmap(workspaceId: string) {
+  const db = await requireDb("latest roadmap lookup");
+  const rows = await db
+    .select()
+    .from(roadmaps)
+    .where(eq(roadmaps.workspaceId, workspaceId))
+    .orderBy(desc(roadmaps.createdAt))
+    .limit(1);
+
+  return rows[0] ? mapRoadmap(rows[0]) : null;
+}
+
+export async function getLatestActionPlan(workspaceId: string) {
+  const db = await requireDb("latest action plan lookup");
+  const rows = await db
+    .select()
+    .from(actionPlans)
+    .where(eq(actionPlans.workspaceId, workspaceId))
+    .orderBy(desc(actionPlans.createdAt))
+    .limit(1);
+
+  return rows[0] ? mapActionPlan(rows[0]) : null;
+}
+
+export async function getLatestThirtyDayPlan(workspaceId: string) {
+  const db = await requireDb("latest 30-day plan lookup");
+  const rows = await db
+    .select()
+    .from(thirtyDayPlans)
+    .where(eq(thirtyDayPlans.workspaceId, workspaceId))
+    .orderBy(desc(thirtyDayPlans.createdAt))
+    .limit(1);
+
+  return rows[0] ? mapThirtyDayPlan(rows[0]) : null;
+}
+
+export async function listPlanningJobsWithArtifacts({
+  workspaceId,
+  jobType,
+  limit = 10
+}: {
+  workspaceId: string;
+  jobType?: PlanningJobType;
+  limit?: number;
+}): Promise<PlanningJobWithArtifacts[]> {
+  const db = await requireDb("planning job history lookup");
+  const filters = [eq(planningJobs.workspaceId, workspaceId)];
+  if (jobType) {
+    filters.push(eq(planningJobs.jobType, jobType));
+  }
+
+  const rows = await db
+    .select({
+      job: planningJobs,
+      roadmap: roadmaps,
+      actionPlan: actionPlans,
+      thirtyDayPlan: thirtyDayPlans
+    })
+    .from(planningJobs)
+    .leftJoin(roadmaps, eq(roadmaps.jobId, planningJobs.id))
+    .leftJoin(actionPlans, eq(actionPlans.jobId, planningJobs.id))
+    .leftJoin(thirtyDayPlans, eq(thirtyDayPlans.jobId, planningJobs.id))
+    .where(and(...filters))
+    .orderBy(desc(planningJobs.createdAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    job: mapPlanningJob(row.job),
+    roadmap: row.roadmap ? mapRoadmap(row.roadmap) : null,
+    actionPlan: row.actionPlan ? mapActionPlan(row.actionPlan) : null,
+    thirtyDayPlan: row.thirtyDayPlan ? mapThirtyDayPlan(row.thirtyDayPlan) : null
+  }));
+}
+
 export async function syncSeatUsage(workspaceId: string) {
   const db = await requireDb("workspace seat usage sync");
   const [members, usage] = await Promise.all([
@@ -989,6 +1248,65 @@ export async function listAdminDiagnosticJobs(limit = 20) {
             overallMaturityScore: row.result.overallMaturityScore,
             confidence: row.result.confidence as DiagnosticResultRecord["confidence"],
             createdAt: row.result.createdAt.toISOString()
+          }
+        : null
+    })
+  );
+}
+
+export async function listAdminPlanningJobs(limit = 20) {
+  const db = await requireDb("admin planning job lookup");
+  const rows = await db
+    .select({
+      job: planningJobs,
+      workspace: workspaces,
+      requestedByUser: appUsers,
+      roadmap: roadmaps,
+      actionPlan: actionPlans,
+      thirtyDayPlan: thirtyDayPlans
+    })
+    .from(planningJobs)
+    .innerJoin(workspaces, eq(planningJobs.workspaceId, workspaces.id))
+    .leftJoin(appUsers, eq(planningJobs.requestedByUserId, appUsers.id))
+    .leftJoin(roadmaps, eq(roadmaps.jobId, planningJobs.id))
+    .leftJoin(actionPlans, eq(actionPlans.jobId, planningJobs.id))
+    .leftJoin(thirtyDayPlans, eq(thirtyDayPlans.jobId, planningJobs.id))
+    .orderBy(desc(planningJobs.createdAt))
+    .limit(limit);
+
+  return rows.map(
+    (row): AdminPlanningJobRow => ({
+      job: mapPlanningJob(row.job),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"]
+      },
+      requestedByUser: row.requestedByUser
+        ? {
+            id: row.requestedByUser.id,
+            email: row.requestedByUser.email,
+            fullName: row.requestedByUser.fullName
+          }
+        : null,
+      roadmap: row.roadmap
+        ? {
+            id: row.roadmap.id,
+            createdAt: row.roadmap.createdAt.toISOString()
+          }
+        : null,
+      actionPlan: row.actionPlan
+        ? {
+            id: row.actionPlan.id,
+            createdAt: row.actionPlan.createdAt.toISOString()
+          }
+        : null,
+      thirtyDayPlan: row.thirtyDayPlan
+        ? {
+            id: row.thirtyDayPlan.id,
+            createdAt: row.thirtyDayPlan.createdAt.toISOString()
           }
         : null
     })

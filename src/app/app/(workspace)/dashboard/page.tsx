@@ -1,15 +1,30 @@
 import Link from "next/link";
 
 import { LockedStatePanel } from "@/components/locked-state-panel";
-import { getBusinessProfile, getLatestDiagnosticResult } from "@/db/foundation";
+import {
+  getBusinessProfile,
+  getLatestActionPlan,
+  getLatestDiagnosticResult,
+  getLatestRoadmap,
+  getLatestThirtyDayPlan
+} from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
 import { getPlanDefinition, isLockedState } from "@/lib/foundation";
 
 export default async function WorkspaceDashboardPage() {
   const context = await requireWorkspaceContext("/app/dashboard");
-  const [profile, latestDiagnostic] = await Promise.all([
+  const [
+    profile,
+    latestDiagnostic,
+    latestRoadmap,
+    latestActionPlan,
+    latestThirtyDayPlan
+  ] = await Promise.all([
     getBusinessProfile(context.workspace.id),
-    getLatestDiagnosticResult(context.workspace.id)
+    getLatestDiagnosticResult(context.workspace.id),
+    getLatestRoadmap(context.workspace.id),
+    getLatestActionPlan(context.workspace.id),
+    getLatestThirtyDayPlan(context.workspace.id)
   ]);
   const plan = getPlanDefinition(context.workspace.plan);
 
@@ -88,6 +103,42 @@ export default async function WorkspaceDashboardPage() {
             <Link className="font-semibold text-ink underline" href="/app/diagnostics">
               Open diagnostics
             </Link>
+          </p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">Roadmap</p>
+          <p className="mt-3 text-2xl font-semibold">
+            {latestRoadmap ? "Saved" : "Not generated"}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            <Link className="font-semibold text-ink underline" href="/app/roadmap">
+              Open roadmap
+            </Link>
+          </p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">Actions</p>
+          <p className="mt-3 text-2xl font-semibold">
+            {latestActionPlan
+              ? `${latestActionPlan.actions.length} saved`
+              : "Not generated"}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            <Link className="font-semibold text-ink underline" href="/app/actions">
+              Open actions
+            </Link>
+          </p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            30-day plan
+          </p>
+          <p className="mt-3 text-2xl font-semibold">
+            {latestThirtyDayPlan ? "Saved" : "Not generated"}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            Planning is preview-only until live billing and delivery operations
+            are intentionally enabled.
           </p>
         </article>
       </section>

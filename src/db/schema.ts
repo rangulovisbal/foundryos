@@ -308,6 +308,163 @@ export const diagnosticResults = pgTable(
   ]
 );
 
+export const planningJobs = pgTable(
+  "planning_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    sourceDiagnosticResultId: uuid("source_diagnostic_result_id")
+      .notNull()
+      .references(() => diagnosticResults.id, { onDelete: "cascade" }),
+    jobType: varchar("job_type", { length: 64 }).notNull(),
+    status: varchar("status", { length: 32 }).notNull().default("queued"),
+    error: text("error"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("planning_jobs_workspace_idx").on(table.workspaceId),
+    index("planning_jobs_diagnostic_idx").on(table.sourceDiagnosticResultId),
+    index("planning_jobs_type_idx").on(table.jobType),
+    index("planning_jobs_status_idx").on(table.status),
+    index("planning_jobs_created_idx").on(table.createdAt)
+  ]
+);
+
+export const roadmaps = pgTable(
+  "roadmaps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => planningJobs.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    sourceDiagnosticResultId: uuid("source_diagnostic_result_id")
+      .notNull()
+      .references(() => diagnosticResults.id, { onDelete: "cascade" }),
+    summary: text("summary").notNull(),
+    items: jsonb("items").$type<
+      Array<{
+        title: string;
+        description: string;
+        phase: string;
+        categoryTags: string[];
+        effortLevel: string;
+        expectedImpact: string;
+        dependencies: string[];
+        reasoning: string;
+      }>
+    >().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("roadmaps_job_idx").on(table.jobId),
+    index("roadmaps_workspace_idx").on(table.workspaceId),
+    index("roadmaps_diagnostic_idx").on(table.sourceDiagnosticResultId),
+    index("roadmaps_created_idx").on(table.createdAt)
+  ]
+);
+
+export const actionPlans = pgTable(
+  "action_plans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => planningJobs.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    sourceDiagnosticResultId: uuid("source_diagnostic_result_id")
+      .notNull()
+      .references(() => diagnosticResults.id, { onDelete: "cascade" }),
+    sourceRoadmapId: uuid("source_roadmap_id").references(() => roadmaps.id, {
+      onDelete: "set null"
+    }),
+    actions: jsonb("actions").$type<
+      Array<{
+        title: string;
+        description: string;
+        priority: string;
+        ownerSuggestion: string;
+        status: string;
+        linkedCategory: string;
+        linkedReasoning: string;
+      }>
+    >().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("action_plans_job_idx").on(table.jobId),
+    index("action_plans_workspace_idx").on(table.workspaceId),
+    index("action_plans_diagnostic_idx").on(table.sourceDiagnosticResultId),
+    index("action_plans_roadmap_idx").on(table.sourceRoadmapId),
+    index("action_plans_created_idx").on(table.createdAt)
+  ]
+);
+
+export const thirtyDayPlans = pgTable(
+  "thirty_day_plans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => planningJobs.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    sourceDiagnosticResultId: uuid("source_diagnostic_result_id")
+      .notNull()
+      .references(() => diagnosticResults.id, { onDelete: "cascade" }),
+    monthObjective: text("month_objective").notNull(),
+    topPriorities: jsonb("top_priorities").$type<string[]>().notNull(),
+    week1: jsonb("week_1").$type<{
+      title: string;
+      objective: string;
+      actions: string[];
+      successSignal: string;
+    }>().notNull(),
+    week2: jsonb("week_2").$type<{
+      title: string;
+      objective: string;
+      actions: string[];
+      successSignal: string;
+    }>().notNull(),
+    week3: jsonb("week_3").$type<{
+      title: string;
+      objective: string;
+      actions: string[];
+      successSignal: string;
+    }>().notNull(),
+    week4: jsonb("week_4").$type<{
+      title: string;
+      objective: string;
+      actions: string[];
+      successSignal: string;
+    }>().notNull(),
+    quickWins: jsonb("quick_wins").$type<string[]>().notNull(),
+    risksToAvoid: jsonb("risks_to_avoid").$type<string[]>().notNull(),
+    successSignals: jsonb("success_signals").$type<string[]>().notNull(),
+    metricsToWatch: jsonb("metrics_to_watch").$type<string[]>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("thirty_day_plans_job_idx").on(table.jobId),
+    index("thirty_day_plans_workspace_idx").on(table.workspaceId),
+    index("thirty_day_plans_diagnostic_idx").on(table.sourceDiagnosticResultId),
+    index("thirty_day_plans_created_idx").on(table.createdAt)
+  ]
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {
