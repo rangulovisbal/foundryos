@@ -3,12 +3,16 @@ import path from "node:path";
 
 import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
+import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
 import * as schema from "@/db/schema";
 import { env } from "@/lib/env";
 import { ConfigurationError } from "@/lib/errors";
 
-type AppDb = ReturnType<typeof drizzleNeon<typeof schema>>;
+type AppDb =
+  | ReturnType<typeof drizzleNeon<typeof schema>>
+  | ReturnType<typeof drizzlePostgres<typeof schema>>;
 
 let dbPromise: Promise<AppDb | null> | null = null;
 
@@ -44,8 +48,35 @@ async function createDb() {
     return null;
   }
 
-  const sql = neon(databaseUrl);
-  return drizzleNeon(sql, { schema });
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(databaseUrl);
+  } catch {
+    throw new ConfigurationError(
+      "DATABASE_URL must be a valid Postgres connection string, for example postgresql://user:password@host/dbname?sslmode=require."
+    );
+  }
+
+  if (!["postgresql:", "postgres:"].includes(parsedUrl.protocol)) {
+    throw new ConfigurationError(
+      "DATABASE_URL must use the postgresql:// or postgres:// protocol."
+    );
+  }
+
+  if (parsedUrl.hostname.endsWith(".neon.tech")) {
+    const sql = neon(databaseUrl);
+    return drizzleNeon(sql, { schema });
+  }
+
+  const sql = postgres(databaseUrl, {
+    connect_timeout: 10,
+    idle_timeout: 20,
+    max: 1,
+    prepare: false,
+    ssl: "require"
+  });
+
+  return drizzlePostgres(sql, { schema });
 }
 
 export async function getDb() {
