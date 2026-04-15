@@ -39,12 +39,15 @@ export const diagnosticJobStatusOptions = [
   "failed"
 ] as const;
 
+export const outputLanguageOptions = ["en", "es"] as const;
+
 export type WorkspacePlan = (typeof workspacePlanOptions)[number];
 export type WorkspaceAccountState = (typeof workspaceAccountStateOptions)[number];
 export type WorkspaceRole = (typeof workspaceRoleOptions)[number];
 export type UserGlobalRole = (typeof userGlobalRoleOptions)[number];
 export type UsageMetricKey = (typeof usageMetricKeyOptions)[number];
 export type DiagnosticJobStatus = (typeof diagnosticJobStatusOptions)[number];
+export type OutputLanguage = (typeof outputLanguageOptions)[number];
 
 export type AppUser = {
   id: string;
@@ -72,6 +75,7 @@ export type WorkspaceRecord = {
   ownerUserId: string;
   plan: WorkspacePlan;
   accountState: WorkspaceAccountState;
+  outputLanguage: OutputLanguage;
   createdAt: string;
   updatedAt: string;
 };
@@ -301,6 +305,7 @@ const profileListSchema = z
   .default([]);
 
 export const businessProfileSchema = z.object({
+  outputLanguage: z.enum(outputLanguageOptions).default("en"),
   companyName: optionalProfileText(160),
   website: optionalProfileText(255).refine(
     (value) => !value || /^https?:\/\/[^.\s]+\.[^\s]+$/i.test(value),

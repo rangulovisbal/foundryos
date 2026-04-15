@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { BusinessProfileRecord } from "@/lib/foundation";
+import type { BusinessProfileRecord, OutputLanguage } from "@/lib/foundation";
 
 type ProfileDraft = {
   companyName: string;
+  outputLanguage: OutputLanguage;
   website: string;
   industry: string;
   businessModel: string;
@@ -33,9 +34,13 @@ function textToList(value: string) {
     .filter(Boolean);
 }
 
-function buildInitialDraft(profile: BusinessProfileRecord | null): ProfileDraft {
+function buildInitialDraft(
+  profile: BusinessProfileRecord | null,
+  outputLanguage: OutputLanguage
+): ProfileDraft {
   return {
     companyName: profile?.companyName ?? "",
+    outputLanguage,
     website: profile?.website ?? "",
     industry: profile?.industry ?? "",
     businessModel: profile?.businessModel ?? "",
@@ -54,13 +59,17 @@ function buildInitialDraft(profile: BusinessProfileRecord | null): ProfileDraft 
 
 export function BusinessProfileForm({
   profile,
+  outputLanguage,
   canEdit
 }: {
   profile: BusinessProfileRecord | null;
+  outputLanguage: OutputLanguage;
   canEdit: boolean;
 }) {
   const router = useRouter();
-  const [draft, setDraft] = useState(() => buildInitialDraft(profile));
+  const [draft, setDraft] = useState(() =>
+    buildInitialDraft(profile, outputLanguage)
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
   const [loading, setLoading] = useState(false);
@@ -86,6 +95,7 @@ export function BusinessProfileForm({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          outputLanguage: draft.outputLanguage,
           companyName: draft.companyName,
           website: draft.website,
           industry: draft.industry,
@@ -145,6 +155,19 @@ export function BusinessProfileForm({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Output language">
+          <select
+            className={inputClass}
+            disabled={!canEdit || loading}
+            onChange={(event) =>
+              updateField("outputLanguage", event.target.value as OutputLanguage)
+            }
+            value={draft.outputLanguage}
+          >
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+          </select>
+        </Field>
         <Field label="Company name">
           <input
             className={inputClass}

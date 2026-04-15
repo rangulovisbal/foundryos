@@ -181,7 +181,7 @@ FoundryOS is currently in a controlled MVP preview phase.
 - `password_reset_tokens`
   Password reset lifecycle.
 - `workspaces`
-  Workspace identity, owner, plan, and account state.
+  Workspace identity, owner, plan, account state, and output language.
 - `workspace_memberships`
   User-to-workspace membership and role.
 - `workspace_invitations`

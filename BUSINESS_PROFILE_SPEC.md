@@ -34,6 +34,10 @@ The profile is scoped one-to-one with a workspace and supports these fields:
 - `budget_band`
 - `lifecycle_stage`
 
+The workspace also stores `output_language`, currently `en` or `es`, so future
+diagnostics and planning outputs can normalize generated language at the
+workspace level.
+
 List fields are stored as JSON arrays so future modules can reuse individual
 signals instead of parsing raw text.
 
@@ -56,6 +60,7 @@ signals instead of parsing raw text.
 ## Validation
 
 - Website must be empty or a full `http://` or `https://` URL.
+- Output language must be English or Spanish.
 - Text fields are length-limited.
 - List fields are normalized from comma or newline input.
 - Empty strings are persisted as `null`.

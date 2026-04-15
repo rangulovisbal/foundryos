@@ -75,7 +75,11 @@ export default async function BusinessProfilePage() {
         </article>
       </section>
 
-      <BusinessProfileForm canEdit={canEdit} profile={profile} />
+      <BusinessProfileForm
+        canEdit={canEdit}
+        outputLanguage={context.workspace.outputLanguage}
+        profile={profile}
+      />
 
       <section className="surface p-6 md:p-8">
         <span className="eyebrow">Next step</span>

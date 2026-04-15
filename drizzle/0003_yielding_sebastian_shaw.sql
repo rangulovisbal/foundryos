@@ -1,0 +1,1 @@
+ALTER TABLE "workspaces" ADD COLUMN "output_language" varchar(8) DEFAULT 'en' NOT NULL;

@@ -98,6 +98,7 @@ export const workspaces = pgTable(
       .references(() => appUsers.id, { onDelete: "cascade" }),
     plan: varchar("plan", { length: 32 }).notNull().default("growth-os"),
     accountState: varchar("account_state", { length: 32 }).notNull().default("trial"),
+    outputLanguage: varchar("output_language", { length: 8 }).notNull().default("en"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },

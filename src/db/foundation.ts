@@ -87,6 +87,7 @@ function mapWorkspace(row: typeof workspaces.$inferSelect): WorkspaceRecord {
     ownerUserId: row.ownerUserId,
     plan: row.plan as WorkspaceRecord["plan"],
     accountState: row.accountState as WorkspaceRecord["accountState"],
+    outputLanguage: row.outputLanguage as WorkspaceRecord["outputLanguage"],
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };
@@ -447,6 +448,7 @@ export async function createWorkspaceBundle({
     ownerUserId: workspace.ownerUserId,
     plan: workspace.plan,
     accountState: workspace.accountState,
+    outputLanguage: workspace.outputLanguage,
     createdAt: new Date(workspace.createdAt),
     updatedAt: new Date(workspace.updatedAt)
   });
@@ -878,6 +880,7 @@ export async function updateWorkspace(workspaceId: string, patch: Partial<Worksp
       ownerUserId: patch.ownerUserId,
       plan: patch.plan,
       accountState: patch.accountState,
+      outputLanguage: patch.outputLanguage,
       updatedAt: new Date()
     })
     .where(eq(workspaces.id, workspaceId));

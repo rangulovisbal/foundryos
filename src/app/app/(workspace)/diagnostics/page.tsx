@@ -14,7 +14,8 @@ import {
   getUsageCounter,
   isLockedState,
   isReadOnlyState,
-  type DiagnosticResultRecord
+  type DiagnosticResultRecord,
+  type OutputLanguage
 } from "@/lib/foundation";
 
 function resolveDisabledReason(
@@ -112,7 +113,12 @@ export default async function DiagnosticsPage() {
         </section>
       ) : null}
 
-      {latestResult ? <LatestResult result={latestResult} /> : null}
+      {latestResult ? (
+        <LatestResult
+          language={context.workspace.outputLanguage}
+          result={latestResult}
+        />
+      ) : null}
 
       <section className="surface p-6 md:p-8">
         <p className="text-sm uppercase tracking-[0.18em] text-muted">
@@ -163,7 +169,45 @@ export default async function DiagnosticsPage() {
   );
 }
 
-function LatestResult({ result }: { result: DiagnosticResultRecord }) {
+function localizeConfidence(
+  confidence: DiagnosticResultRecord["confidence"],
+  language: OutputLanguage
+) {
+  if (language === "es") {
+    return confidence === "high" ? "alta" : confidence === "medium" ? "media" : "baja";
+  }
+
+  return confidence;
+}
+
+function LatestResult({
+  language,
+  result
+}: {
+  language: OutputLanguage;
+  result: DiagnosticResultRecord;
+}) {
+  const copy =
+    language === "es"
+      ? {
+          confidence: "Confianza",
+          evidence: "Senales capturadas",
+          inferences: "Conclusiones inferidas",
+          opportunities: "Oportunidades principales",
+          actions: "Acciones recomendadas",
+          score: "Puntuacion de madurez",
+          saved: "Guardado"
+        }
+      : {
+          confidence: "Confidence",
+          evidence: "Captured input signals",
+          inferences: "Inferred conclusions",
+          opportunities: "Top opportunities",
+          actions: "Recommended actions",
+          score: "Maturity score",
+          saved: "Saved"
+        };
+
   return (
     <section className="space-y-6">
       <div className="surface p-6 md:p-8">
@@ -171,13 +215,13 @@ function LatestResult({ result }: { result: DiagnosticResultRecord }) {
         <div className="mt-4 grid gap-5 lg:grid-cols-[220px_1fr]">
           <div className="rounded-[28px] border border-[color:var(--border)] bg-ink p-6 text-sand">
             <p className="text-sm uppercase tracking-[0.18em] text-sand/70">
-              Maturity score
+              {copy.score}
             </p>
             <p className="mt-4 text-6xl font-semibold">
               {result.overallMaturityScore}
             </p>
             <p className="mt-2 text-sm text-sand/70">
-              Confidence: {result.confidence}
+              {copy.confidence}: {localizeConfidence(result.confidence, language)}
             </p>
           </div>
           <div>
@@ -185,7 +229,7 @@ function LatestResult({ result }: { result: DiagnosticResultRecord }) {
               {result.summary}
             </h3>
             <p className="mt-4 text-sm text-muted">
-              Saved {new Date(result.createdAt).toLocaleString()}
+              {copy.saved} {new Date(result.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
@@ -204,23 +248,27 @@ function LatestResult({ result }: { result: DiagnosticResultRecord }) {
       </section>
 
       <DiagnosticCardGroup
-        title="Top bottlenecks"
+        title={copy.evidence}
+        items={result.evidenceCards.map((item) => ({
+          title: item.title,
+          body: `${item.observation} ${item.implication}`,
+          meta: "evidence"
+        }))}
+      />
+      <DiagnosticCardGroup
+        title={copy.inferences}
         items={result.topBottlenecks.map((item) => ({
           title: item.title,
           body: item.detail,
           meta: item.severity
-        }))}
-      />
-      <DiagnosticCardGroup
-        title="Top risks"
-        items={result.topRisks.map((item) => ({
+        })).concat(result.topRisks.map((item) => ({
           title: item.title,
           body: item.detail,
           meta: item.severity
-        }))}
+        })))}
       />
       <DiagnosticCardGroup
-        title="Top opportunities"
+        title={copy.opportunities}
         items={result.topOpportunities.map((item) => ({
           title: item.title,
           body: item.detail,
@@ -228,19 +276,11 @@ function LatestResult({ result }: { result: DiagnosticResultRecord }) {
         }))}
       />
       <DiagnosticCardGroup
-        title="Recommended next actions"
+        title={copy.actions}
         items={result.recommendedNextActions.map((item) => ({
           title: item.title,
           body: item.detail,
           meta: `${item.owner} | ${item.timeframe}`
-        }))}
-      />
-      <DiagnosticCardGroup
-        title="Evidence cards"
-        items={result.evidenceCards.map((item) => ({
-          title: item.title,
-          body: `${item.observation} ${item.implication}`,
-          meta: "evidence"
         }))}
       />
     </section>

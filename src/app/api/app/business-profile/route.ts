@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getBusinessProfile, upsertBusinessProfile } from "@/db/foundation";
+import {
+  getBusinessProfile,
+  updateWorkspace,
+  upsertBusinessProfile
+} from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import {
@@ -57,6 +61,9 @@ export async function POST(request: Request) {
     }
 
     const payload = businessProfileSchema.parse(await request.json());
+    await updateWorkspace(context.workspace.id, {
+      outputLanguage: payload.outputLanguage
+    });
     const profile = await upsertBusinessProfile(context.workspace.id, payload);
 
     return NextResponse.json({ ok: true, profile });

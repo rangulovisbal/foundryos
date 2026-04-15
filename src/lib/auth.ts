@@ -458,6 +458,7 @@ export async function createWorkspaceForUser(input: {
     ownerUserId: input.user.id,
     plan: parsed.plan,
     accountState: "trial",
+    outputLanguage: "en",
     createdAt: now,
     updatedAt: now
   };
