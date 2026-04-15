@@ -91,12 +91,18 @@ export function LoginForm({
         <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
           <p>{message}</p>
           {previewUrl ? (
-            <p className="mt-2">
-              Preview verification link:{" "}
-              <a className="font-semibold text-ink underline" href={previewUrl}>
-                verify email
+            <div className="mt-3 space-y-3">
+              <p>
+                No email will be sent while Resend is not configured. Use this
+                MVP preview link to verify your account now.
+              </p>
+              <a
+                className="inline-flex rounded-full bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-sand"
+                href={previewUrl}
+              >
+                Verify email now
               </a>
-            </p>
+            </div>
           ) : !emailDelivery ? (
             <p className="mt-2">
               Verification email could not be delivered in this environment.

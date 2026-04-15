@@ -72,12 +72,18 @@ export function ForgotPasswordForm() {
         <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
           <p>{message}</p>
           {previewUrl ? (
-            <p className="mt-2">
-              Preview reset link:{" "}
-              <a className="font-semibold text-ink underline" href={previewUrl}>
-                reset password
+            <div className="mt-3 space-y-3">
+              <p>
+                No email will be sent while Resend is not configured. Use this
+                MVP preview link to reset the password now.
+              </p>
+              <a
+                className="inline-flex rounded-full bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-sand"
+                href={previewUrl}
+              >
+                Reset password now
               </a>
-            </p>
+            </div>
           ) : !emailDelivery ? (
             <p className="mt-2">
               Reset email delivery is unavailable in this environment. Configure

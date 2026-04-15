@@ -579,8 +579,9 @@ export async function acceptWorkspaceInvite(rawToken: string, user: AppUser) {
 
 export async function bootstrapInternalAdminFromToken(token: string, response: NextResponse) {
   const expected = process.env.ADMIN_ACCESS_TOKEN;
+  const providedToken = token.trim();
 
-  if (!expected || token !== expected) {
+  if (!expected || providedToken !== expected.trim()) {
     throw new Error("Invalid admin access token.");
   }
 

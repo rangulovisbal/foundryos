@@ -5,21 +5,27 @@ import { FormEvent, useState } from "react";
 export default function AdminLoginPage() {
   const [token, setToken] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token: token.trim() }),
+        signal: controller.signal
       });
+      window.clearTimeout(timeout);
 
       const payload = (await response.json()) as { error?: string };
 
@@ -27,10 +33,13 @@ export default function AdminLoginPage() {
         throw new Error(payload.error ?? "Login failed.");
       }
 
-      window.location.href = "/admin";
+      setSuccess(true);
+      window.location.assign("/admin");
     } catch (loginError) {
       setError(
-        loginError instanceof Error ? loginError.message : "Login failed."
+        loginError instanceof Error
+          ? loginError.message
+          : "Login failed. Check the admin token and database connection."
       );
     } finally {
       setLoading(false);
@@ -74,6 +83,14 @@ export default function AdminLoginPage() {
           </button>
 
           {error ? <p className="text-sm text-coral">{error}</p> : null}
+          {success ? (
+            <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
+              <p>Admin session created. If the redirect does not open automatically:</p>
+              <a className="mt-2 inline-flex font-semibold text-ink underline" href="/admin">
+                Open admin dashboard
+              </a>
+            </div>
+          ) : null}
         </form>
       </section>
     </div>

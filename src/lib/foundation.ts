@@ -183,7 +183,7 @@ export const acceptInvitationSchema = z.object({
 });
 
 export const adminBootstrapSchema = z.object({
-  token: z.string().min(1, "Admin token is required.")
+  token: z.string().trim().min(1, "Admin token is required.")
 });
 
 export const workspaceAdminUpdateSchema = z.object({
