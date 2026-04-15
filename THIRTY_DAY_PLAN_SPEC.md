@@ -189,9 +189,13 @@ created.
 - Compare generated outputs across different business types to confirm they are
   not generic copies.
 
+## Downstream dependencies
+
+The 30-day plan now feeds the assets layer. It should be reviewed before future
+SOPs or automations use it as source material.
+
 ## Non-goals
 
-- No asset generation.
 - No SOP generation.
 - No automation execution.
 - No live billing.

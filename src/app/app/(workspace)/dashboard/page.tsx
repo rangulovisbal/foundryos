@@ -4,6 +4,7 @@ import { LockedStatePanel } from "@/components/locked-state-panel";
 import {
   getBusinessProfile,
   getLatestActionPlan,
+  getLatestBusinessAssets,
   getLatestDiagnosticResult,
   getLatestRoadmap,
   getLatestThirtyDayPlan
@@ -18,13 +19,15 @@ export default async function WorkspaceDashboardPage() {
     latestDiagnostic,
     latestRoadmap,
     latestActionPlan,
-    latestThirtyDayPlan
+    latestThirtyDayPlan,
+    latestAssets
   ] = await Promise.all([
     getBusinessProfile(context.workspace.id),
     getLatestDiagnosticResult(context.workspace.id),
     getLatestRoadmap(context.workspace.id),
     getLatestActionPlan(context.workspace.id),
-    getLatestThirtyDayPlan(context.workspace.id)
+    getLatestThirtyDayPlan(context.workspace.id),
+    getLatestBusinessAssets(context.workspace.id)
   ]);
   const plan = getPlanDefinition(context.workspace.plan);
 
@@ -42,7 +45,7 @@ export default async function WorkspaceDashboardPage() {
         <p className="mt-4 body-lg">
           This dashboard now sits on top of authenticated workspace access,
           role-aware operations, business profile context, and persisted
-          diagnostics history.
+          diagnostics, planning, and asset history.
         </p>
       </section>
 
@@ -139,6 +142,17 @@ export default async function WorkspaceDashboardPage() {
           <p className="mt-2 text-sm text-muted">
             Planning is preview-only until live billing and delivery operations
             are intentionally enabled.
+          </p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">Assets</p>
+          <p className="mt-3 text-2xl font-semibold">
+            {latestAssets.length > 0 ? `${latestAssets.length} saved` : "Not generated"}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            <Link className="font-semibold text-ink underline" href="/app/assets">
+              Open assets
+            </Link>
           </p>
         </article>
       </section>

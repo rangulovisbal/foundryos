@@ -46,6 +46,17 @@ export const planningJobTypeOptions = [
   "thirty_day_plan_generation"
 ] as const;
 
+export const assetJobStatusOptions = diagnosticJobStatusOptions;
+
+export const businessAssetTypeOptions = [
+  "positioning_summary",
+  "thirty_day_action_plan_summary",
+  "messaging_framework",
+  "basic_channel_plan",
+  "execution_checklist",
+  "founder_summary"
+] as const;
+
 export const outputLanguageOptions = ["en", "es"] as const;
 
 export const roadmapPhaseOptions = ["now", "next", "later"] as const;
@@ -62,6 +73,8 @@ export type UsageMetricKey = (typeof usageMetricKeyOptions)[number];
 export type DiagnosticJobStatus = (typeof diagnosticJobStatusOptions)[number];
 export type PlanningJobStatus = (typeof planningJobStatusOptions)[number];
 export type PlanningJobType = (typeof planningJobTypeOptions)[number];
+export type AssetJobStatus = (typeof assetJobStatusOptions)[number];
+export type BusinessAssetType = (typeof businessAssetTypeOptions)[number];
 export type OutputLanguage = (typeof outputLanguageOptions)[number];
 export type RoadmapPhase = (typeof roadmapPhaseOptions)[number];
 export type EffortLevel = (typeof effortLevelOptions)[number];
@@ -324,6 +337,60 @@ export type PlanningJobWithArtifacts = {
   thirtyDayPlan: ThirtyDayPlanRecord | null;
 };
 
+export type AssetJobRecord = {
+  id: string;
+  workspaceId: string;
+  requestedByUserId: string | null;
+  sourceBusinessProfileId: string | null;
+  sourceDiagnosticResultId: string | null;
+  sourceRoadmapId: string | null;
+  sourceActionPlanId: string | null;
+  sourceThirtyDayPlanId: string | null;
+  status: AssetJobStatus;
+  error: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BusinessAssetSection = {
+  heading: string;
+  items: string[];
+};
+
+export type BusinessAssetSourceReference = {
+  sourceType:
+    | "workspace"
+    | "business_profile"
+    | "diagnostic"
+    | "roadmap"
+    | "action_plan"
+    | "thirty_day_plan";
+  label: string;
+  referenceId?: string;
+  detail: string;
+};
+
+export type BusinessAssetRecord = {
+  id: string;
+  jobId: string;
+  workspaceId: string;
+  assetType: BusinessAssetType;
+  title: string;
+  purpose: string;
+  content: BusinessAssetSection[];
+  sourceReferences: BusinessAssetSourceReference[];
+  generationStatus: AssetJobStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AssetJobWithAssets = {
+  job: AssetJobRecord;
+  assets: BusinessAssetRecord[];
+};
+
 export type AdminAuditLogRecord = {
   id: string;
   adminUserId: string;
@@ -444,6 +511,7 @@ type PlanDefinition = {
     | "roadmap"
     | "actions"
     | "thirty_day_plan"
+    | "assets"
     | "team"
     | "billing"
     | "monthly_refresh"
@@ -466,6 +534,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       roadmap: true,
       actions: true,
       thirty_day_plan: true,
+      assets: true,
       team: false,
       billing: true,
       monthly_refresh: false,
@@ -490,6 +559,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       roadmap: true,
       actions: true,
       thirty_day_plan: true,
+      assets: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -514,6 +584,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       roadmap: true,
       actions: true,
       thirty_day_plan: true,
+      assets: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -635,6 +706,17 @@ export function canGenerateThirtyDayPlan(context: WorkspaceContext) {
     plan.features.thirty_day_plan &&
     canAccessWorkspace(context.workspace.accountState) &&
     canManageWorkspace(context.membership.role, context.workspace.accountState)
+  );
+}
+
+export function canGenerateAssets(context: WorkspaceContext) {
+  const plan = getPlanDefinition(context.workspace.plan);
+
+  return (
+    plan.features.assets &&
+    canAccessWorkspace(context.workspace.accountState) &&
+    canManageWorkspace(context.membership.role, context.workspace.accountState) &&
+    hasUsageRemaining(context, "asset_exports")
   );
 }
 

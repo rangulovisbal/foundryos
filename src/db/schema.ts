@@ -465,6 +465,93 @@ export const thirtyDayPlans = pgTable(
   ]
 );
 
+export const assetJobs = pgTable(
+  "asset_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    sourceBusinessProfileId: uuid("source_business_profile_id").references(
+      () => workspaceBusinessProfiles.id,
+      { onDelete: "set null" }
+    ),
+    sourceDiagnosticResultId: uuid("source_diagnostic_result_id").references(
+      () => diagnosticResults.id,
+      { onDelete: "set null" }
+    ),
+    sourceRoadmapId: uuid("source_roadmap_id").references(() => roadmaps.id, {
+      onDelete: "set null"
+    }),
+    sourceActionPlanId: uuid("source_action_plan_id").references(() => actionPlans.id, {
+      onDelete: "set null"
+    }),
+    sourceThirtyDayPlanId: uuid("source_thirty_day_plan_id").references(
+      () => thirtyDayPlans.id,
+      { onDelete: "set null" }
+    ),
+    status: varchar("status", { length: 32 }).notNull().default("queued"),
+    error: text("error"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("asset_jobs_workspace_idx").on(table.workspaceId),
+    index("asset_jobs_status_idx").on(table.status),
+    index("asset_jobs_created_idx").on(table.createdAt),
+    index("asset_jobs_diagnostic_idx").on(table.sourceDiagnosticResultId),
+    index("asset_jobs_roadmap_idx").on(table.sourceRoadmapId),
+    index("asset_jobs_thirty_day_plan_idx").on(table.sourceThirtyDayPlanId)
+  ]
+);
+
+export const businessAssets = pgTable(
+  "business_assets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => assetJobs.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    assetType: varchar("asset_type", { length: 64 }).notNull(),
+    title: varchar("title", { length: 180 }).notNull(),
+    purpose: text("purpose").notNull(),
+    content: jsonb("content").$type<
+      Array<{
+        heading: string;
+        items: string[];
+      }>
+    >().notNull(),
+    sourceReferences: jsonb("source_references").$type<
+      Array<{
+        sourceType: string;
+        label: string;
+        referenceId?: string;
+        detail: string;
+      }>
+    >().notNull(),
+    generationStatus: varchar("generation_status", { length: 32 })
+      .notNull()
+      .default("completed"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("business_assets_job_idx").on(table.jobId),
+    index("business_assets_workspace_idx").on(table.workspaceId),
+    index("business_assets_type_idx").on(table.assetType),
+    index("business_assets_status_idx").on(table.generationStatus),
+    index("business_assets_created_idx").on(table.createdAt)
+  ]
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {

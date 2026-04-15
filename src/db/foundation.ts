@@ -1,13 +1,15 @@
 import "server-only";
 
-import { and, desc, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull } from "drizzle-orm";
 
 import { requireDb } from "@/db/client";
 import {
   adminAuditLogs,
   actionPlans,
+  assetJobs,
   appSessions,
   appUsers,
+  businessAssets,
   diagnosticJobs,
   diagnosticResults,
   emailVerificationTokens,
@@ -23,8 +25,11 @@ import {
 } from "@/db/schema";
 import type {
   AdminAuditLogRecord,
+  AssetJobRecord,
+  AssetJobWithAssets,
   AppSession,
   AppUser,
+  BusinessAssetRecord,
   BusinessProfileInput,
   BusinessProfileRecord,
   DiagnosticJobRecord,
@@ -73,6 +78,13 @@ export type AdminPlanningJobRow = {
   roadmap: Pick<RoadmapRecord, "id" | "createdAt"> | null;
   actionPlan: Pick<ActionPlanRecord, "id" | "createdAt"> | null;
   thirtyDayPlan: Pick<ThirtyDayPlanRecord, "id" | "createdAt"> | null;
+};
+
+export type AdminAssetJobRow = {
+  job: AssetJobRecord;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+  assets: Array<Pick<BusinessAssetRecord, "id" | "assetType" | "title" | "generationStatus" | "createdAt">>;
 };
 
 function mapUser(row: typeof appUsers.$inferSelect): AppUser {
@@ -301,6 +313,41 @@ function mapThirtyDayPlan(row: typeof thirtyDayPlans.$inferSelect): ThirtyDayPla
     successSignals: row.successSignals,
     metricsToWatch: row.metricsToWatch,
     createdAt: row.createdAt.toISOString()
+  };
+}
+
+function mapAssetJob(row: typeof assetJobs.$inferSelect): AssetJobRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    requestedByUserId: row.requestedByUserId,
+    sourceBusinessProfileId: row.sourceBusinessProfileId,
+    sourceDiagnosticResultId: row.sourceDiagnosticResultId,
+    sourceRoadmapId: row.sourceRoadmapId,
+    sourceActionPlanId: row.sourceActionPlanId,
+    sourceThirtyDayPlanId: row.sourceThirtyDayPlanId,
+    status: row.status as AssetJobRecord["status"],
+    error: row.error,
+    startedAt: row.startedAt?.toISOString() ?? null,
+    completedAt: row.completedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapBusinessAsset(row: typeof businessAssets.$inferSelect): BusinessAssetRecord {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    workspaceId: row.workspaceId,
+    assetType: row.assetType as BusinessAssetRecord["assetType"],
+    title: row.title,
+    purpose: row.purpose,
+    content: row.content,
+    sourceReferences: row.sourceReferences as BusinessAssetRecord["sourceReferences"],
+    generationStatus: row.generationStatus as BusinessAssetRecord["generationStatus"],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
   };
 }
 
@@ -1097,6 +1144,131 @@ export async function listPlanningJobsWithArtifacts({
   }));
 }
 
+export async function createAssetJob(record: AssetJobRecord) {
+  const db = await requireDb("asset job persistence");
+
+  await db.insert(assetJobs).values({
+    id: record.id,
+    workspaceId: record.workspaceId,
+    requestedByUserId: record.requestedByUserId,
+    sourceBusinessProfileId: record.sourceBusinessProfileId,
+    sourceDiagnosticResultId: record.sourceDiagnosticResultId,
+    sourceRoadmapId: record.sourceRoadmapId,
+    sourceActionPlanId: record.sourceActionPlanId,
+    sourceThirtyDayPlanId: record.sourceThirtyDayPlanId,
+    status: record.status,
+    error: record.error,
+    startedAt: record.startedAt ? new Date(record.startedAt) : null,
+    completedAt: record.completedAt ? new Date(record.completedAt) : null,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt)
+  });
+
+  return record;
+}
+
+export async function updateAssetJob(
+  jobId: string,
+  patch: Partial<Pick<AssetJobRecord, "status" | "error" | "startedAt" | "completedAt">>
+) {
+  const db = await requireDb("asset job updates");
+
+  await db
+    .update(assetJobs)
+    .set({
+      status: patch.status,
+      error: patch.error,
+      startedAt:
+        patch.startedAt === undefined
+          ? undefined
+          : patch.startedAt
+            ? new Date(patch.startedAt)
+            : null,
+      completedAt:
+        patch.completedAt === undefined
+          ? undefined
+          : patch.completedAt
+            ? new Date(patch.completedAt)
+            : null,
+      updatedAt: new Date()
+    })
+    .where(eq(assetJobs.id, jobId));
+}
+
+export async function createBusinessAssets(records: BusinessAssetRecord[]) {
+  if (records.length === 0) {
+    return records;
+  }
+
+  const db = await requireDb("business asset persistence");
+
+  await db.insert(businessAssets).values(
+    records.map((record) => ({
+      id: record.id,
+      jobId: record.jobId,
+      workspaceId: record.workspaceId,
+      assetType: record.assetType,
+      title: record.title,
+      purpose: record.purpose,
+      content: record.content,
+      sourceReferences: record.sourceReferences,
+      generationStatus: record.generationStatus,
+      createdAt: new Date(record.createdAt),
+      updatedAt: new Date(record.updatedAt)
+    }))
+  );
+
+  return records;
+}
+
+export async function listAssetJobsWithAssets({
+  workspaceId,
+  limit = 10
+}: {
+  workspaceId: string;
+  limit?: number;
+}): Promise<AssetJobWithAssets[]> {
+  const db = await requireDb("asset job history lookup");
+  const jobRows = await db
+    .select()
+    .from(assetJobs)
+    .where(eq(assetJobs.workspaceId, workspaceId))
+    .orderBy(desc(assetJobs.createdAt))
+    .limit(limit);
+
+  if (jobRows.length === 0) {
+    return [];
+  }
+
+  const jobIds = jobRows.map((job) => job.id);
+  const assetRows = await db
+    .select()
+    .from(businessAssets)
+    .where(inArray(businessAssets.jobId, jobIds))
+    .orderBy(desc(businessAssets.createdAt));
+  const assetsByJobId = new Map<string, BusinessAssetRecord[]>();
+
+  for (const row of assetRows) {
+    const asset = mapBusinessAsset(row);
+    const existing = assetsByJobId.get(asset.jobId) ?? [];
+    existing.push(asset);
+    assetsByJobId.set(asset.jobId, existing);
+  }
+
+  return jobRows.map((job) => ({
+    job: mapAssetJob(job),
+    assets: assetsByJobId.get(job.id) ?? []
+  }));
+}
+
+export async function getLatestBusinessAssets(workspaceId: string) {
+  const history = await listAssetJobsWithAssets({ workspaceId, limit: 10 });
+  return (
+    history.find((entry) => entry.job.status === "completed" && entry.assets.length > 0)
+      ?.assets ?? []
+  );
+}
+
 export async function syncSeatUsage(workspaceId: string) {
   const db = await requireDb("workspace seat usage sync");
   const [members, usage] = await Promise.all([
@@ -1309,6 +1481,66 @@ export async function listAdminPlanningJobs(limit = 20) {
             createdAt: row.thirtyDayPlan.createdAt.toISOString()
           }
         : null
+    })
+  );
+}
+
+export async function listAdminAssetJobs(limit = 20) {
+  const db = await requireDb("admin asset job lookup");
+  const rows = await db
+    .select({
+      job: assetJobs,
+      workspace: workspaces,
+      requestedByUser: appUsers
+    })
+    .from(assetJobs)
+    .innerJoin(workspaces, eq(assetJobs.workspaceId, workspaces.id))
+    .leftJoin(appUsers, eq(assetJobs.requestedByUserId, appUsers.id))
+    .orderBy(desc(assetJobs.createdAt))
+    .limit(limit);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const assetRows = await db
+    .select()
+    .from(businessAssets)
+    .where(inArray(businessAssets.jobId, rows.map((row) => row.job.id)))
+    .orderBy(desc(businessAssets.createdAt));
+  const assetsByJobId = new Map<string, BusinessAssetRecord[]>();
+
+  for (const row of assetRows) {
+    const asset = mapBusinessAsset(row);
+    const existing = assetsByJobId.get(asset.jobId) ?? [];
+    existing.push(asset);
+    assetsByJobId.set(asset.jobId, existing);
+  }
+
+  return rows.map(
+    (row): AdminAssetJobRow => ({
+      job: mapAssetJob(row.job),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"]
+      },
+      requestedByUser: row.requestedByUser
+        ? {
+            id: row.requestedByUser.id,
+            email: row.requestedByUser.email,
+            fullName: row.requestedByUser.fullName
+          }
+        : null,
+      assets: (assetsByJobId.get(row.job.id) ?? []).map((asset) => ({
+        id: asset.id,
+        assetType: asset.assetType,
+        title: asset.title,
+        generationStatus: asset.generationStatus,
+        createdAt: asset.createdAt
+      }))
     })
   );
 }

@@ -165,7 +165,7 @@ created.
 - Review business-type fit manually before using a roadmap with a real
   customer.
 
-## Next dependency
+## Downstream dependencies
 
-The roadmap should feed the actions and 30-day plan layer before any assets,
-SOPs, or automations are implemented.
+The roadmap now feeds the actions, 30-day plan, and assets layers. It should be
+reviewed before future SOPs or automations use it as source material.

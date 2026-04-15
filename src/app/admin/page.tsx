@@ -6,6 +6,7 @@ import { isConfigurationError } from "@/lib/errors";
 import { formatRoleLabel } from "@/lib/foundation";
 import {
   listAdminAuditLogs,
+  listAdminAssetJobs,
   listAdminDiagnosticJobs,
   listAdminPlanningJobs,
   listUsers,
@@ -41,25 +42,29 @@ export default async function AdminPage() {
       workspacesResult,
       auditLogsResult,
       diagnosticJobsResult,
-      planningJobsResult
+      planningJobsResult,
+      assetJobsResult
     ] = await Promise.all([
       loadAdminDataset(listUsers(), []),
       loadAdminDataset(listWorkspaces(), []),
       loadAdminDataset(listAdminAuditLogs(), []),
       loadAdminDataset(listAdminDiagnosticJobs(), []),
-      loadAdminDataset(listAdminPlanningJobs(), [])
+      loadAdminDataset(listAdminPlanningJobs(), []),
+      loadAdminDataset(listAdminAssetJobs(), [])
     ]);
     const users = usersResult.data;
     const workspaces = workspacesResult.data;
     const auditLogs = auditLogsResult.data;
     const diagnosticJobs = diagnosticJobsResult.data;
     const planningJobs = planningJobsResult.data;
+    const assetJobs = assetJobsResult.data;
     const degradedSections = [
       usersResult.status !== "ok" ? "users" : null,
       workspacesResult.status !== "ok" ? "workspaces" : null,
       auditLogsResult.status !== "ok" ? "audit log" : null,
       diagnosticJobsResult.status !== "ok" ? "diagnostic jobs" : null,
-      planningJobsResult.status !== "ok" ? "planning jobs" : null
+      planningJobsResult.status !== "ok" ? "planning jobs" : null,
+      assetJobsResult.status !== "ok" ? "asset jobs" : null
     ].filter(Boolean);
 
     const usersById = new Map(users.map((user) => [user.id, user]));
@@ -110,6 +115,7 @@ export default async function AdminPage() {
             label="30-day plan jobs"
             value={latestThirtyDayPlanJob?.job.status ?? "none"}
           />
+          <StatusCard label="Asset jobs" value={assetJobs[0]?.job.status ?? "none"} />
           <StatusCard
             label="Foundation DB"
             value={
@@ -264,6 +270,80 @@ export default async function AdminPage() {
                   <tr>
                     <td className="px-4 py-6 text-muted" colSpan={9}>
                       No planning jobs have been created yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="surface p-6 md:p-8">
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">
+            Assets
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+            Recent asset generation state
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-muted">
+            This view confirms whether asset generation completed or failed and
+            whether the latest structured artifacts are available. Export and
+            live billing workflows remain intentionally offline.
+          </p>
+
+          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+              <thead className="bg-white/90 text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Workspace</th>
+                  <th className="px-4 py-3 font-semibold">Requested by</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Assets</th>
+                  <th className="px-4 py-3 font-semibold">Types</th>
+                  <th className="px-4 py-3 font-semibold">Error</th>
+                  <th className="px-4 py-3 font-semibold">Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assetJobs.length > 0 ? (
+                  assetJobs.map((entry) => (
+                    <tr
+                      key={entry.job.id}
+                      className="border-t border-[color:var(--border)] align-top"
+                    >
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{entry.workspace.name}</p>
+                        <p className="text-muted">{entry.workspace.slug}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">
+                          {entry.requestedByUser?.fullName ?? "Unknown"}
+                        </p>
+                        <p className="text-muted">
+                          {entry.requestedByUser?.email ?? "n/a"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4 capitalize">{entry.job.status}</td>
+                      <td className="px-4 py-4">{entry.assets.length}</td>
+                      <td className="px-4 py-4 text-muted">
+                        {entry.assets.length > 0
+                          ? entry.assets
+                              .map((asset) => asset.assetType.replaceAll("_", " "))
+                              .join(", ")
+                          : "n/a"}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {entry.job.error ?? "none"}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {new Date(entry.job.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-4 py-6 text-muted" colSpan={7}>
+                      No asset generation jobs have been created yet.
                     </td>
                   </tr>
                 )}

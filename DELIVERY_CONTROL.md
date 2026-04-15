@@ -42,6 +42,8 @@ FoundryOS is currently in a controlled MVP preview phase.
 - Structured roadmap generation from the latest successful diagnostic result
 - Structured action plan and 30-day plan generation from profile, diagnostics,
   roadmap, and workspace context
+- Structured asset generation from the latest profile, diagnostics, roadmap,
+  actions, 30-day plan, and workspace context
 
 ### Internal admin foundation
 
@@ -65,7 +67,6 @@ FoundryOS is currently in a controlled MVP preview phase.
 
 ### Product modules
 
-- Assets module
 - SOPs module
 - Automations module
 - Integrations module
@@ -121,6 +122,8 @@ FoundryOS is currently in a controlled MVP preview phase.
   Structured roadmap generation and persisted now/next/later roadmap history.
 - `/app/actions`
   Structured action cards and persisted 30-day plan history.
+- `/app/assets`
+  Structured business assets, latest asset set, generation history, and source references.
 - `/app/team`
   Team members, invitations, and role-aware invite controls.
 - `/app/billing`
@@ -151,6 +154,7 @@ FoundryOS is currently in a controlled MVP preview phase.
 - `/api/app/diagnostics/run`
 - `/api/app/roadmap/generate`
 - `/api/app/actions/generate`
+- `/api/app/assets/generate`
 - `/api/admin/login`
 - `/api/admin/logout`
 - `/api/admin/workspaces/[workspaceId]`
@@ -210,6 +214,10 @@ FoundryOS is currently in a controlled MVP preview phase.
   Structured action cards with priority, owner suggestion, status placeholder, category, and reasoning.
 - `thirty_day_plans`
   Structured 30-day plan artifacts with weekly plans, priorities, risks, success signals, and metrics.
+- `asset_jobs`
+  Persisted business asset generation lifecycle with queued, processing, completed, and failed states.
+- `business_assets`
+  Structured asset artifacts linked to source profile, diagnostic, roadmap, action plan, 30-day plan, and workspace.
 - `admin_audit_logs`
   Admin changes to workspace plan/account state.
 
@@ -242,6 +250,8 @@ FoundryOS is currently in a controlled MVP preview phase.
 
 - Implemented workspace plans: `snapshot`, `growth-os`, `operator`
 - Plan definitions currently control feature flags and usage limits in code.
+- Asset generation is feature-gated and uses the `asset_exports` counter as a
+  preview generation-run limit, not a live billing meter.
 - Billing state is still manual and preview-only.
 - Internal admin can change plan and account state for testing.
 - Stripe is not the runtime source of truth yet.
@@ -258,15 +268,15 @@ FoundryOS is currently in a controlled MVP preview phase.
 
 ## Next recommended slice
 
-Harden the planning layer before moving into assets or SOPs:
+Harden the asset layer before moving into SOPs or automations:
 
-`Planning Review + Status Controls`
+`Assets Review + Export Controls`
 
 That slice should include:
 
-- role-aware action status updates
-- founder/admin review controls for roadmap and 30-day plan outputs
-- basic item ownership and due-window editing
-- revision history for planning artifacts
-- clearer blocked-state handling before assets, SOPs, or automations are generated
+- founder/admin review controls for generated assets
+- copy/export-safe Markdown or PDF output
+- asset revision history and regeneration notes
+- clearer source-reference review before assets become SOP input
+- role-aware asset visibility and export permission checks
 - preview-safe labels that avoid claiming delivery automation is live
