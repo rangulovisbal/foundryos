@@ -6,14 +6,43 @@ import { isConfigurationError } from "@/lib/errors";
 import { formatRoleLabel } from "@/lib/foundation";
 import { listAdminAuditLogs, listUsers, listWorkspaces } from "@/db/foundation";
 
+type AdminLoadResult<T> = {
+  data: T;
+  status: "ok" | "timed-out" | "failed";
+};
+
+function loadAdminDataset<T>(
+  loader: Promise<T>,
+  fallback: T,
+  timeoutMs = 8000
+): Promise<AdminLoadResult<T>> {
+  const tracked = loader
+    .then((data) => ({ data, status: "ok" as const }))
+    .catch(() => ({ data: fallback, status: "failed" as const }));
+
+  const timeout = new Promise<AdminLoadResult<T>>((resolve) => {
+    setTimeout(() => resolve({ data: fallback, status: "timed-out" }), timeoutMs);
+  });
+
+  return Promise.race([tracked, timeout]);
+}
+
 export default async function AdminPage() {
   try {
     const currentUser = await requireInternalAdmin();
-    const [users, workspaces, auditLogs] = await Promise.all([
-      listUsers(),
-      listWorkspaces(),
-      listAdminAuditLogs()
+    const [usersResult, workspacesResult, auditLogsResult] = await Promise.all([
+      loadAdminDataset(listUsers(), []),
+      loadAdminDataset(listWorkspaces(), []),
+      loadAdminDataset(listAdminAuditLogs(), [])
     ]);
+    const users = usersResult.data;
+    const workspaces = workspacesResult.data;
+    const auditLogs = auditLogsResult.data;
+    const degradedSections = [
+      usersResult.status !== "ok" ? "users" : null,
+      workspacesResult.status !== "ok" ? "workspaces" : null,
+      auditLogsResult.status !== "ok" ? "audit log" : null
+    ].filter(Boolean);
 
     const usersById = new Map(users.map((user) => [user.id, user]));
 
@@ -36,6 +65,13 @@ export default async function AdminPage() {
             <span>·</span>
             <span>{currentUser.email}</span>
           </div>
+          {degradedSections.length > 0 ? (
+            <div className="mt-6 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
+              Some admin data is temporarily delayed from the database:{" "}
+              {degradedSections.join(", ")}. The page is still usable; refresh in
+              a moment if a table looks empty.
+            </div>
+          ) : null}
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -71,7 +71,7 @@ async function createDb() {
   const sql = postgres(databaseUrl, {
     connect_timeout: 10,
     idle_timeout: 20,
-    max: 1,
+    max: 5,
     prepare: false,
     ssl: "require"
   });
