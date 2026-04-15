@@ -61,6 +61,47 @@ The 30-day plan uses the top high-priority actions to create:
 
 The plan favors narrow operating loops over broad transformation claims.
 
+Action quality rules:
+
+- Actions must start with a directive verb or clear operating command.
+- Actions must be executable by a workspace owner, operator, or assigned team
+  member.
+- Actions must not be renamed bottlenecks.
+- Actions must include a concrete decision, test, scorecard, handoff, package,
+  or review artifact.
+- Actions should use diagnostic problems as context, not as the visible action
+  title.
+
+Repetition reduction rules:
+
+- Top priorities should use action titles, not diagnostic labels.
+- The same phrase should not appear as bottleneck, roadmap item, action, and
+  weekly plan task.
+- Repeated signals should collapse into one clearer operating action.
+- Fallback labels are not acceptable visible output.
+
+## Business-type specificity
+
+30-day plans adapt execution by detected business type:
+
+- SaaS/subscription: ICP, activation event, conversion path, retention signal,
+  expansion signal
+- services: lead qualification, service package, proposal path, delivery load,
+  margin
+- academy/education: learner segment, program promise, enrollment path,
+  completion, referrals, lead quality by source
+- commerce: buyer segment, offer bundle, checkout path, repeat purchase
+- marketplace: supply onboarding, demand activation, match quality, liquidity
+- general: segment, offer, conversion path, scorecard, operating cadence
+
+Academy plans must be especially explicit about:
+
+- lead quality
+- program clarity
+- funnel segmentation
+- enrollment, completion, and referral flow
+- weekly reporting cadence
+
 ## Output schema
 
 Each action contains:
@@ -138,6 +179,15 @@ created.
 - Do not expose status tracking as a delivery promise until support and success
   operations exist.
 - Do not implement live billing or paid fulfillment from this artifact yet.
+- Reject visible outputs that contain labels such as `Operational constraint
+  captured`, `Restriccion operativa capturada`, `Captured input signals`, or
+  `Recommended action basis`.
+- Reject actions that are just problem statements, such as `Undefined funnel` or
+  `Weak reporting visibility`.
+- Review the weekly plan for clear expectations: what gets defined, what gets
+  tested, what gets reviewed, and what decision must be made.
+- Compare generated outputs across different business types to confirm they are
+  not generic copies.
 
 ## Non-goals
 

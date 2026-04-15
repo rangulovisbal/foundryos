@@ -64,6 +64,37 @@ Expected impact is inherited from diagnostic severity or opportunity impact.
 Effort is estimated by position and complexity. Dependencies are explicit so
 future slices can avoid treating roadmap items as standalone claims.
 
+The roadmap must distinguish planning layers:
+
+- bottleneck: the source problem signal from diagnostics
+- risk: the consequence if the problem remains unresolved
+- opportunity: the leverage area to explore
+- roadmap item: the strategic move that addresses the signal
+- action: the executable step derived from the roadmap item
+- 30-day plan: the time-sequenced execution layer
+
+Roadmap item titles must not simply repeat diagnostic problem labels. They must
+translate the diagnostic signal into executive operating language.
+
+## Business-type specificity
+
+Roadmap generation adapts strategic moves by detected business type:
+
+- SaaS/subscription: ICP, activation, retention, packaging, pipeline quality,
+  revenue visibility
+- services: lead qualification, service packaging, intake-to-delivery workflow,
+  delivery load, margin visibility
+- academy/education: lead quality, program clarity, enrollment segmentation,
+  completion/referral flow, reporting cadence
+- commerce: channel-to-purchase conversion, offer bundles, merchandising,
+  checkout, repeat purchase
+- marketplace: supply/demand activation, liquidity, match quality, repeat usage
+- general: positioning, funnel, operating cadence, scorecard, conversion path
+
+When the business type is academy/education, roadmap items should explicitly
+consider enrollment quality, program promise, funnel segmentation, completion,
+referrals, and weekly reporting cadence.
+
 ## Output schema
 
 Each roadmap contains:
@@ -124,6 +155,15 @@ created.
   SOPs, or automation.
 - Keep live billing disabled until Stripe becomes the intentional source of
   truth.
+- Do not allow internal labels such as `Operational constraint captured`,
+  `Restriccion operativa capturada`, `Captured input signals`, or
+  `Recommended action basis` to appear as visible roadmap titles.
+- Avoid roadmap titles that start with generic prefixes such as `Resolve:` or
+  `Activate opportunity:`. The title should be the strategic move itself.
+- If multiple diagnostic signals point at the same issue, collapse them into one
+  roadmap move instead of repeating the same phrase across now/next/later.
+- Review business-type fit manually before using a roadmap with a real
+  customer.
 
 ## Next dependency
 
