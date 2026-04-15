@@ -56,7 +56,7 @@ export function WorkspaceSetupForm() {
       </label>
 
       <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
-        This creates one Growth OS trial workspace for preview use. Live billing
+        This creates one FoundryOS Core trial workspace for preview use. Live billing
         and automated plan provisioning are still disabled.
       </div>
 

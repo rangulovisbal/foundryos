@@ -81,7 +81,7 @@ export const snapshotReportSchema = z.object({
   maturity: z.enum(["Early", "Developing", "Structured", "Scaling"]),
   headline: z.string().min(12).max(180),
   summary: z.string().min(24).max(360),
-  recommendedPlan: z.enum(["AI Snapshot", "AI Growth OS", "AI Operator"]),
+  recommendedPlan: z.enum(["AI Snapshot", "FoundryOS Core", "AI Operator"]),
   quickWins: z.array(z.string().min(8).max(200)).min(3).max(5),
   risks: z.array(z.string().min(8).max(200)).min(2).max(4),
   suggestedStack: z.array(z.string().min(5).max(120)).min(3).max(6),
@@ -95,7 +95,7 @@ export type SnapshotReport = {
   maturity: "Early" | "Developing" | "Structured" | "Scaling";
   headline: string;
   summary: string;
-  recommendedPlan: "AI Snapshot" | "AI Growth OS" | "AI Operator";
+  recommendedPlan: "AI Snapshot" | "FoundryOS Core" | "AI Operator";
   quickWins: string[];
   risks: string[];
   suggestedStack: string[];

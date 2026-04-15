@@ -51,7 +51,7 @@ const steps = [
     body: "You complete a structured intake covering offer, channel mix, team size, goals and bottlenecks."
   },
   {
-    title: "AI Growth OS scores and structures the work",
+    title: "FoundryOS scores and structures the work",
     body: "The system translates your inputs into a scorecard, roadmap, automation backlog and execution priorities."
   },
   {
@@ -133,7 +133,7 @@ const faqs = [
   {
     question: "How fast is the first value?",
     answer:
-      "The product is positioned to deliver first outputs within 24 hours after intake and payment, with deeper recurring value inside Growth OS."
+      "The product is positioned to deliver first outputs within 24 hours after intake and payment, with deeper recurring value inside FoundryOS Core."
   },
   {
     question: "Do you store payment data?",
@@ -143,7 +143,7 @@ const faqs = [
   {
     question: "Who should start with Snapshot?",
     answer:
-      "Teams that need clarity first. Snapshot is the fastest way to understand whether the next step should be a one-off diagnostic, Growth OS or a custom Operator rollout."
+      "Teams that need clarity first. Snapshot is the fastest way to understand whether the next step should be a one-off diagnostic, FoundryOS Core or a custom Operator rollout."
   },
   {
     question: "Is everything fully automated?",
@@ -156,7 +156,7 @@ export default function HomePage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "AI Growth OS",
+    name: "FoundryOS",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description:
@@ -190,7 +190,7 @@ export default function HomePage() {
                   hiring a full team.
                 </h1>
                 <p className="max-w-3xl body-lg">
-                  AI Growth OS gives you a business scorecard, roadmap, SOP
+                  FoundryOS gives you a business scorecard, roadmap, SOP
                   starters and automation opportunities in a structured
                   AI-first workflow built for lean teams.
                 </p>
@@ -412,7 +412,7 @@ export default function HomePage() {
 
       <section className="section-wrap">
         <div className="surface p-6 md:p-8">
-          <span className="eyebrow">Before AI Growth OS</span>
+          <span className="eyebrow">Before FoundryOS</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
             The usual starting point is operational noise.
           </h2>
@@ -429,7 +429,7 @@ export default function HomePage() {
         </div>
 
         <div className="surface p-6 md:p-8">
-          <span className="eyebrow">After AI Growth OS</span>
+          <span className="eyebrow">After FoundryOS</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
             The goal is a business that knows what to do next.
           </h2>
@@ -491,7 +491,7 @@ export default function HomePage() {
             </h2>
           </div>
           <p className="max-w-2xl body-lg">
-            Snapshot is the main starting point. Growth OS is the recurring
+            Snapshot is the main starting point. FoundryOS Core is the recurring
             layer. Operator is for teams that need deeper implementation.
           </p>
         </div>

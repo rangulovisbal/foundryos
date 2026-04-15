@@ -13,13 +13,13 @@ export const pricingPlans = [
   },
   {
     id: "growth-os" as const,
-    name: "AI Growth OS",
+    name: "FoundryOS Core",
     price: "€199",
     cadence: "per month",
     description:
       "Recurring operating layer with monthly refresh, dashboard, SOPs and automation backlog.",
     checkoutEnabled: true,
-    ctaLabel: "Start Growth OS"
+    ctaLabel: "Start FoundryOS"
   },
   {
     id: "operator" as const,

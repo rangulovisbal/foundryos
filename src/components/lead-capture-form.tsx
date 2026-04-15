@@ -185,7 +185,7 @@ export function LeadCaptureForm({
               type="checkbox"
             />
             <span>
-              I agree to be contacted about AI Growth OS and understand payment
+              I agree to be contacted about FoundryOS and understand payment
               and future subscription processing is handled directly by Stripe.
             </span>
           </label>

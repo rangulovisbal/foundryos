@@ -35,7 +35,7 @@ function buildSnapshotMessages(intake: BusinessIntake, heuristic: SnapshotReport
     {
       role: "system" as const,
       content:
-        "You are generating a concise AI Growth OS diagnostic for a small business. " +
+        "You are generating a concise FoundryOS diagnostic for a small business. " +
         "Return only valid JSON that matches the schema. Use the heuristic report as a baseline, " +
         "make it more specific to the intake, and keep the advice practical for a 30-day plan. " +
         "Do not invent metrics, case studies, or tools not implied by the business context. " +

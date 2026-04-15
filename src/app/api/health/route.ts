@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    service: "ai-growth-os",
+    service: "foundryos",
     environment: env.vercelEnv,
     integrations: {
       supabase: env.hasSupabase,

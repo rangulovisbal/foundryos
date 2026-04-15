@@ -83,7 +83,7 @@ export function OnboardingForm() {
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
-          "ai-growth-os:last-report",
+          "foundryos:last-report",
           JSON.stringify(payload)
         );
       }

@@ -41,7 +41,7 @@ export default function SecurityPage() {
           Clear payment handling, clear data boundaries, clear operating safeguards.
         </h1>
         <p className="mt-4 max-w-3xl body-lg">
-          AI Growth OS is built to give teams faster operating clarity without
+          FoundryOS is built to give teams faster operating clarity without
           turning payments, access or data handling into a black box.
         </p>
       </section>

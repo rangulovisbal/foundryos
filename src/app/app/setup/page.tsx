@@ -13,7 +13,7 @@ export default async function WorkspaceSetupPage() {
 
   return (
     <AuthShell
-      description="Create the first workspace for your authenticated preview account. This provisions one Growth OS trial workspace and seeds entitlement placeholders."
+      description="Create the first workspace for your authenticated preview account. This provisions one FoundryOS Core trial workspace and seeds entitlement placeholders."
       eyebrow="Workspace setup"
       title="Create your first workspace"
     >

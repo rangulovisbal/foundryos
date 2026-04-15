@@ -210,6 +210,103 @@ export const workspaceUsageCounters = pgTable(
   ]
 );
 
+export const workspaceBusinessProfiles = pgTable(
+  "workspace_business_profiles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    companyName: varchar("company_name", { length: 160 }),
+    website: varchar("website", { length: 255 }),
+    industry: varchar("industry", { length: 120 }),
+    businessModel: varchar("business_model", { length: 120 }),
+    teamSize: varchar("team_size", { length: 64 }),
+    geography: varchar("geography", { length: 160 }),
+    primaryOffer: text("primary_offer"),
+    targetAudience: text("target_audience"),
+    currentChannels: jsonb("current_channels").$type<string[]>(),
+    currentTools: jsonb("current_tools").$type<string[]>(),
+    primaryGoals: jsonb("primary_goals").$type<string[]>(),
+    biggestBottlenecks: jsonb("biggest_bottlenecks").$type<string[]>(),
+    budgetBand: varchar("budget_band", { length: 64 }),
+    lifecycleStage: varchar("lifecycle_stage", { length: 64 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("workspace_business_profiles_workspace_idx").on(table.workspaceId),
+    index("workspace_business_profiles_updated_idx").on(table.updatedAt)
+  ]
+);
+
+export const diagnosticJobs = pgTable(
+  "diagnostic_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    status: varchar("status", { length: 32 }).notNull().default("queued"),
+    jobType: varchar("job_type", { length: 64 })
+      .notNull()
+      .default("business_profile_diagnostic"),
+    error: text("error"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("diagnostic_jobs_workspace_idx").on(table.workspaceId),
+    index("diagnostic_jobs_status_idx").on(table.status),
+    index("diagnostic_jobs_created_idx").on(table.createdAt)
+  ]
+);
+
+export const diagnosticResults = pgTable(
+  "diagnostic_results",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => diagnosticJobs.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    overallMaturityScore: integer("overall_maturity_score").notNull(),
+    categoryScores: jsonb("category_scores").$type<
+      Array<{ key: string; label: string; score: number; rationale: string }>
+    >().notNull(),
+    topBottlenecks: jsonb("top_bottlenecks").$type<
+      Array<{ title: string; detail: string; severity: string }>
+    >().notNull(),
+    topRisks: jsonb("top_risks").$type<
+      Array<{ title: string; detail: string; severity: string }>
+    >().notNull(),
+    topOpportunities: jsonb("top_opportunities").$type<
+      Array<{ title: string; detail: string; impact: string }>
+    >().notNull(),
+    confidence: varchar("confidence", { length: 32 }).notNull(),
+    recommendedNextActions: jsonb("recommended_next_actions").$type<
+      Array<{ title: string; detail: string; owner: string; timeframe: string }>
+    >().notNull(),
+    evidenceCards: jsonb("evidence_cards").$type<
+      Array<{ title: string; observation: string; implication: string }>
+    >().notNull(),
+    summary: text("summary").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("diagnostic_results_job_idx").on(table.jobId),
+    index("diagnostic_results_workspace_idx").on(table.workspaceId),
+    index("diagnostic_results_created_idx").on(table.createdAt)
+  ]
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {

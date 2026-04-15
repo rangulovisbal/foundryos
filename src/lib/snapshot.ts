@@ -178,7 +178,7 @@ function getRecommendedPlan(
   if (score >= 82 || teamSize === "11-20" || teamSize === "20+") {
     return "AI Operator";
   }
-  return "AI Growth OS";
+  return "FoundryOS Core";
 }
 
 function buildPriorities(intake: BusinessIntake): SnapshotPriority[] {

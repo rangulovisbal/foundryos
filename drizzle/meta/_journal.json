@@ -15,6 +15,13 @@
       "when": 1776171423562,
       "tag": "0001_nebulous_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776242623451,
+      "tag": "0002_majestic_norrin_radd",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,8 @@ import { AccountStateBanner } from "@/components/account-state-banner";
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard" },
+  { href: "/app/profile", label: "Profile" },
+  { href: "/app/diagnostics", label: "Diagnostics" },
   { href: "/app/team", label: "Team" },
   { href: "/app/billing", label: "Billing" }
 ];
@@ -30,8 +32,8 @@ export function AppShell({
               {context.workspace.name}
             </h1>
             <p className="mt-3 body-lg">
-              Internal MVP foundation for auth, workspace access, billing state,
-              and role-aware team operations.
+              Internal MVP preview for workspace context, diagnostics, account
+              state, and role-aware operations.
             </p>
           </div>
 

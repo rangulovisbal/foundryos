@@ -1,6 +1,6 @@
-# AI Growth OS
+# FoundryOS
 
-AI Growth OS is a web-first SaaS foundation for selling an AI-assisted growth and operations system to small companies and startups with limited internal resources.
+FoundryOS is a web-first SaaS foundation for selling an AI-assisted growth and operations system to small companies and startups with limited internal resources.
 
 ## What is included
 
@@ -8,9 +8,12 @@ AI Growth OS is a web-first SaaS foundation for selling an AI-assisted growth an
 - pricing page with Stripe Checkout integration
 - onboarding intake for AI Snapshot
 - heuristic snapshot engine ready to be upgraded with OpenAI
-- admin panel for internal lead review
+- database-backed auth, workspaces, memberships, invitations, and sessions
+- workspace business profile setup
+- persisted structured diagnostics with job history
+- admin panel for internal workspace and diagnostic visibility
 - lead capture API with rate limiting and optional Cloudflare Turnstile
-- Neon + Drizzle ready lead storage with local JSON fallback
+- Postgres + Drizzle ready persistence with embedded local development fallback
 - Resend email notifications
 - Stripe webhook handler for subscriptions
 - security headers, robots, sitemap and SEO structure
@@ -21,7 +24,7 @@ AI Growth OS is a web-first SaaS foundation for selling an AI-assisted growth an
 - Next.js App Router
 - TypeScript
 - Tailwind CSS
-- Neon + Drizzle
+- Postgres + Drizzle
 - Stripe Checkout / Billing
 - Resend
 - Cloudflare Turnstile
@@ -35,12 +38,24 @@ AI Growth OS is a web-first SaaS foundation for selling an AI-assisted growth an
 - `/onboarding` AI Snapshot intake
 - `/dashboard` sample operating dashboard
 - `/security` trust and compliance page
+- `/login` customer login
+- `/signup` customer signup
+- `/forgot-password` password reset request
+- `/app` authenticated app entry
+- `/app/setup` workspace setup
+- `/app/dashboard` authenticated workspace dashboard
+- `/app/profile` business profile setup
+- `/app/diagnostics` structured diagnostics and history
+- `/app/team` team and invitations
+- `/app/billing` billing/account-state preview
 - `/admin/login` admin access
-- `/admin` lead review panel
+- `/admin` internal workspace control panel
 - `/api/health` healthcheck
 - `/api/leads` lead capture
 - `/api/checkout` Stripe checkout
 - `/api/snapshot` snapshot generation
+- `/api/app/business-profile` business profile read/save
+- `/api/app/diagnostics/run` diagnostic job creation
 - `/api/webhooks/stripe` Stripe webhook
 
 ## Local setup
@@ -54,10 +69,8 @@ AI Growth OS is a web-first SaaS foundation for selling an AI-assisted growth an
 ## Required environment variables
 
 - `NEXT_PUBLIC_APP_URL`
-- `DATABASE_URL`
+- `DATABASE_URL` in preview/production
 - `ADMIN_ACCESS_TOKEN`
-- `APP_SECRET`
-- `ENCRYPTION_KEY`
 
 Optional but prepared:
 
@@ -79,7 +92,11 @@ Optional but prepared:
 
 ## Database
 
-The project is ready for Neon using Drizzle. If `DATABASE_URL` is missing, lead and subscription data falls back to local JSON in `data/` for local-only testing.
+The project uses Drizzle with Postgres. Local development can run the
+auth/workspace/profile/diagnostics foundation with an embedded
+Postgres-compatible database. Preview and production require a real Postgres
+`DATABASE_URL`. Legacy local JSON fallback only remains for public
+marketing-preview lead/subscription flows.
 
 ## Snapshot engine behavior
 
@@ -93,6 +110,11 @@ The project is ready for Neon using Drizzle. If `DATABASE_URL` is missing, lead 
 
 ## Internal documentation
 
+- [Delivery control](DELIVERY_CONTROL.md)
+- [Release checklist](RELEASE_CHECKLIST.md)
+- [Environment audit](ENVIRONMENT_AUDIT.md)
+- [Business profile spec](BUSINESS_PROFILE_SPEC.md)
+- [Diagnostics spec](DIAGNOSTICS_SPEC.md)
 - [Executive summary](docs/executive-summary.md)
 - [Business plan](docs/business-plan.md)
 - [Product requirements](docs/product-requirements.md)

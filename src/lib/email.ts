@@ -56,12 +56,12 @@ export async function sendLeadNotifications(lead: LeadRecord) {
   await Promise.all([
     sendTransactionalEmail({
       to,
-      subject: `New AI Growth OS lead: ${lead.company}`,
+      subject: `New FoundryOS lead: ${lead.company}`,
       text: summary
     }),
     sendTransactionalEmail({
       to: lead.email,
-      subject: "We received your AI Growth OS request",
+      subject: "We received your FoundryOS request",
       text: `Thanks ${lead.name}, we received your request and will review it shortly.\n\nSummary:\n${summary}`
     })
   ]);

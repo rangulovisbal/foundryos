@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted">
-              AI Growth OS
+              FoundryOS
             </p>
             <p className="mt-2 max-w-2xl text-sm text-muted">
               AI-first operating system for startups and lean teams that need a

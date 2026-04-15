@@ -1,9 +1,16 @@
+import Link from "next/link";
+
 import { LockedStatePanel } from "@/components/locked-state-panel";
+import { getBusinessProfile, getLatestDiagnosticResult } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
 import { getPlanDefinition, isLockedState } from "@/lib/foundation";
 
 export default async function WorkspaceDashboardPage() {
   const context = await requireWorkspaceContext("/app/dashboard");
+  const [profile, latestDiagnostic] = await Promise.all([
+    getBusinessProfile(context.workspace.id),
+    getLatestDiagnosticResult(context.workspace.id)
+  ]);
   const plan = getPlanDefinition(context.workspace.plan);
 
   return (
@@ -15,12 +22,12 @@ export default async function WorkspaceDashboardPage() {
       <section className="surface p-6 md:p-8">
         <span className="eyebrow">Workspace dashboard</span>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
-          Auth, membership, and entitlement foundation is now active.
+          FoundryOS workspace foundation is active.
         </h2>
         <p className="mt-4 body-lg">
-          This dashboard confirms the authenticated product shell is working. It
-          is intentionally focused on access control, workspace state, and plan
-          boundaries before deeper diagnostic modules are moved under /app.
+          This dashboard now sits on top of authenticated workspace access,
+          role-aware operations, business profile context, and persisted
+          diagnostics history.
         </p>
       </section>
 
@@ -53,6 +60,34 @@ export default async function WorkspaceDashboardPage() {
           </p>
           <p className="mt-2 text-sm text-muted">
             Usage placeholders are stored even before live billing is enabled.
+          </p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            Profile
+          </p>
+          <p className="mt-3 text-2xl font-semibold">
+            {profile ? "Saved" : "Not started"}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            <Link className="font-semibold text-ink underline" href="/app/profile">
+              Open business profile
+            </Link>
+          </p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            Diagnostics
+          </p>
+          <p className="mt-3 text-2xl font-semibold">
+            {latestDiagnostic
+              ? `${latestDiagnostic.overallMaturityScore}/100`
+              : "No run yet"}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            <Link className="font-semibold text-ink underline" href="/app/diagnostics">
+              Open diagnostics
+            </Link>
           </p>
         </article>
       </section>

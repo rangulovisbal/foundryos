@@ -7,8 +7,11 @@ import {
   adminAuditLogs,
   appSessions,
   appUsers,
+  diagnosticJobs,
+  diagnosticResults,
   emailVerificationTokens,
   passwordResetTokens,
+  workspaceBusinessProfiles,
   workspaceInvitations,
   workspaceMemberships,
   workspaceUsageCounters,
@@ -18,6 +21,11 @@ import type {
   AdminAuditLogRecord,
   AppSession,
   AppUser,
+  BusinessProfileInput,
+  BusinessProfileRecord,
+  DiagnosticJobRecord,
+  DiagnosticJobWithResult,
+  DiagnosticResultRecord,
   EmailVerificationRecord,
   PasswordResetRecord,
   UsageCounterRecord,
@@ -36,6 +44,16 @@ export type AdminAuditLogRow = {
   log: AdminAuditLogRecord;
   adminUser: Pick<AppUser, "id" | "email" | "fullName">;
   workspace: Pick<WorkspaceRecord, "id" | "name" | "slug">;
+};
+
+export type AdminDiagnosticJobRow = {
+  job: DiagnosticJobRecord;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+  result: Pick<
+    DiagnosticResultRecord,
+    "id" | "overallMaturityScore" | "confidence" | "createdAt"
+  > | null;
 };
 
 function mapUser(row: typeof appUsers.$inferSelect): AppUser {
@@ -141,6 +159,68 @@ function mapUsageCounter(
     periodStart: row.periodStart.toISOString(),
     periodEnd: row.periodEnd.toISOString(),
     updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapBusinessProfile(
+  row: typeof workspaceBusinessProfiles.$inferSelect
+): BusinessProfileRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    companyName: row.companyName,
+    website: row.website,
+    industry: row.industry,
+    businessModel: row.businessModel,
+    teamSize: row.teamSize,
+    geography: row.geography,
+    primaryOffer: row.primaryOffer,
+    targetAudience: row.targetAudience,
+    currentChannels: row.currentChannels ?? [],
+    currentTools: row.currentTools ?? [],
+    primaryGoals: row.primaryGoals ?? [],
+    biggestBottlenecks: row.biggestBottlenecks ?? [],
+    budgetBand: row.budgetBand,
+    lifecycleStage: row.lifecycleStage,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapDiagnosticJob(
+  row: typeof diagnosticJobs.$inferSelect
+): DiagnosticJobRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    requestedByUserId: row.requestedByUserId,
+    status: row.status as DiagnosticJobRecord["status"],
+    jobType: row.jobType,
+    error: row.error,
+    startedAt: row.startedAt?.toISOString() ?? null,
+    completedAt: row.completedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapDiagnosticResult(
+  row: typeof diagnosticResults.$inferSelect
+): DiagnosticResultRecord {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    workspaceId: row.workspaceId,
+    overallMaturityScore: row.overallMaturityScore,
+    categoryScores: row.categoryScores,
+    topBottlenecks: row.topBottlenecks as DiagnosticResultRecord["topBottlenecks"],
+    topRisks: row.topRisks as DiagnosticResultRecord["topRisks"],
+    topOpportunities: row.topOpportunities as DiagnosticResultRecord["topOpportunities"],
+    confidence: row.confidence as DiagnosticResultRecord["confidence"],
+    recommendedNextActions: row.recommendedNextActions,
+    evidenceCards: row.evidenceCards,
+    summary: row.summary,
+    createdAt: row.createdAt.toISOString()
   };
 }
 
@@ -566,6 +646,196 @@ export async function listWorkspaceUsage(workspaceId: string) {
   return rows.map(mapUsageCounter);
 }
 
+export async function incrementWorkspaceUsageCounter(
+  workspaceId: string,
+  metricKey: UsageCounterRecord["metricKey"]
+) {
+  const db = await requireDb("workspace usage updates");
+  const usage = await listWorkspaceUsage(workspaceId);
+  const counter = usage.find((item) => item.metricKey === metricKey);
+
+  if (!counter) {
+    throw new Error(`Missing usage counter for ${metricKey}.`);
+  }
+
+  await db
+    .update(workspaceUsageCounters)
+    .set({
+      usedCount: counter.usedCount + 1,
+      updatedAt: new Date()
+    })
+    .where(eq(workspaceUsageCounters.id, counter.id));
+
+  return listWorkspaceUsage(workspaceId);
+}
+
+function toNullableText(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeProfileList(values: string[] | undefined) {
+  return Array.from(
+    new Set((values ?? []).map((value) => value.trim()).filter(Boolean))
+  ).slice(0, 12);
+}
+
+export async function getBusinessProfile(workspaceId: string) {
+  const db = await requireDb("business profile lookup");
+  const rows = await db
+    .select()
+    .from(workspaceBusinessProfiles)
+    .where(eq(workspaceBusinessProfiles.workspaceId, workspaceId))
+    .limit(1);
+
+  return rows[0] ? mapBusinessProfile(rows[0]) : null;
+}
+
+export async function upsertBusinessProfile(
+  workspaceId: string,
+  input: BusinessProfileInput
+) {
+  const db = await requireDb("business profile persistence");
+  const now = new Date();
+  const values = {
+    companyName: toNullableText(input.companyName),
+    website: toNullableText(input.website),
+    industry: toNullableText(input.industry),
+    businessModel: toNullableText(input.businessModel),
+    teamSize: toNullableText(input.teamSize),
+    geography: toNullableText(input.geography),
+    primaryOffer: toNullableText(input.primaryOffer),
+    targetAudience: toNullableText(input.targetAudience),
+    currentChannels: normalizeProfileList(input.currentChannels),
+    currentTools: normalizeProfileList(input.currentTools),
+    primaryGoals: normalizeProfileList(input.primaryGoals),
+    biggestBottlenecks: normalizeProfileList(input.biggestBottlenecks),
+    budgetBand: toNullableText(input.budgetBand),
+    lifecycleStage: toNullableText(input.lifecycleStage),
+    updatedAt: now
+  };
+
+  await db
+    .insert(workspaceBusinessProfiles)
+    .values({
+      id: crypto.randomUUID(),
+      workspaceId,
+      ...values,
+      createdAt: now
+    })
+    .onConflictDoUpdate({
+      target: workspaceBusinessProfiles.workspaceId,
+      set: values
+    });
+
+  return getBusinessProfile(workspaceId);
+}
+
+export async function createDiagnosticJob(record: DiagnosticJobRecord) {
+  const db = await requireDb("diagnostic job persistence");
+
+  await db.insert(diagnosticJobs).values({
+    id: record.id,
+    workspaceId: record.workspaceId,
+    requestedByUserId: record.requestedByUserId,
+    status: record.status,
+    jobType: record.jobType,
+    error: record.error,
+    startedAt: record.startedAt ? new Date(record.startedAt) : null,
+    completedAt: record.completedAt ? new Date(record.completedAt) : null,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt)
+  });
+
+  return record;
+}
+
+export async function updateDiagnosticJob(
+  jobId: string,
+  patch: Partial<
+    Pick<DiagnosticJobRecord, "status" | "error" | "startedAt" | "completedAt">
+  >
+) {
+  const db = await requireDb("diagnostic job updates");
+
+  await db
+    .update(diagnosticJobs)
+    .set({
+      status: patch.status,
+      error: patch.error,
+      startedAt:
+        patch.startedAt === undefined
+          ? undefined
+          : patch.startedAt
+            ? new Date(patch.startedAt)
+            : null,
+      completedAt:
+        patch.completedAt === undefined
+          ? undefined
+          : patch.completedAt
+            ? new Date(patch.completedAt)
+            : null,
+      updatedAt: new Date()
+    })
+    .where(eq(diagnosticJobs.id, jobId));
+}
+
+export async function createDiagnosticResult(record: DiagnosticResultRecord) {
+  const db = await requireDb("diagnostic result persistence");
+
+  await db.insert(diagnosticResults).values({
+    id: record.id,
+    jobId: record.jobId,
+    workspaceId: record.workspaceId,
+    overallMaturityScore: record.overallMaturityScore,
+    categoryScores: record.categoryScores,
+    topBottlenecks: record.topBottlenecks,
+    topRisks: record.topRisks,
+    topOpportunities: record.topOpportunities,
+    confidence: record.confidence,
+    recommendedNextActions: record.recommendedNextActions,
+    evidenceCards: record.evidenceCards,
+    summary: record.summary,
+    createdAt: new Date(record.createdAt)
+  });
+
+  return record;
+}
+
+export async function getLatestDiagnosticResult(workspaceId: string) {
+  const db = await requireDb("latest diagnostic result lookup");
+  const rows = await db
+    .select()
+    .from(diagnosticResults)
+    .where(eq(diagnosticResults.workspaceId, workspaceId))
+    .orderBy(desc(diagnosticResults.createdAt))
+    .limit(1);
+
+  return rows[0] ? mapDiagnosticResult(rows[0]) : null;
+}
+
+export async function listDiagnosticJobsWithResults(
+  workspaceId: string,
+  limit = 10
+): Promise<DiagnosticJobWithResult[]> {
+  const db = await requireDb("diagnostic history lookup");
+  const rows = await db
+    .select({
+      job: diagnosticJobs,
+      result: diagnosticResults
+    })
+    .from(diagnosticJobs)
+    .leftJoin(diagnosticResults, eq(diagnosticResults.jobId, diagnosticJobs.id))
+    .where(eq(diagnosticJobs.workspaceId, workspaceId))
+    .orderBy(desc(diagnosticJobs.createdAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    job: mapDiagnosticJob(row.job),
+    result: row.result ? mapDiagnosticResult(row.result) : null
+  }));
+}
+
 export async function syncSeatUsage(workspaceId: string) {
   const db = await requireDb("workspace seat usage sync");
   const [members, usage] = await Promise.all([
@@ -673,6 +943,51 @@ export async function listAdminAuditLogs(limit = 20) {
         name: row.workspace.name,
         slug: row.workspace.slug
       }
+    })
+  );
+}
+
+export async function listAdminDiagnosticJobs(limit = 20) {
+  const db = await requireDb("admin diagnostic job lookup");
+  const rows = await db
+    .select({
+      job: diagnosticJobs,
+      workspace: workspaces,
+      requestedByUser: appUsers,
+      result: diagnosticResults
+    })
+    .from(diagnosticJobs)
+    .innerJoin(workspaces, eq(diagnosticJobs.workspaceId, workspaces.id))
+    .leftJoin(appUsers, eq(diagnosticJobs.requestedByUserId, appUsers.id))
+    .leftJoin(diagnosticResults, eq(diagnosticResults.jobId, diagnosticJobs.id))
+    .orderBy(desc(diagnosticJobs.createdAt))
+    .limit(limit);
+
+  return rows.map(
+    (row): AdminDiagnosticJobRow => ({
+      job: mapDiagnosticJob(row.job),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"]
+      },
+      requestedByUser: row.requestedByUser
+        ? {
+            id: row.requestedByUser.id,
+            email: row.requestedByUser.email,
+            fullName: row.requestedByUser.fullName
+          }
+        : null,
+      result: row.result
+        ? {
+            id: row.result.id,
+            overallMaturityScore: row.result.overallMaturityScore,
+            confidence: row.result.confidence as DiagnosticResultRecord["confidence"],
+            createdAt: row.result.createdAt.toISOString()
+          }
+        : null
     })
   );
 }

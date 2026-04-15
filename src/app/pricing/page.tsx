@@ -39,7 +39,7 @@ const purchaseSteps = [
   },
   {
     title: "Receive your first outputs",
-    body: "Snapshot customers receive a scorecard and roadmap. Growth OS customers move into recurring refreshes."
+    body: "Snapshot customers receive a scorecard and roadmap. FoundryOS Core customers move into recurring refreshes."
   }
 ];
 
@@ -73,8 +73,8 @@ export default function PricingPage() {
         </h1>
         <p className="mt-4 max-w-3xl body-lg">
           Start with Snapshot if you need a diagnostic and a 30-day plan.
-          Choose Growth OS if you want a recurring operating layer. Use Operator
-          when the work includes deeper implementation and integrations.
+          Choose FoundryOS Core if you want a recurring operating layer. Use
+          Operator when the work includes deeper implementation and integrations.
         </p>
         {!hasLiveCheckout ? (
           <p className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">

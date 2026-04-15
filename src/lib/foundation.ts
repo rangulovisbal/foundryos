@@ -32,11 +32,19 @@ export const usageMetricKeyOptions = [
   "monthly_refreshes"
 ] as const;
 
+export const diagnosticJobStatusOptions = [
+  "queued",
+  "processing",
+  "completed",
+  "failed"
+] as const;
+
 export type WorkspacePlan = (typeof workspacePlanOptions)[number];
 export type WorkspaceAccountState = (typeof workspaceAccountStateOptions)[number];
 export type WorkspaceRole = (typeof workspaceRoleOptions)[number];
 export type UserGlobalRole = (typeof userGlobalRoleOptions)[number];
 export type UsageMetricKey = (typeof usageMetricKeyOptions)[number];
+export type DiagnosticJobStatus = (typeof diagnosticJobStatusOptions)[number];
 
 export type AppUser = {
   id: string;
@@ -118,6 +126,93 @@ export type UsageCounterRecord = {
   updatedAt: string;
 };
 
+export type BusinessProfileRecord = {
+  id: string;
+  workspaceId: string;
+  companyName: string | null;
+  website: string | null;
+  industry: string | null;
+  businessModel: string | null;
+  teamSize: string | null;
+  geography: string | null;
+  primaryOffer: string | null;
+  targetAudience: string | null;
+  currentChannels: string[];
+  currentTools: string[];
+  primaryGoals: string[];
+  biggestBottlenecks: string[];
+  budgetBand: string | null;
+  lifecycleStage: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DiagnosticCategoryScore = {
+  key: string;
+  label: string;
+  score: number;
+  rationale: string;
+};
+
+export type DiagnosticFinding = {
+  title: string;
+  detail: string;
+  severity: "low" | "medium" | "high";
+};
+
+export type DiagnosticOpportunity = {
+  title: string;
+  detail: string;
+  impact: "low" | "medium" | "high";
+};
+
+export type DiagnosticNextAction = {
+  title: string;
+  detail: string;
+  owner: string;
+  timeframe: string;
+};
+
+export type DiagnosticEvidenceCard = {
+  title: string;
+  observation: string;
+  implication: string;
+};
+
+export type DiagnosticJobRecord = {
+  id: string;
+  workspaceId: string;
+  requestedByUserId: string | null;
+  status: DiagnosticJobStatus;
+  jobType: string;
+  error: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DiagnosticResultRecord = {
+  id: string;
+  jobId: string;
+  workspaceId: string;
+  overallMaturityScore: number;
+  categoryScores: DiagnosticCategoryScore[];
+  topBottlenecks: DiagnosticFinding[];
+  topRisks: DiagnosticFinding[];
+  topOpportunities: DiagnosticOpportunity[];
+  confidence: "low" | "medium" | "high";
+  recommendedNextActions: DiagnosticNextAction[];
+  evidenceCards: DiagnosticEvidenceCard[];
+  summary: string;
+  createdAt: string;
+};
+
+export type DiagnosticJobWithResult = {
+  job: DiagnosticJobRecord;
+  result: DiagnosticResultRecord | null;
+};
+
 export type AdminAuditLogRecord = {
   id: string;
   adminUserId: string;
@@ -191,11 +286,49 @@ export const workspaceAdminUpdateSchema = z.object({
   plan: z.enum(workspacePlanOptions)
 });
 
+const optionalProfileText = (max = 500) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .default("");
+
+const profileListSchema = z
+  .array(z.string().trim().min(1).max(120))
+  .max(12)
+  .optional()
+  .default([]);
+
+export const businessProfileSchema = z.object({
+  companyName: optionalProfileText(160),
+  website: optionalProfileText(255).refine(
+    (value) => !value || /^https?:\/\/[^.\s]+\.[^\s]+$/i.test(value),
+    "Use a full website URL starting with http:// or https://."
+  ),
+  industry: optionalProfileText(120),
+  businessModel: optionalProfileText(120),
+  teamSize: optionalProfileText(64),
+  geography: optionalProfileText(160),
+  primaryOffer: optionalProfileText(1200),
+  targetAudience: optionalProfileText(1200),
+  currentChannels: profileListSchema,
+  currentTools: profileListSchema,
+  primaryGoals: profileListSchema,
+  biggestBottlenecks: profileListSchema,
+  budgetBand: optionalProfileText(64),
+  lifecycleStage: optionalProfileText(64)
+});
+
+export type BusinessProfileInput = z.infer<typeof businessProfileSchema>;
+
 type PlanDefinition = {
   label: string;
   description: string;
   features: Record<
     | "dashboard"
+    | "profile"
+    | "diagnostics"
     | "team"
     | "billing"
     | "monthly_refresh"
@@ -213,6 +346,8 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
     description: "Paid diagnostic and 30-day operating plan.",
     features: {
       dashboard: true,
+      profile: true,
+      diagnostics: true,
       team: false,
       billing: true,
       monthly_refresh: false,
@@ -228,10 +363,12 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
     }
   },
   "growth-os": {
-    label: "Growth OS",
+    label: "FoundryOS Core",
     description: "Recurring operating layer for lean teams.",
     features: {
       dashboard: true,
+      profile: true,
+      diagnostics: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -251,6 +388,8 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
     description: "Premium implementation and integration support.",
     features: {
       dashboard: true,
+      profile: true,
+      diagnostics: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -315,6 +454,43 @@ export function canManageWorkspace(
   accountState: WorkspaceAccountState
 ) {
   return ["owner", "admin"].includes(role) && !isReadOnlyState(accountState);
+}
+
+export function canEditBusinessProfile(
+  role: WorkspaceRole,
+  accountState: WorkspaceAccountState
+) {
+  return canManageWorkspace(role, accountState);
+}
+
+export function getUsageCounter(
+  context: Pick<WorkspaceContext, "usage">,
+  metricKey: UsageMetricKey
+) {
+  return context.usage.find((counter) => counter.metricKey === metricKey) ?? null;
+}
+
+export function hasUsageRemaining(
+  context: Pick<WorkspaceContext, "usage">,
+  metricKey: UsageMetricKey
+) {
+  const counter = getUsageCounter(context, metricKey);
+  if (!counter) {
+    return false;
+  }
+
+  return counter.usedCount < counter.limitCount;
+}
+
+export function canRunDiagnostics(context: WorkspaceContext) {
+  const plan = getPlanDefinition(context.workspace.plan);
+
+  return (
+    plan.features.diagnostics &&
+    canAccessWorkspace(context.workspace.accountState) &&
+    canManageWorkspace(context.membership.role, context.workspace.accountState) &&
+    hasUsageRemaining(context, "diagnostic_runs")
+  );
 }
 
 export function getAccountStateMeta(accountState: WorkspaceAccountState) {

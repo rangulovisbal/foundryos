@@ -1,7 +1,7 @@
 import type { BusinessIntake, SnapshotReport } from "@/lib/types";
 
 export const bodyIntakeDefaults: BusinessIntake = {
-  companyName: "AI Growth OS lead",
+  companyName: "FoundryOS lead",
   website: "",
   businessType: "saas",
   stage: "validated",

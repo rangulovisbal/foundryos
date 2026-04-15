@@ -16,7 +16,7 @@ export function SiteHeader() {
           </div>
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted">
-              AI Growth OS
+              FoundryOS
             </p>
             <p className="text-sm text-muted">
               Growth + operations for lean teams
