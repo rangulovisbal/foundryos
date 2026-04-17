@@ -673,7 +673,7 @@ function verticalMessagePillars(
 function channelIntent(channel: string) {
   const normalized = channel.toLowerCase();
 
-  if (/(referral|referido|partner|affiliate)/.test(normalized)) {
+  if (/(referral|referido|referidos|partner|affiliate)/.test(normalized)) {
     return "referral";
   }
 
@@ -681,23 +681,64 @@ function channelIntent(channel: string) {
     return "direct";
   }
 
-  if (/(webinar|event|workshop|cohort|community)/.test(normalized)) {
+  if (/(webinar|event|events|evento|eventos|workshop|taller|talleres|cohort|community|comunidad|networking)/.test(normalized)) {
     return "event";
   }
 
-  if (/(paid|search|ads|google|meta|tiktok)/.test(normalized)) {
+  if (/(paid|search|ads|google|meta|tiktok|publicidad|anuncios)/.test(normalized)) {
     return "paid";
   }
 
-  if (/(content|seo|blog|youtube|podcast|social)/.test(normalized)) {
+  if (/(content|seo|blog|youtube|podcast|social|contenido|redes)/.test(normalized)) {
     return "content";
   }
 
-  if (/(waitlist|newsletter|sms|lifecycle|crm)/.test(normalized)) {
+  if (/(waitlist|newsletter|sms|lifecycle|crm|correo|lista|boletin)/.test(normalized)) {
     return "owned";
   }
 
   return "general";
+}
+
+function normalizeChannelLabel(channel: string, language: OutputLanguage): string {
+  // Preserve recognized platform proper nouns
+  if (/^(linkedin|youtube|instagram|facebook|meta|google|tiktok|twitter|whatsapp|hubspot|mailchimp|substack|medium|pinterest|snapchat)\b/i.test(channel.trim())) {
+    return channel;
+  }
+  const intent = channelIntent(channel);
+  const intentLabels: Record<string, { en: string; es: string }> = {
+    referral: { en: "Referral network", es: "Red de referidos" },
+    direct: { en: "Direct outbound", es: "Outbound directo" },
+    event: { en: "Events and workshops", es: "Eventos y talleres" },
+    paid: { en: "Paid acquisition", es: "Adquisicion paga" },
+    content: { en: "Content and SEO", es: "Contenido y SEO" },
+    owned: { en: "Owned list and follow-up", es: "Lista propia y seguimiento" }
+  };
+  return intentLabels[intent]?.[language] ?? channel;
+}
+
+function verticalAudienceDescriptor(type: BusinessType, language: OutputLanguage): string {
+  const descriptors: Record<BusinessType, { en: string; es: string }> = {
+    academy: { en: "qualified program candidates", es: "candidatos calificados al programa" },
+    commerce: { en: "high-intent buyers", es: "compradores de alta intencion" },
+    general: { en: "your priority segment", es: "tu segmento prioritario" },
+    marketplace: { en: "qualified participants", es: "participantes calificados" },
+    services: { en: "qualified prospective clients", es: "clientes potenciales calificados" },
+    subscription: { en: "qualified prospects", es: "prospectos calificados" }
+  };
+  return descriptors[type][language];
+}
+
+function verticalOfferLabel(type: BusinessType, language: OutputLanguage): string {
+  const offerLabels: Record<BusinessType, { en: string; es: string }> = {
+    academy: { en: "this program", es: "este programa" },
+    commerce: { en: "this product", es: "este producto" },
+    general: { en: "this offer", es: "esta oferta" },
+    marketplace: { en: "this platform", es: "esta plataforma" },
+    services: { en: "this service", es: "este servicio" },
+    subscription: { en: "this product", es: "este producto" }
+  };
+  return offerLabels[type][language];
 }
 
 function buildChannelOperatingPlan({
@@ -717,10 +758,11 @@ function buildChannelOperatingPlan({
 }): ChannelOperatingPlan {
   const intent = channelIntent(channel);
   const kpi = verticalKpi(type, language);
+  const normalizedChannel = normalizeChannelLabel(channel, language);
 
   if (language === "es") {
     const common = {
-      channel,
+      channel: normalizedChannel,
       primaryKpi: kpi,
       cadence: "Revision semanal con decision mantener, ajustar, pausar o escalar."
     };
@@ -766,7 +808,7 @@ function buildChannelOperatingPlan({
   }
 
   const common = {
-    channel,
+    channel: normalizedChannel,
     primaryKpi: kpi,
     cadence: "Weekly review with a keep, adjust, pause, or scale decision."
   };
@@ -996,6 +1038,9 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
   const checklistSteps = buildChecklistSteps({ actionPlan, language, thirtyDayPlan });
   const labels = (assetType: BusinessAssetType) => assetLabel(assetType, language);
   const sl = (en: string, es: string) => language === "es" ? es : en;
+  // Language-normalized substitutes for raw profile strings in narrative copy
+  const narrativeAudience = verticalAudienceDescriptor(type, language);
+  const narrativeOffer = verticalOfferLabel(type, language);
   const ns = sl("not specified", "no especificado");
 
   const positioning = createAsset({
@@ -1023,14 +1068,14 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Categoria de negocio: ${vertical}; geografia/contexto: ${fallback(profile.geography, "no especificado")}.`
             ]),
             section("Problema del comprador", [
-              verticalBuyerPain(type, audience, language),
+              verticalBuyerPain(type, narrativeAudience, language),
               `Contexto: ${vertical} para ${fallback(profile.geography, fallback(profile.industry, "mercado objetivo"))}.`
             ]),
             section("Promesa posicionable", [
-              verticalValueProp(type, offer, audience, language)
+              verticalValueProp(type, narrativeOffer, narrativeAudience, language)
             ]),
             section("Hipotesis de posicionamiento", [
-              verticalPositioningHypothesis(type, company, offer, audience, language),
+              verticalPositioningHypothesis(type, company, narrativeOffer, narrativeAudience, language),
               type === "academy"
                 ? `Calificador academico: segmentar leads por intencion de programa antes de tratar todo interes de enrolamiento como igual. Los enrolamientos dependientes de descuento deben rastrearse por separado.`
                 : `Prueba de validacion: correr el canal principal un ciclo completo y medir ${verticalKpi(type, language)} contra el baseline de la semana 1.`,
@@ -1043,14 +1088,14 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Business category: ${vertical}; geography/context: ${fallback(profile.geography, "not specified")}.`
             ]),
             section("Buyer problem to address", [
-              verticalBuyerPain(type, audience, language),
+              verticalBuyerPain(type, narrativeAudience, language),
               `Context: ${vertical} for ${fallback(profile.geography, fallback(profile.industry, "target market"))}.`
             ]),
             section("Positionable promise", [
-              verticalValueProp(type, offer, audience, language)
+              verticalValueProp(type, narrativeOffer, narrativeAudience, language)
             ]),
             section("Positioning hypothesis", [
-              verticalPositioningHypothesis(type, company, offer, audience, language),
+              verticalPositioningHypothesis(type, company, narrativeOffer, narrativeAudience, language),
               type === "academy"
                 ? `Academy qualifier: segment leads by program intent before treating all enrollment interest as equal. Discount-driven enrollments must be tracked separately.`
                 : `Validation test: run the primary channel for one full review cycle and measure ${verticalKpi(type, language)} against the baseline set in week 1.`,
@@ -1100,7 +1145,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
           ]
   });
 
-  const messagingPillars = verticalMessagePillars(type, audience, language);
+  const messagingPillars = verticalMessagePillars(type, narrativeAudience, language);
 
   const messaging = createAsset({
     input,
@@ -1121,7 +1166,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
       language === "es"
         ? [
             section("Narrativa de una linea", [
-              verticalOneLineNarrative(type, company, offer, audience, language)
+              verticalOneLineNarrative(type, company, narrativeOffer, narrativeAudience, language)
             ]),
             section("Pilares de mensaje", messagingPillars),
             section("Objeciones y prueba requerida", [
@@ -1129,13 +1174,13 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Evidencia comercial a recolectar: preguntas repetidas en ventas, motivos de no-decision y patron de calidad de lead.`
             ]),
             section("CTA de validacion", [
-              `CTA primario: invitar a ${audience} a una revision de fit o diagnostico. Siguiente paso definido: acordar un objetivo medible antes de la llamada.`,
+              `CTA primario: invitar a ${narrativeAudience} a una revision de fit o diagnostico. Siguiente paso definido: acordar un objetivo medible antes de la llamada.`,
               `Prueba a recolectar en las proximas 5 conversaciones: objeciones frecuentes, razon de no-decision y si el segmento reconoce el dolor nombrado.`
             ])
           ]
         : [
             section("One-line narrative", [
-              verticalOneLineNarrative(type, company, offer, audience, language)
+              verticalOneLineNarrative(type, company, narrativeOffer, narrativeAudience, language)
             ]),
             section("Message pillars", messagingPillars),
             section("Objections and proof required", [
@@ -1143,7 +1188,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Commercial evidence to collect: repeated sales questions, reasons for no-decision, and lead quality patterns.`
             ]),
             section("Validation CTA", [
-              `Primary CTA: invite ${audience} to a fit review or diagnostic call. Defined next step: agree on one measurable objective before the call.`,
+              `Primary CTA: invite ${narrativeAudience} to a fit review or diagnostic call. Defined next step: agree on one measurable objective before the call.`,
               `Proof to collect in the next 5 conversations: frequent objections, reasons for no-decision, and whether the segment recognizes the named pain.`
             ])
           ]
