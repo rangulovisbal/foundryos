@@ -91,9 +91,15 @@ Roadmap generation adapts strategic moves by detected business type:
 - marketplace: supply/demand activation, liquidity, match quality, repeat usage
 - general: positioning, funnel, operating cadence, scorecard, conversion path
 
-When the business type is academy/education, roadmap items should explicitly
-consider enrollment quality, program promise, funnel segmentation, completion,
-referrals, and weekly reporting cadence.
+When the business type is academy/education, roadmap items must explicitly
+consider enrollment quality by program, program promise clarity, funnel segmentation
+(leads must be segmented by program intent, not treated as a single pool), completion
+tracking, referral measurement, discount dependence, and weekly reporting cadence
+that covers all four metrics independently.
+
+The academy opportunity signal in diagnostics outputs a business-type-specific
+statement that names program-level funnel segmentation and discount-dependent
+enrollment as distinct signals, not generic "lead quality" copy.
 
 ## Output schema
 

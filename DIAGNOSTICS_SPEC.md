@@ -161,6 +161,30 @@ Admin can still manually change workspace account state and plan for testing.
 - No export, PDF, or report sharing.
 - No customer-facing support workflow.
 
+## Scoring calibration notes
+
+Acquisition scoring is intentionally penalized when lead quality concern is present.
+A profile with channels and a nominally defined funnel does not earn the full funnel
+bonus (+10) if lead quality signals are detected. The funnel bonus is reduced to +4
+when `hasLeadQualityConcern` is true, ensuring that "has channels but produces bad
+leads" scores meaningfully lower than "has channels and qualified conversion."
+
+For academy businesses, `hasLeadQualityConcern` is also triggered when the profile
+signals any of the following:
+- Which program or per-program segmentation is absent
+- Discount or promotional dependence on enrollment
+- Completion rate or dropout concern
+- Referral rate has never been measured
+- Lead source quality is not separated by program
+
+These signals are treated as equivalent to explicit poor lead quality because an
+academy funnel that is not segmented by program produces structurally unreliable
+enrollment quality.
+
+The `buildSummary` function now produces specific next-step language per detected
+issue type rather than a generic "close positioning, funnel, data, or cadence gaps"
+statement.
+
 ## Founder audit notes
 
 - Do not treat the score as a sales claim; it is an internal operating heuristic.

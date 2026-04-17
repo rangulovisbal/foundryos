@@ -1158,6 +1158,253 @@ function verticalMetrics(type: BusinessType, language: OutputLanguage) {
   return metrics[type][language];
 }
 
+function week3Objective(type: BusinessType, priorities: string[], language: OutputLanguage) {
+  const p = priorities[2] ?? (language === "es" ? "la tercera prioridad" : "the third priority");
+  const obj: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: `Review lead quality by source, enrollment friction, and completion drop-off. Adjust messaging or intake for the weakest segment. Iterate on: ${p}`,
+      es: `Revisar calidad de lead por fuente, friccion de enrolamiento y abandono. Ajustar mensaje o intake para el segmento mas debil. Iterar sobre: ${p}`
+    },
+    subscription: {
+      en: `Review activation quality, retention signal, and packaging friction. Adjust ICP definition based on conversion data. Iterate on: ${p}`,
+      es: `Revisar calidad de activacion, senal de retencion y friccion de packaging. Ajustar definicion de ICP basado en datos de conversion. Iterar sobre: ${p}`
+    },
+    services: {
+      en: `Review qualified pipeline, proposal conversion rate, and delivery load. Drop one underqualified lead source. Iterate on: ${p}`,
+      es: `Revisar pipeline calificado, tasa de conversion de propuesta y carga de entrega. Eliminar una fuente de lead sin calificacion. Iterar sobre: ${p}`
+    },
+    commerce: {
+      en: `Review checkout conversion, average order value, and repeat purchase signal. Pause or cut the underperforming traffic source. Iterate on: ${p}`,
+      es: `Revisar conversion de checkout, valor promedio de orden y senal de recompra. Pausar o cortar la fuente de trafico que no convierte. Iterar sobre: ${p}`
+    },
+    marketplace: {
+      en: `Review supply activation, demand conversion, and match quality. Identify which side of the marketplace has more friction. Iterate on: ${p}`,
+      es: `Revisar activacion de oferta, conversion de demanda y calidad de match. Identificar que lado del marketplace tiene mas friccion. Iterar sobre: ${p}`
+    },
+    general: {
+      en: `Review evidence, reduce the most repeated manual step, and adjust the operating system. Iterate on: ${p}`,
+      es: `Revisar evidencia, reducir el paso manual mas repetido y ajustar el sistema operativo. Iterar sobre: ${p}`
+    }
+  };
+  return obj[type][language];
+}
+
+function week4Objective(type: BusinessType, language: OutputLanguage) {
+  const obj: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: "Decide which program gets the next cohort. Lock enrollment criteria, lead-quality threshold, and referral incentive structure.",
+      es: "Decidir que programa recibe la proxima cohorte. Cerrar criterios de enrolamiento, umbral de calidad de lead y estructura de referidos."
+    },
+    subscription: {
+      en: "Decide on packaging and activation rule for the next cycle. Lock the ICP definition and conversion event.",
+      es: "Decidir packaging y regla de activacion para el proximo ciclo. Cerrar la definicion del ICP y el evento de conversion."
+    },
+    services: {
+      en: "Decide which service package gets priority next month. Lock proposal rules, scope criteria, and disqualification triggers.",
+      es: "Decidir que paquete de servicio tiene prioridad el proximo mes. Cerrar reglas de propuesta, criterios de alcance y disparadores de descalificacion."
+    },
+    commerce: {
+      en: "Decide which offer bundle and channel continue. Lock discount rules and repeat-purchase trigger.",
+      es: "Decidir que bundle de oferta y canal continuan. Cerrar reglas de descuento y disparador de recompra."
+    },
+    marketplace: {
+      en: "Decide which niche gets the next liquidity push. Lock supply onboarding rules and demand activation criteria.",
+      es: "Decidir que nicho recibe el siguiente impulso de liquidez. Cerrar reglas de onboarding de oferta y criterios de activacion de demanda."
+    },
+    general: {
+      en: "Decide what to keep, pause, or convert into a repeatable process. Assign an owner and focus for the next monthly cycle.",
+      es: "Decidir que mantener, pausar o convertir en proceso repetible. Asignar owner y foco para el proximo ciclo mensual."
+    }
+  };
+  return obj[type][language];
+}
+
+function week1SuccessSignal(type: BusinessType, language: OutputLanguage) {
+  const signals: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: "The team has named the lead quality problem by source and assigned one owner to each enrollment stage.",
+      es: "El equipo ha nombrado el problema de calidad de lead por fuente y asignado un owner a cada etapa de enrolamiento."
+    },
+    subscription: {
+      en: "The team has named the activation bottleneck and assigned one owner to each funnel stage.",
+      es: "El equipo ha nombrado el cuello de botella de activacion y asignado un owner a cada etapa del embudo."
+    },
+    services: {
+      en: "The team has documented the qualification criteria and assigned one owner to the primary service pipeline.",
+      es: "El equipo ha documentado los criterios de calificacion y asignado un owner al pipeline del servicio principal."
+    },
+    commerce: {
+      en: "The team has mapped the checkout funnel with drop-off points and assigned one owner to the primary traffic source.",
+      es: "El equipo ha mapeado el embudo de checkout con puntos de abandono y asignado un owner a la fuente de trafico principal."
+    },
+    marketplace: {
+      en: "The team has documented supply and demand activation stages separately and assigned one owner to each side.",
+      es: "El equipo ha documentado etapas de activacion de oferta y demanda por separado con un owner para cada lado."
+    },
+    general: {
+      en: "The team knows the month focus, owner, baseline, and success threshold.",
+      es: "El equipo conoce el foco del mes, owner, baseline y umbral de exito."
+    }
+  };
+  return signals[type][language];
+}
+
+function verticalQuickWins(type: BusinessType, language: OutputLanguage) {
+  const wins: Record<BusinessType, { en: string[]; es: string[] }> = {
+    academy: {
+      en: [
+        "Score last 10 leads by program fit and drop the bottom third",
+        "Map the enrollment-to-completion drop-off in two steps or less",
+        "Confirm whether referral rate has ever been measured"
+      ],
+      es: [
+        "Puntuar los ultimos 10 leads por fit de programa y eliminar el tercio inferior",
+        "Mapear el abandono enrolamiento-finalizacion en dos pasos o menos",
+        "Confirmar si la tasa de referidos se ha medido alguna vez"
+      ]
+    },
+    subscription: {
+      en: [
+        "Define the activation event in one sentence and confirm every team member agrees",
+        "Identify the last 5 churned users and their primary exit reason",
+        "Confirm whether pipeline quality vs volume is being tracked separately"
+      ],
+      es: [
+        "Definir el evento de activacion en una frase y confirmar que el equipo coincide",
+        "Identificar los ultimos 5 usuarios que abandonaron y su razon principal",
+        "Confirmar si calidad vs volumen de pipeline se mide por separado"
+      ]
+    },
+    services: {
+      en: [
+        "Add a qualification checklist to the next sales call before it happens",
+        "Calculate gross margin on the last three delivered projects",
+        "Map intake-to-delivery steps and count how many are manual"
+      ],
+      es: [
+        "Agregar checklist de calificacion a la proxima llamada comercial antes de que ocurra",
+        "Calcular margen bruto de los ultimos tres proyectos entregados",
+        "Mapear pasos de intake a entrega y contar cuantos son manuales"
+      ]
+    },
+    commerce: {
+      en: [
+        "Map traffic-to-checkout with drop-off percentages at each step",
+        "Calculate repeat purchase rate for the last 90 days",
+        "Check whether discount usage is tracked against margin impact"
+      ],
+      es: [
+        "Mapear trafico a checkout con porcentajes de abandono por paso",
+        "Calcular tasa de recompra de los ultimos 90 dias",
+        "Verificar si el uso de descuentos se mide contra impacto en margen"
+      ]
+    },
+    marketplace: {
+      en: [
+        "Count active supply-side providers vs inactive and identify the top drop-off reason",
+        "Measure how many demand-side requests got a response within 24 hours",
+        "Identify whether match quality or match speed is the bigger friction point"
+      ],
+      es: [
+        "Contar proveedores del lado oferta activos vs inactivos e identificar la razon principal de abandono",
+        "Medir cuantas solicitudes del lado demanda tuvieron respuesta en 24 horas",
+        "Identificar si la calidad o la velocidad del match es el mayor punto de friccion"
+      ]
+    },
+    general: {
+      en: [
+        "Name one owner per action before the week ends",
+        "Choose one primary outcome metric and confirm it is being tracked",
+        "Identify the one manual task that consumes the most founder time"
+      ],
+      es: [
+        "Nombrar un owner por accion antes de que termine la semana",
+        "Elegir una metrica de resultado primaria y confirmar que se mide",
+        "Identificar la tarea manual que consume mas tiempo del fundador"
+      ]
+    }
+  };
+  return wins[type][language];
+}
+
+function verticalSuccessSignals(type: BusinessType, language: OutputLanguage) {
+  const signals: Record<BusinessType, { en: string[]; es: string[] }> = {
+    academy: {
+      en: [
+        "Enrollment quality by source is reviewed weekly with a disqualification rule applied",
+        "At least one program segment shows measurable completion improvement",
+        "Referral rate is tracked against enrollment target for the cycle"
+      ],
+      es: [
+        "Calidad de enrolamiento por fuente se revisa semanalmente con regla de descalificacion aplicada",
+        "Al menos un segmento de programa muestra mejora medible en finalizacion",
+        "Tasa de referidos se mide contra el objetivo de enrolamiento del ciclo"
+      ]
+    },
+    subscription: {
+      en: [
+        "Activation rate shows measurable movement against the baseline defined in week 1",
+        "At least one qualified pipeline milestone was reached",
+        "Retention signal is reviewed weekly and assigned to one owner"
+      ],
+      es: [
+        "La tasa de activacion muestra movimiento medible contra el baseline de la semana 1",
+        "Al menos un hito de pipeline calificado fue alcanzado",
+        "La senal de retencion se revisa semanalmente y tiene un owner asignado"
+      ]
+    },
+    services: {
+      en: [
+        "Qualified pipeline grew without adding unqualified leads",
+        "At least one proposal used the new scoping and qualification rules",
+        "Delivery load is tracked against gross margin weekly"
+      ],
+      es: [
+        "El pipeline calificado crecio sin agregar leads no calificados",
+        "Al menos una propuesta uso las nuevas reglas de alcance y calificacion",
+        "La carga de entrega se mide contra margen bruto semanalmente"
+      ]
+    },
+    commerce: {
+      en: [
+        "Checkout conversion shows measurable movement against the week-1 baseline",
+        "Repeat purchase rate is tracked against acquisition cost",
+        "At least one underperforming channel was paused or adjusted with a documented decision"
+      ],
+      es: [
+        "La conversion de checkout muestra movimiento medible contra el baseline de semana 1",
+        "La tasa de recompra se mide contra el costo de adquisicion",
+        "Al menos un canal sin rendimiento fue pausado o ajustado con decision documentada"
+      ]
+    },
+    marketplace: {
+      en: [
+        "Both sides of the marketplace have an activation metric being tracked separately",
+        "Match quality shows improvement against the week-1 baseline",
+        "At least one friction point was removed or documented with a removal plan"
+      ],
+      es: [
+        "Ambos lados del marketplace tienen una metrica de activacion medida por separado",
+        "La calidad de match muestra mejora contra el baseline de semana 1",
+        "Al menos un punto de friccion fue eliminado o documentado con plan de eliminacion"
+      ]
+    },
+    general: {
+      en: [
+        "The primary outcome metric is being updated weekly with a named owner",
+        "At least one blocked action received a keep-or-drop decision",
+        "The weekly review is happening and producing a recorded decision"
+      ],
+      es: [
+        "La metrica de resultado primaria se actualiza semanalmente con un owner nombrado",
+        "Al menos una accion bloqueada recibio una decision de continuar o descartar",
+        "La revision semanal ocurre y produce una decision registrada"
+      ]
+    }
+  };
+  return signals[type][language];
+}
+
 export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanRecord {
   const language = input.workspace.outputLanguage;
   const type = detectBusinessType(input.profile);
@@ -1220,10 +1467,7 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
           ? "Elegir umbral de exito y regla de decision semanal"
           : "Choose success threshold and weekly decision rule"
       ],
-      successSignal:
-        language === "es"
-          ? "El equipo conoce el foco del mes, owner, baseline y umbral de exito."
-          : "The team knows the month focus, owner, baseline, and success threshold."
+      successSignal: week1SuccessSignal(type, language)
     }),
     week2: weekPlan({
       title: language === "es" ? "Semana 2: Prueba controlada" : "Week 2: Controlled test",
@@ -1246,51 +1490,42 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
           : "The test has an observable result and documented decision."
     }),
     week3: weekPlan({
-      title: language === "es" ? "Semana 3: Operar y ajustar" : "Week 3: Operate and adjust",
-      objective:
-        language === "es"
-          ? "Revisar evidencia, reducir repeticion manual y ajustar el sistema."
-          : "Review evidence, reduce manual repetition, and adjust the system.",
+      title: language === "es" ? "Semana 3: Revisar y ajustar" : "Week 3: Review and adjust",
+      objective: week3Objective(type, priorities, language),
       actions: [
         language === "es" ? `Iterar sobre: ${priorities[2]}` : `Iterate on: ${priorities[2]}`,
         language === "es"
-          ? "Revisar riesgos y bloquear una consecuencia antes de que escale"
-          : "Review risks and block one consequence before it scales",
+          ? "Revisar riesgos activos y bloquear una consecuencia antes de que escale"
+          : "Review active risks and block one consequence before it scales",
         language === "es"
-          ? "Eliminar o documentar una tarea manual repetida"
-          : "Remove or document one repeated manual task"
+          ? "Eliminar o documentar el paso manual mas repetido"
+          : "Remove or document the most repeated manual step"
       ],
       successSignal:
         language === "es"
-          ? "La segunda iteracion mejora claridad, velocidad o visibilidad."
-          : "The second iteration improves clarity, speed, or visibility."
+          ? "La segunda iteracion produce un dato concreto, no solo actividad."
+          : "The second iteration produces a concrete data point, not just activity."
     }),
     week4: weekPlan({
       title: language === "es" ? "Semana 4: Decision de continuidad" : "Week 4: Continuity decision",
-      objective:
-        language === "es"
-          ? "Decidir que mantener, pausar o convertir en SOP despues del mes."
-          : "Decide what to keep, pause, or turn into SOP after the month.",
+      objective: week4Objective(type, language),
       actions: [
         language === "es"
-          ? "Comparar baseline contra resultado y decidir mantener, cambiar o pausar"
-          : "Compare baseline against result and decide keep, change, or pause",
+          ? "Comparar resultado contra baseline y registrar la decision: continuar, ajustar o pausar"
+          : "Compare result against baseline and record the decision: continue, adjust, or pause",
         language === "es"
-          ? "Marcar acciones completadas, bloqueadas y convertibles en SOP"
-          : "Mark completed, blocked, and SOP-ready actions",
+          ? "Cerrar acciones bloqueadas con una decision documentada"
+          : "Close blocked actions with a documented decision",
         language === "es"
-          ? "Definir owner y foco del proximo ciclo mensual"
-          : "Define owner and focus for the next monthly cycle"
+          ? "Definir owner, foco y metrica primaria del proximo ciclo mensual"
+          : "Define owner, focus, and primary metric for the next monthly cycle"
       ],
       successSignal:
         language === "es"
-          ? "Hay una decision clara para el siguiente ciclo de 30 dias."
-          : "There is a clear decision for the next 30-day cycle."
+          ? "Hay una decision documentada y un owner confirmado para el siguiente ciclo."
+          : "There is a documented decision and confirmed owner for the next cycle."
     }),
-    quickWins:
-      language === "es"
-        ? ["Nombrar owner de cada accion", "Crear tablero semanal simple", "Elegir una metrica primaria"]
-        : ["Name one owner per action", "Create a simple weekly board", "Choose one primary metric"],
+    quickWins: verticalQuickWins(type, language),
     risksToAvoid: input.diagnostic.topRisks
       .map((risk) => risk.title)
       .slice(0, 4)
@@ -1300,18 +1535,7 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
           : ["Expanding scope without evidence"]
       )
       .slice(0, 5),
-    successSignals:
-      language === "es"
-        ? [
-            "El equipo revisa el plan semanalmente",
-            "La metrica primaria se actualiza",
-            "Las acciones bloqueadas tienen decision"
-          ]
-        : [
-            "The team reviews the plan weekly",
-            "The primary metric is updated",
-            "Blocked actions receive a decision"
-          ],
+    successSignals: verticalSuccessSignals(type, language),
     metricsToWatch: verticalMetrics(type, language)
       .concat(
         metrics.map(

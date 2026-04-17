@@ -96,11 +96,35 @@ Repetition reduction rules:
 
 Academy plans must be especially explicit about:
 
-- lead quality
-- program clarity
-- funnel segmentation
-- enrollment, completion, and referral flow
-- weekly reporting cadence
+- lead quality by source and by program
+- funnel segmentation: not all enrollment interest is equal
+- discount-dependent enrollment flagged separately
+- enrollment, completion, and referral flow measured independently
+- weekly reporting cadence covering all four metrics
+
+## Action quality rules
+
+Actions must carry directive execution language. Reject any action that:
+
+- Uses intention language: "we will explore", "consider doing", "look into"
+- Is a renamed problem statement: "Undefined funnel", "Weak reporting"
+- Describes a category without naming a specific step: "Improve acquisition"
+- Lacks an owner or a concrete output
+
+Every action must start with a directive verb and produce a concrete artifact:
+a decision, a test result, a scorecard, a package, a handoff document, or a
+qualification record.
+
+## Outcome vs activity metrics
+
+Weekly success signals must describe observable outcomes, not process adherence.
+Unacceptable signals: "The team reviews the plan weekly", "The primary metric is updated".
+Acceptable signals: "Enrollment quality by source is reviewed with a disqualification rule applied",
+"Checkout conversion shows movement against the week-1 baseline".
+
+Week 3 and week 4 objectives must be business-type-specific. Week 3 must name what
+gets reviewed and what gets adjusted. Week 4 must name what gets locked, not just
+"what to keep or pause".
 
 ## Output schema
 

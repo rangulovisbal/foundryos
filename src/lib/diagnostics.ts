@@ -374,7 +374,13 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
   const hasReliableDataVisibility = hasDataVisibility && !explicitWeakReporting;
   const hasLeadQualityConcern = hasPattern(
     `${goals} ${bottlenecks}`,
-    /lead quality|qualified lead|poor lead|bad lead|low conversion|wrong customer|poor fit|noisy demand|calidad de lead|lead malo|baja conversion|mal cliente|prospectos incorrectos/
+    /lead quality|qualified lead|poor lead|bad lead|low conversion|wrong customer|poor fit|noisy demand|discount dependent|discount reliance|wrong program|program fit|enrollment quality|funnel not segmented|unsegmented funnel|calidad de lead|lead malo|baja conversion|mal cliente|prospectos incorrectos|dependencia de descuento|calidad de enrolamiento|programa incorrecto|embudo sin segmentar/
+  ) || (
+    businessType === "academy" &&
+    hasPattern(
+      `${goals} ${bottlenecks} ${offer} ${audience}`,
+      /which program|per program|by program|discount|promo|completion rate|dropout|referral rate|enrollment criteria|lead source|source quality|tasa de finalizacion|abandono|por programa|descuento|fuente de lead/
+    )
   );
   const hasCadence = !explicitNoCadence && hasPattern(
     `${goals} ${bottlenecks} ${tools}`,
@@ -491,7 +497,7 @@ function scoreCategories(
     ),
     acquisition: clamp(
       66 +
-        (signals.hasDefinedFunnel ? 10 : 0) +
+        (signals.hasDefinedFunnel && !signals.hasLeadQualityConcern ? 10 : signals.hasDefinedFunnel ? 4 : 0) +
         channelDepth -
         issuePenalty(signals, "acquisition"),
       18,
@@ -536,12 +542,16 @@ function scoreCategories(
         : "La puntuacion baja porque la oferta, el nicho o la audiencia aun no estan suficientemente claros."
     },
     acquisition: {
-      en: signals.hasDefinedFunnel
-        ? "Channels are connected enough to reason about funnel movement and conversion constraints."
-        : "Score is penalized because the acquisition path is not clearly mapped to conversion.",
-      es: signals.hasDefinedFunnel
-        ? "Los canales estan suficientemente conectados para razonar sobre movimiento de embudo y conversion."
-        : "La puntuacion baja porque la ruta de adquisicion no esta claramente conectada a conversion."
+      en: signals.hasDefinedFunnel && !signals.hasLeadQualityConcern
+        ? "Channels are connected and lead quality signals support qualified conversion reasoning."
+        : signals.hasDefinedFunnel
+          ? "Channels are present but lead quality concern limits the funnel score: the path exists but produces unreliable or unsegmented leads."
+          : "Score is penalized because the acquisition path is not mapped to qualified conversion.",
+      es: signals.hasDefinedFunnel && !signals.hasLeadQualityConcern
+        ? "Los canales estan conectados y las senales de calidad de lead soportan razonamiento de conversion calificada."
+        : signals.hasDefinedFunnel
+          ? "Hay canales pero la preocupacion por calidad de lead limita el puntaje: el camino existe pero produce leads poco fiables o sin segmentar."
+          : "La puntuacion baja porque la ruta de adquisicion no esta conectada a conversion calificada."
     },
     operations: {
       en: signals.hasCadence
@@ -690,15 +700,15 @@ function businessTypeOpportunity(
   const copy: Record<BusinessType, Record<OutputLanguage, DiagnosticOpportunity>> = {
     academy: {
       en: {
-        title: "Map the learner acquisition-to-completion loop",
+        title: "Segment leads by program intent and map the enrollment-to-completion loop",
         detail:
-          "Connect channel, enrollment trigger, onboarding, completion, and referral so the academy can see where learners drop off.",
+          "Split lead sources by program fit, map enrollment trigger, onboarding, completion, and referral. Flag discount-dependent enrollments separately. Measure each stage independently before scaling any channel.",
         impact: "high"
       },
       es: {
-        title: "Mapear el ciclo de adquisicion a finalizacion del alumno",
+        title: "Segmentar leads por intencion de programa y mapear el ciclo enrolamiento-finalizacion",
         detail:
-          "Conectar canal, activador de inscripcion, onboarding, finalizacion y referidos para ver donde se pierden alumnos.",
+          "Dividir fuentes de lead por fit de programa, mapear activador de enrolamiento, onboarding, finalizacion y referidos. Marcar enrolamientos dependientes de descuento por separado. Medir cada etapa antes de escalar.",
         impact: "high"
       }
     },
@@ -982,6 +992,49 @@ function localizedConfidence(
   return confidence;
 }
 
+const nextStepByIssue: Record<IssueKey, Record<OutputLanguage, string>> = {
+  unclear_positioning: {
+    en: "Name the segment, problem, and offer in one sentence before any channel or roadmap work.",
+    es: "Nombrar segmento, problema y oferta en una frase antes de cualquier trabajo de canal o roadmap."
+  },
+  no_niche_clarity: {
+    en: "Narrow the target audience to one specific segment with clear buying intent before expanding acquisition.",
+    es: "Reducir la audiencia objetivo a un segmento especifico con intencion de compra antes de expandir adquisicion."
+  },
+  undefined_funnel: {
+    en: "Define one funnel path with a named conversion event and one owner before adding channels.",
+    es: "Definir un camino de embudo con un evento de conversion nombrado y un owner antes de agregar canales."
+  },
+  weak_reporting: {
+    en: "Install a weekly scorecard for the primary metric before making channel or spend decisions.",
+    es: "Instalar un scorecard semanal de la metrica principal antes de tomar decisiones de canal o gasto."
+  },
+  poor_lead_quality: {
+    en: "Add a lead qualification filter and measure quality by source before increasing volume.",
+    es: "Agregar filtro de calificacion de leads y medir calidad por fuente antes de aumentar volumen."
+  },
+  unclear_offer: {
+    en: "Write the offer with price, delivery, and expected outcome before any outbound or paid activity.",
+    es: "Escribir la oferta con precio, entrega y resultado esperado antes de cualquier actividad outbound o paga."
+  },
+  no_operating_cadence: {
+    en: "Install a weekly operating review with one owner and one primary metric to track.",
+    es: "Instalar revision operativa semanal con un owner y una metrica primaria."
+  },
+  manual_operations: {
+    en: "Document the most repeated manual step and assign it an owner or a removal decision this week.",
+    es: "Documentar el paso manual mas repetido y asignarle owner o decision de eliminacion esta semana."
+  },
+  low_evidence: {
+    en: "Complete the business profile with audience, offer, channels, and tools before generating a roadmap.",
+    es: "Completar el perfil con audiencia, oferta, canales y herramientas antes de crear un roadmap."
+  },
+  contradictory_scale: {
+    en: "Resolve the gap between scale ambition and current operating capacity before adding complexity.",
+    es: "Resolver la brecha entre la ambicion de escala y la capacidad operativa actual antes de agregar complejidad."
+  }
+};
+
 function buildSummary({
   company,
   confidence,
@@ -996,6 +1049,7 @@ function buildSummary({
   signals: SignalMap;
 }) {
   const topIssue = signals.issues[0];
+  const nextStep = topIssue ? nextStepByIssue[topIssue.key][language] : null;
 
   if (language === "es") {
     return (
@@ -1003,7 +1057,7 @@ function buildSummary({
       (topIssue
         ? `La restriccion principal es: ${issueCopy[topIssue.key].es.title}. `
         : "No se detecto una restriccion critica unica. ") +
-      "El siguiente paso debe cerrar posicionamiento, embudo, datos o cadencia antes de crear un roadmap."
+      (nextStep ?? "El siguiente paso debe cerrar la brecha operativa de mayor riesgo antes de crear un roadmap.")
     );
   }
 
@@ -1012,7 +1066,7 @@ function buildSummary({
     (topIssue
       ? `The primary constraint is: ${issueCopy[topIssue.key].en.title}. `
       : "No single critical constraint was detected. ") +
-    "The next step should close positioning, funnel, data, or cadence gaps before roadmap creation."
+    (nextStep ?? "The next step should close the highest-risk operating gap before roadmap creation.")
   );
 }
 
