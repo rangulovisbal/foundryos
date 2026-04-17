@@ -419,6 +419,229 @@ function verticalKpi(type: BusinessType, language: OutputLanguage) {
   return kpis[type][language];
 }
 
+function verticalBuyerPain(
+  type: BusinessType,
+  audience: string,
+  language: OutputLanguage
+): string {
+  const pain: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: `${audience} need a structured path to a real, verifiable outcome — not just content access. They want to know what they will achieve, how long it takes, and whether they will actually finish.`,
+      es: `${audience} necesitan un camino estructurado hacia un resultado real y verificable, no solo acceso a contenido. Quieren saber que lograran, cuanto tiempo toma y si realmente terminaran.`
+    },
+    subscription: {
+      en: `${audience} lose time and accuracy to manual or disconnected processes. They need a reliable system that removes operational drag without requiring a large implementation project.`,
+      es: `${audience} pierden tiempo y precision por procesos manuales o desconectados. Necesitan un sistema confiable que elimine friccion operativa sin requerir una implementacion compleja.`
+    },
+    services: {
+      en: `${audience} struggle to find a partner who delivers on scope and timeline without constant oversight. They want to know exactly what they are getting before they commit.`,
+      es: `${audience} no encuentran facilmente un partner que cumpla alcance y timeline sin supervision constante. Quieren saber exactamente que recibiran antes de comprometerse.`
+    },
+    commerce: {
+      en: `${audience} want to buy the right product with confidence — clear on fit, price, delivery timeline, and what happens if something goes wrong.`,
+      es: `${audience} quieren comprar el producto correcto con confianza: claros en ajuste, precio, plazo de entrega y que pasa si algo falla.`
+    },
+    marketplace: {
+      en: `${audience} cannot reliably find or connect with the right counterpart. The friction of searching, qualifying, and initiating a transaction causes early abandonment.`,
+      es: `${audience} no pueden encontrar o conectar confiablemente con la contraparte correcta. La friccion de buscar, calificar e iniciar una transaccion provoca abandono temprano.`
+    },
+    general: {
+      en: `${audience} need a clear, consistent path to their goal but lack the structure or system to execute it without losing time and momentum.`,
+      es: `${audience} necesitan un camino claro y consistente hacia su objetivo pero les falta la estructura o el sistema para ejecutarlo sin perder tiempo e impulso.`
+    }
+  };
+  return pain[type][language];
+}
+
+function verticalValueProp(
+  type: BusinessType,
+  offer: string,
+  audience: string,
+  language: OutputLanguage
+): string {
+  const props: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: `${offer} gives ${audience} a structured path to a specific skill or career outcome — with defined enrollment criteria, completion milestones, and results they can verify before enrolling.`,
+      es: `${offer} da a ${audience} un camino estructurado hacia una habilidad o resultado profesional especifico, con criterios de enrolamiento definidos, hitos de finalizacion y resultados verificables antes de inscribirse.`
+    },
+    subscription: {
+      en: `${offer} removes the manual and disconnected steps that slow ${audience} down — replacing operational drag with a reliable, measurable system from day one.`,
+      es: `${offer} elimina los pasos manuales y desconectados que frenan a ${audience}, reemplazando la friccion operativa con un sistema confiable y medible desde el primer dia.`
+    },
+    services: {
+      en: `${offer} delivers a defined outcome for ${audience} — with clear scope, fixed timeline, and full accountability established before the engagement begins.`,
+      es: `${offer} entrega un resultado definido para ${audience}, con alcance claro, timeline fijo y responsabilidad completa establecida antes de iniciar el engagement.`
+    },
+    commerce: {
+      en: `${offer} gives ${audience} everything needed to buy with confidence: product clarity, reliable delivery, and support that resolves issues without friction.`,
+      es: `${offer} da a ${audience} todo lo necesario para comprar con confianza: claridad de producto, entrega confiable y soporte que resuelve problemas sin friccion.`
+    },
+    marketplace: {
+      en: `${offer} connects ${audience} with the right counterpart faster — reducing the time and friction between intent and a qualified, completed match.`,
+      es: `${offer} conecta a ${audience} con la contraparte correcta mas rapido, reduciendo el tiempo y la friccion entre la intencion y un match calificado y completado.`
+    },
+    general: {
+      en: `${offer} gives ${audience} a structured, accountable path to their goal — without requiring them to build the system or figure out the sequence themselves.`,
+      es: `${offer} da a ${audience} un camino estructurado y responsable hacia su objetivo, sin requerir que construyan el sistema o descubran la secuencia por su cuenta.`
+    }
+  };
+  return props[type][language];
+}
+
+function verticalPositioningHypothesis(
+  type: BusinessType,
+  company: string,
+  offer: string,
+  audience: string,
+  language: OutputLanguage
+): string {
+  const hyp: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: `${company} is positioned as the structured learning path for ${audience} who need a real, verifiable outcome — not just course content. The offer is ${offer}. This holds if the first enrollment cycle attracts students who finish and can name a concrete result.`,
+      es: `${company} se posiciona como el camino de aprendizaje estructurado para ${audience} que necesitan un resultado real y verificable, no solo contenido de curso. La oferta es ${offer}. Se sostiene si el primer ciclo atrae estudiantes que terminan y pueden nombrar un resultado concreto.`
+    },
+    subscription: {
+      en: `${company} is positioned as the operational system for ${audience} who need to eliminate manual drag and gain measurable visibility. The product is ${offer}. This holds if the first activated users report time savings and can measure an outcome within 30 days.`,
+      es: `${company} se posiciona como el sistema operativo para ${audience} que necesitan eliminar friccion manual y ganar visibilidad medible. El producto es ${offer}. Se sostiene si los primeros usuarios activados reportan ahorro de tiempo y pueden medir un resultado en 30 dias.`
+    },
+    services: {
+      en: `${company} is positioned as the accountable delivery partner for ${audience} who need defined scope, clear timeline, and a verifiable track record. The service is ${offer}. This holds if buyers can review past outcomes and agree on deliverables before signing.`,
+      es: `${company} se posiciona como el partner de entrega responsable para ${audience} que necesitan alcance definido, timeline claro e historial verificable. El servicio es ${offer}. Se sostiene si los compradores pueden revisar resultados anteriores y acordar entregables antes de firmar.`
+    },
+    commerce: {
+      en: `${company} is positioned as the trusted purchase for ${audience} who need product-fit confidence, reliable delivery, and post-purchase support. The product is ${offer}. This holds if buyers return and cite confidence — not price — as the primary reason.`,
+      es: `${company} se posiciona como la compra de confianza para ${audience} que necesitan seguridad en el ajuste, entrega confiable y soporte post-compra. El producto es ${offer}. Se sostiene si los compradores vuelven y citan confianza, no precio, como razon principal.`
+    },
+    marketplace: {
+      en: `${company} is positioned as the low-friction matching platform for ${audience} who need to find the right counterpart without the cost of manual search. The platform is ${offer}. This holds if match quality, not just match volume, improves each cycle.`,
+      es: `${company} se posiciona como la plataforma de match de baja friccion para ${audience} que necesitan encontrar la contraparte correcta sin el costo de la busqueda manual. La plataforma es ${offer}. Se sostiene si la calidad del match, no solo el volumen, mejora en cada ciclo.`
+    },
+    general: {
+      en: `${company} is positioned as the structured execution system for ${audience} who need a clear path to their goal with built-in accountability. The offer is ${offer}. This holds if the first cycle produces a concrete, measurable outcome the buyer can describe to someone else.`,
+      es: `${company} se posiciona como el sistema de ejecucion estructurado para ${audience} que necesitan un camino claro hacia su objetivo con responsabilidad incorporada. La oferta es ${offer}. Se sostiene si el primer ciclo produce un resultado concreto y medible que el comprador puede describir a otro.`
+    }
+  };
+  return hyp[type][language];
+}
+
+function verticalOneLineNarrative(
+  type: BusinessType,
+  company: string,
+  offer: string,
+  audience: string,
+  language: OutputLanguage
+): string {
+  const narratives: Record<BusinessType, { en: string; es: string }> = {
+    academy: {
+      en: `${company} gives ${audience} a structured program to build a real skill and reach a defined career outcome — with clear enrollment criteria, completion milestones, and results they can verify.`,
+      es: `${company} da a ${audience} un programa estructurado para desarrollar una habilidad real y alcanzar un resultado profesional definido, con criterios de enrolamiento claros, hitos de finalizacion y resultados verificables.`
+    },
+    subscription: {
+      en: `${company} gives ${audience} a reliable system to replace manual work and gain measurable operational clarity — from the first week of use.`,
+      es: `${company} da a ${audience} un sistema confiable para reemplazar trabajo manual y ganar claridad operativa medible desde la primera semana de uso.`
+    },
+    services: {
+      en: `${company} delivers defined outcomes for ${audience} — with clear scope, fixed timeline, and full accountability before any engagement begins.`,
+      es: `${company} entrega resultados definidos para ${audience}, con alcance claro, timeline fijo y responsabilidad completa antes de iniciar cualquier engagement.`
+    },
+    commerce: {
+      en: `${company} gives ${audience} the confidence to buy the right product — with clear fit guidance, reliable delivery, and support that removes post-purchase doubt.`,
+      es: `${company} da a ${audience} la confianza para comprar el producto correcto, con orientacion de ajuste clara, entrega confiable y soporte que elimina dudas post-compra.`
+    },
+    marketplace: {
+      en: `${company} connects ${audience} with the right match faster and with less friction — from first search to completed transaction.`,
+      es: `${company} conecta a ${audience} con el match correcto mas rapido y con menos friccion, desde la primera busqueda hasta la transaccion completada.`
+    },
+    general: {
+      en: `${company} gives ${audience} a clear, accountable path to their goal — with the structure to execute it without losing time or momentum.`,
+      es: `${company} da a ${audience} un camino claro y responsable hacia su objetivo, con la estructura para ejecutarlo sin perder tiempo ni impulso.`
+    }
+  };
+  return narratives[type][language];
+}
+
+function verticalMessagePillars(
+  type: BusinessType,
+  audience: string,
+  language: OutputLanguage
+): string[] {
+  const pillars: Record<BusinessType, { en: string[]; es: string[] }> = {
+    academy: {
+      en: [
+        `Program outcome: what the student who completes this program achieves in their work or career.`,
+        `Enrollment path: how to apply, what gets evaluated, and how quickly access begins.`,
+        `Completion proof: what percentage of students finish and what keeps them in the program.`
+      ],
+      es: [
+        `Resultado del programa: que logra el estudiante que completa este programa en su trabajo o carrera.`,
+        `Camino de enrolamiento: como se aplica, que se evalua y que tan rapido comienza el acceso.`,
+        `Prueba de finalizacion: que porcentaje de estudiantes completa y que los mantiene en el programa.`
+      ]
+    },
+    subscription: {
+      en: [
+        `Time saved: how ${audience} reduce hours spent on manual or error-prone work each week.`,
+        `Operational reliability: what ${audience} can count on every week without manual intervention or rework.`,
+        `Measurable impact: the operational or financial signal that confirms value within the first 30 days.`
+      ],
+      es: [
+        `Tiempo ahorrado: como ${audience} reducen las horas dedicadas a trabajo manual o propenso a errores cada semana.`,
+        `Confiabilidad operativa: en que puede confiar ${audience} cada semana sin intervencion manual ni retrabajo.`,
+        `Impacto medible: la senal operativa o financiera que confirma el valor en los primeros 30 dias.`
+      ]
+    },
+    services: {
+      en: [
+        `Delivery confidence: ${audience} know exactly what gets delivered, by when, and who is accountable — before signing.`,
+        `Strategic clarity: ${audience} receive a clear recommendation with reasoning before implementation begins.`,
+        `Verifiable track record: past client outcomes ${audience} can review and reference before committing.`
+      ],
+      es: [
+        `Confianza en entrega: ${audience} saben exactamente que se entrega, cuando y quien es responsable, antes de firmar.`,
+        `Claridad estrategica: ${audience} reciben una recomendacion clara con razonamiento antes de que comience la implementacion.`,
+        `Historial verificable: resultados de clientes anteriores que ${audience} pueden revisar antes de comprometerse.`
+      ]
+    },
+    commerce: {
+      en: [
+        `Product fit confidence: ${audience} can identify the right product for their need without guessing or returning.`,
+        `Purchase clarity: transparent pricing, delivery expectations, and return policy that remove pre-buy hesitation.`,
+        `Post-purchase trust: quality consistency, fast service response, and social proof that bring ${audience} back.`
+      ],
+      es: [
+        `Confianza de ajuste: ${audience} pueden identificar el producto correcto para su necesidad sin adivinar ni devolver.`,
+        `Claridad de compra: precio transparente, expectativas de entrega y politica de devolucion que eliminan dudas pre-compra.`,
+        `Confianza post-compra: consistencia de calidad, respuesta rapida de servicio y prueba social que hacen que ${audience} vuelva.`
+      ]
+    },
+    marketplace: {
+      en: [
+        `Match quality: ${audience} find the right counterpart — not just any available option — before committing.`,
+        `Response speed: how quickly ${audience} can act on a match without losing momentum or waiting for follow-up.`,
+        `Trust signals: what proves both sides of the marketplace are reliable and qualified before transacting.`
+      ],
+      es: [
+        `Calidad del match: ${audience} encuentran la contraparte correcta, no solo una opcion disponible, antes de comprometerse.`,
+        `Velocidad de respuesta: con que rapidez puede actuar ${audience} sobre un match sin perder impulso ni esperar seguimiento.`,
+        `Senales de confianza: que prueba que ambos lados del marketplace son confiables y calificados antes de transaccionar.`
+      ]
+    },
+    general: {
+      en: [
+        `Outcome clarity: ${audience} know exactly what result they are working toward — and what done looks like.`,
+        `Execution reliability: ${audience} can count on consistent delivery without guessing what comes next.`,
+        `Measurable progress: how ${audience} know it is working within the first cycle.`
+      ],
+      es: [
+        `Claridad de resultado: ${audience} saben exactamente hacia que resultado trabajan y como se ve el exito.`,
+        `Confiabilidad de ejecucion: ${audience} pueden contar con entrega consistente sin adivinar que viene.`,
+        `Progreso medible: como sabe ${audience} que esta funcionando en el primer ciclo.`
+      ]
+    }
+  };
+  return pillars[type][language];
+}
+
 function channelIntent(channel: string) {
   const normalized = channel.toLowerCase();
 
@@ -769,23 +992,19 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Comprador o usuario prioritario: ${audience}.`,
               `Categoria de negocio: ${vertical}; geografia/contexto: ${fallback(profile.geography, "no especificado")}.`
             ]),
-            section("Dolor que debe nombrarse", [
-              `Problema dominante del diagnostico: ${mainBottleneck}.`,
-              `Detalle de evidencia: ${cleanAssetSignal(
-                diagnostic.topBottlenecks[0]?.detail,
-                cleanDiagnosticSummary
-              )}`
+            section("Problema del comprador", [
+              verticalBuyerPain(type, audience, language),
+              `Contexto: ${vertical} para ${fallback(profile.geography, fallback(profile.industry, "mercado objetivo"))}.`
             ]),
             section("Promesa posicionable", [
-              `Oferta a empaquetar: ${offer}.`,
-              `La promesa debe conectar audiencia, dolor y resultado verificable sin prometer crecimiento garantizado.`
+              verticalValueProp(type, offer, audience, language)
             ]),
             section("Hipotesis de posicionamiento", [
-              `${company} sirve a ${audience} con ${offer} para resolver ${profile.biggestBottlenecks[0] ?? mainBottleneck}. Esta hipotesis se sostiene si el proximo ciclo de canal produce conversaciones calificadas.`,
+              verticalPositioningHypothesis(type, company, offer, audience, language),
               type === "academy"
                 ? `Calificador academico: segmentar leads por intencion de programa antes de tratar todo interes de enrolamiento como igual. Los enrolamientos dependientes de descuento deben rastrearse por separado.`
                 : `Prueba de validacion: correr el canal principal un ciclo completo y medir ${verticalKpi(type, language)} contra el baseline de la semana 1.`,
-              `Disparador de decision: si el primer ciclo produce conversaciones calificadas, afinar mensaje y extender a segundo canal. Si no, cambiar segmento u oferta antes de aumentar actividad.`
+              `Disparador de decision: si el primer ciclo confirma la hipotesis, afinar mensaje y extender a segundo canal. Si no, cambiar segmento u oferta antes de aumentar actividad.`
             ])
           ]
         : [
@@ -793,23 +1012,19 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Priority buyer or user: ${audience}.`,
               `Business category: ${vertical}; geography/context: ${fallback(profile.geography, "not specified")}.`
             ]),
-            section("Pain that must be named", [
-              `Dominant diagnostic problem: ${mainBottleneck}.`,
-              `Evidence detail: ${cleanAssetSignal(
-                diagnostic.topBottlenecks[0]?.detail,
-                cleanDiagnosticSummary
-              )}`
+            section("Buyer problem to address", [
+              verticalBuyerPain(type, audience, language),
+              `Context: ${vertical} for ${fallback(profile.geography, fallback(profile.industry, "target market"))}.`
             ]),
             section("Positionable promise", [
-              `Offer to package: ${offer}.`,
-              `The promise should connect audience, pain, and verifiable outcome without promising guaranteed growth.`
+              verticalValueProp(type, offer, audience, language)
             ]),
             section("Positioning hypothesis", [
-              `${company} serves ${audience} with ${offer} to solve ${profile.biggestBottlenecks[0] ?? mainBottleneck}. This hypothesis holds if the next channel cycle produces qualified conversations.`,
+              verticalPositioningHypothesis(type, company, offer, audience, language),
               type === "academy"
                 ? `Academy qualifier: segment leads by program intent before treating all enrollment interest as equal. Discount-driven enrollments must be tracked separately.`
                 : `Validation test: run the primary channel for one full review cycle and measure ${verticalKpi(type, language)} against the baseline set in week 1.`,
-              `Decision trigger: if the first cycle produces qualified conversations, sharpen message and extend to a second channel. If not, change the segment or offer before increasing activity.`
+              `Decision trigger: if the first cycle confirms the hypothesis, sharpen message and extend to a second channel. If not, change the segment or offer before increasing activity.`
             ])
           ]
   });
@@ -855,25 +1070,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
           ]
   });
 
-  const messagingPain = fallback(profile.biggestBottlenecks[0], mainBottleneck);
-  const messagingPillars = type === "academy"
-    ? (language === "es"
-        ? [
-            `Resultado del programa: que logra el estudiante que completa este programa en su trabajo o carrera.`,
-            `Camino de enrolamiento: como se aplica, que se evalua y que tan rapido comienza el acceso.`,
-            `Prueba de finalizacion: que porcentaje de estudiantes completa y que los mantiene en el programa.`
-          ]
-        : [
-            `Program outcome: what the student who completes this program achieves in their work or career.`,
-            `Enrollment path: how to apply, what gets evaluated, and how quickly access begins.`,
-            `Completion proof: what percentage of students finish and what keeps them in the program.`
-          ])
-    : cleanList(nowRoadmapTitles, 3).map(
-        (item) =>
-          language === "es"
-            ? `Pilar: ${item}; convertirlo en beneficio observable para ${audience}, no en claim de resultado interno.`
-            : `Pillar: ${item}; translate this into observable value for ${audience}, not an internal outcome claim.`
-      );
+  const messagingPillars = verticalMessagePillars(type, audience, language);
 
   const messaging = createAsset({
     input,
@@ -891,7 +1088,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
       language === "es"
         ? [
             section("Narrativa de una linea", [
-              `${company} ayuda a ${audience} a resolver ${messagingPain} con ${offer}.`
+              verticalOneLineNarrative(type, company, offer, audience, language)
             ]),
             section("Pilares de mensaje", messagingPillars),
             section("Objeciones y prueba requerida", [
@@ -905,7 +1102,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
           ]
         : [
             section("One-line narrative", [
-              `${company} helps ${audience} resolve ${messagingPain} with ${offer}.`
+              verticalOneLineNarrative(type, company, offer, audience, language)
             ]),
             section("Message pillars", messagingPillars),
             section("Objections and proof required", [
