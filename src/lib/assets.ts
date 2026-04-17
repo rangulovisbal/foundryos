@@ -95,6 +95,36 @@ function joinSignals(values: string[], fallbackValue: string) {
   return cleaned.length > 0 ? cleaned.join("; ") : fallbackValue;
 }
 
+function localizedCategoryLabel(category: string, language: OutputLanguage): string {
+  const labels: Record<string, { en: string; es: string }> = {
+    acquisition: { en: "acquisition", es: "adquisicion" },
+    commercial: { en: "commercial", es: "comercial" },
+    data: { en: "data", es: "datos" },
+    execution: { en: "execution", es: "ejecucion" },
+    operations: { en: "operations", es: "operaciones" },
+    positioning: { en: "positioning", es: "posicionamiento" }
+  };
+  return labels[category]?.[language] ?? (language === "es" ? "ejecucion" : "execution");
+}
+
+function localizeConfidence(confidence: string, language: OutputLanguage): string {
+  if (language !== "es") return confidence;
+  const map: Record<string, string> = { high: "alta", medium: "media", low: "baja" };
+  return map[confidence] ?? confidence;
+}
+
+function localizePhase(phase: string, language: OutputLanguage): string {
+  if (language !== "es") return phase;
+  const map: Record<string, string> = { now: "ahora", next: "siguiente", later: "despues" };
+  return map[phase] ?? phase;
+}
+
+function localizePriority(priority: string, language: OutputLanguage): string {
+  if (language !== "es") return priority;
+  const map: Record<string, string> = { high: "alta", medium: "media", low: "baja" };
+  return map[priority] ?? priority;
+}
+
 function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
   const text = [
     profile.industry,
@@ -254,39 +284,37 @@ function sourceReferences({
   thirtyDayPlan,
   workspace
 }: Omit<AssetGenerationInput, "jobId">, focus: AssetSourceFocus = {}): BusinessAssetSourceReference[] {
+  const lang = workspace.outputLanguage;
   const plan = getPlanDefinition(workspace.plan);
+  const ns = lang === "es" ? "no especificado" : "not specified";
+  const sl = (en: string, es: string) => lang === "es" ? es : en;
+
   const defaultProfileSignals = [
-    `Company: ${fallback(profile.companyName, workspace.name)}`,
-    `Audience: ${fallback(profile.targetAudience, "not specified")}`,
-    `Offer: ${fallback(profile.primaryOffer, "not specified")}`,
-    `Channels: ${joinSignals(profile.currentChannels, "not specified")}`
+    `${sl("Company", "Empresa")}: ${fallback(profile.companyName, workspace.name)}`,
+    `${sl("Audience", "Audiencia")}: ${fallback(profile.targetAudience, ns)}`,
+    `${sl("Offer", "Oferta")}: ${fallback(profile.primaryOffer, ns)}`,
+    `${sl("Channels", "Canales")}: ${joinSignals(profile.currentChannels, ns)}`
   ];
   const defaultDiagnosticSignals = [
-    `Score: ${diagnostic.overallMaturityScore}/100`,
-    `Confidence: ${diagnostic.confidence}`,
-    `Bottleneck: ${cleanAssetSignal(
-      diagnostic.topBottlenecks[0]?.title,
-      "not specified"
-    )}`,
-    `Risk: ${cleanAssetSignal(diagnostic.topRisks[0]?.title, "not specified")}`
+    `${sl("Score", "Puntuacion")}: ${diagnostic.overallMaturityScore}/100`,
+    `${sl("Confidence", "Confianza")}: ${localizeConfidence(diagnostic.confidence, lang)}`,
+    `${sl("Bottleneck", "Cuello de botella")}: ${cleanAssetSignal(diagnostic.topBottlenecks[0]?.title, ns)}`,
+    `${sl("Risk", "Riesgo")}: ${cleanAssetSignal(diagnostic.topRisks[0]?.title, ns)}`
   ];
   const defaultRoadmapSignals = roadmap.items
     .filter((item) => item.phase === "now")
     .slice(0, 3)
-    .map((item) => `${item.phase}: ${cleanAssetSignal(item.title, "operating move")}`);
+    .map((item) => `${localizePhase(item.phase, lang)}: ${cleanAssetSignal(item.title, sl("operating move", "movimiento operativo"))}`);
   const defaultActionSignals = actionPlan.actions
     .slice(0, 4)
-    .map((action) => `${action.priority}: ${cleanAssetSignal(action.title, "operating action")}`);
+    .map((action) => `${localizePriority(action.priority, lang)}: ${cleanAssetSignal(action.title, sl("operating action", "accion operativa"))}`);
   const defaultPlanSignals = [
-    `Objective: ${cleanAssetSignal(
-      thirtyDayPlan.monthObjective,
-      "operating objective"
-    )}`,
-    `Metrics: ${joinSignals(
+    `${sl("Objective", "Objetivo")}: ${cleanAssetSignal(thirtyDayPlan.monthObjective, sl("operating objective", "objetivo operativo"))}`,
+    `${sl("Metrics", "Metricas")}: ${joinSignals(
       thirtyDayPlan.metricsToWatch.map((metric) =>
-        cleanAssetSignal(metric, "operating metric")
+        cleanAssetSignal(metric, sl("operating metric", "metrica operativa"))
       ),
-      "not specified"
+      ns
     )}`
   ];
 
@@ -298,53 +326,53 @@ function sourceReferences({
       detail: joinSignals(
         focus.workspace ?? [
           `${workspace.name}`,
-          `Plan: ${plan.label}`,
-          `State: ${workspace.accountState}`,
-          `Language: ${workspace.outputLanguage}`
+          `${sl("Plan", "Plan")}: ${plan.label}`,
+          `${sl("State", "Estado")}: ${workspace.accountState}`,
+          `${sl("Language", "Idioma")}: ${workspace.outputLanguage}`
         ],
         `${workspace.name} / ${plan.label} / ${workspace.accountState}`
       )
     },
     {
       sourceType: "business_profile",
-      label: "Business profile",
+      label: sl("Business profile", "Perfil de negocio"),
       referenceId: profile.id,
       detail: joinSignals(focus.profile ?? defaultProfileSignals, fallback(profile.companyName, workspace.name))
     },
     {
       sourceType: "diagnostic",
-      label: "Diagnostic result",
+      label: sl("Diagnostic result", "Resultado de diagnostico"),
       referenceId: diagnostic.id,
       detail: joinSignals(
         focus.diagnostic ?? defaultDiagnosticSignals,
-        `${diagnostic.overallMaturityScore}/100, confidence ${diagnostic.confidence}`
+        `${diagnostic.overallMaturityScore}/100, ${sl("confidence", "confianza")} ${localizeConfidence(diagnostic.confidence, lang)}`
       )
     },
     {
       sourceType: "roadmap",
-      label: "Roadmap",
+      label: sl("Roadmap", "Roadmap"),
       referenceId: roadmap.id,
       detail: joinSignals(
         focus.roadmap ?? defaultRoadmapSignals,
-        `${roadmap.items.length} staged recommendations`
+        `${roadmap.items.length} ${sl("staged recommendations", "recomendaciones escalonadas")}`
       )
     },
     {
       sourceType: "action_plan",
-      label: "Action plan",
+      label: sl("Action plan", "Plan de acciones"),
       referenceId: actionPlan.id,
       detail: joinSignals(
         focus.actionPlan ?? defaultActionSignals,
-        `${actionPlan.actions.length} action cards`
+        `${actionPlan.actions.length} ${sl("action cards", "tarjetas de accion")}`
       )
     },
     {
       sourceType: "thirty_day_plan",
-      label: "30-day plan",
+      label: sl("30-day plan", "Plan de 30 dias"),
       referenceId: thirtyDayPlan.id,
       detail: joinSignals(
         focus.thirtyDayPlan ?? defaultPlanSignals,
-        cleanAssetSignal(thirtyDayPlan.monthObjective, "operating objective")
+        cleanAssetSignal(thirtyDayPlan.monthObjective, sl("operating objective", "objetivo operativo"))
       )
     }
   ];
@@ -819,7 +847,7 @@ function buildChecklistSteps({
               "Decision semanal documentada"
             )}`
           : `Evidencia requerida: decision documentada y avance contra ${metric ?? "la metrica principal"}.`,
-        done: `Done significa que existe owner, evidencia visible y decision registrada sobre ${action.linkedCategory}.`
+        done: `Completado significa que existe owner, evidencia visible y decision registrada sobre ${localizedCategoryLabel(action.linkedCategory, language)}.`
       };
     }
 
@@ -833,7 +861,7 @@ function buildChecklistSteps({
             "Documented weekly decision"
           )}`
         : `Required evidence: documented decision and movement against ${metric ?? "the primary metric"}.`,
-      done: `Done means there is an owner, visible evidence, and a recorded decision for ${action.linkedCategory}.`
+      done: `Done means there is an owner, visible evidence, and a recorded decision for ${localizedCategoryLabel(action.linkedCategory, language)}.`
     };
   });
 }
@@ -967,6 +995,8 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
   );
   const checklistSteps = buildChecklistSteps({ actionPlan, language, thirtyDayPlan });
   const labels = (assetType: BusinessAssetType) => assetLabel(assetType, language);
+  const sl = (en: string, es: string) => language === "es" ? es : en;
+  const ns = sl("not specified", "no especificado");
 
   const positioning = createAsset({
     input,
@@ -974,16 +1004,16 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     ...labels("positioning_summary"),
     sourceFocus: {
       profile: [
-        `Audience: ${audience}`,
-        `Offer: ${offer}`,
-        `Business model: ${fallback(profile.businessModel, "not specified")}`
+        `${sl("Audience", "Audiencia")}: ${audience}`,
+        `${sl("Offer", "Oferta")}: ${offer}`,
+        `${sl("Business model", "Modelo de negocio")}: ${fallback(profile.businessModel, ns)}`
       ],
       diagnostic: [
-        `Primary bottleneck: ${mainBottleneck}`,
-        `Supporting bottlenecks: ${joinSignals(topBottlenecks, "not specified")}`
+        `${sl("Primary bottleneck", "Cuello de botella principal")}: ${mainBottleneck}`,
+        `${sl("Supporting bottlenecks", "Cuellos de botella adicionales")}: ${joinSignals(topBottlenecks, ns)}`
       ],
-      roadmap: nowRoadmapTitles.map((title) => `Positioning-relevant move: ${title}`),
-      thirtyDayPlan: [`Priority decision: ${topPriorities[0] ?? monthObjective}`]
+      roadmap: nowRoadmapTitles.map((title) => `${sl("Positioning-relevant move", "Movimiento de posicionamiento")}: ${title}`),
+      thirtyDayPlan: [`${sl("Priority decision", "Decision prioritaria")}: ${topPriorities[0] ?? monthObjective}`]
     },
     content:
       language === "es"
@@ -1035,14 +1065,14 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     ...labels("thirty_day_action_plan_summary"),
     sourceFocus: {
       actionPlan: topActions.map(
-        (action, index) => `${action.priority}: ${topActionTitles[index]}`
+        (action, index) => `${localizePriority(action.priority, language)}: ${topActionTitles[index]}`
       ),
       thirtyDayPlan: [
-        `Month objective: ${monthObjective}`,
-        `Top priorities: ${joinSignals(topPriorities, "not specified")}`,
-        `Metrics: ${joinSignals(metricsToWatch, "not specified")}`
+        `${sl("Month objective", "Objetivo del mes")}: ${monthObjective}`,
+        `${sl("Top priorities", "Prioridades principales")}: ${joinSignals(topPriorities, ns)}`,
+        `${sl("Metrics", "Metricas")}: ${joinSignals(metricsToWatch, ns)}`
       ],
-      diagnostic: [`Risk constraints: ${joinSignals(topRisks, "not specified")}`]
+      diagnostic: [`${sl("Risk constraints", "Restricciones de riesgo")}: ${joinSignals(topRisks, ns)}`]
     },
     content:
       language === "es"
@@ -1077,12 +1107,15 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     type: "messaging_framework",
     ...labels("messaging_framework"),
     sourceFocus: {
-      profile: [`Audience language: ${audience}`, `Offer language: ${offer}`],
-      diagnostic: [
-        `Opportunity: ${mainOpportunity}`,
-        `Risks/objections: ${joinSignals(topRisks, "not specified")}`
+      profile: [
+        `${sl("Audience", "Audiencia")}: ${audience}`,
+        `${sl("Offer", "Oferta")}: ${offer}`
       ],
-      roadmap: nowRoadmapTitles.map((title) => `Value pillar source: ${title}`)
+      diagnostic: [
+        `${sl("Opportunity", "Oportunidad")}: ${mainOpportunity}`,
+        `${sl("Risks/objections", "Riesgos/objeciones")}: ${joinSignals(topRisks, ns)}`
+      ],
+      roadmap: nowRoadmapTitles.map((title) => `${sl("Value pillar source", "Fuente de pilar de valor")}: ${title}`)
     },
     content:
       language === "es"
@@ -1121,14 +1154,14 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     type: "basic_channel_plan",
     ...labels("basic_channel_plan"),
     sourceFocus: {
-      profile: [`Current channels: ${joinSignals(channels, "not specified")}`],
+      profile: [`${sl("Current channels", "Canales actuales")}: ${joinSignals(channels, ns)}`],
       diagnostic: [
-        `Channel constraint: ${mainBottleneck}`,
-        `Channel risk: ${mainRisk}`
+        `${sl("Channel constraint", "Restriccion de canal")}: ${mainBottleneck}`,
+        `${sl("Channel risk", "Riesgo de canal")}: ${mainRisk}`
       ],
       thirtyDayPlan: [
-        `Metrics to watch: ${joinSignals(metricsToWatch, "not specified")}`,
-        `Review signal: ${cleanAssetSignal(thirtyDayPlan.week4.successSignal, "weekly review signal")}`
+        `${sl("Metrics to watch", "Metricas a revisar")}: ${joinSignals(metricsToWatch, ns)}`,
+        `${sl("Review signal", "Senal de revision")}: ${cleanAssetSignal(thirtyDayPlan.week4.successSignal, sl("weekly review signal", "senal de revision semanal"))}`
       ]
     },
     content:
@@ -1172,14 +1205,14 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     type: "execution_checklist",
     ...labels("execution_checklist"),
     sourceFocus: {
-      actionPlan: checklistSteps.map((step) => `Checklist step: ${step.title}`),
+      actionPlan: checklistSteps.map((step) => `${sl("Checklist step", "Paso del checklist")}: ${step.title}`),
       thirtyDayPlan: [
-        `Week 1: ${cleanAssetSignal(thirtyDayPlan.week1.objective, "Define focus and baseline")}`,
-        `Week 2: ${cleanAssetSignal(thirtyDayPlan.week2.objective, "Run controlled test")}`,
-        `Week 3: ${cleanAssetSignal(thirtyDayPlan.week3.objective, "Review learning and adjust")}`,
-        `Week 4: ${cleanAssetSignal(thirtyDayPlan.week4.objective, "Make continuity decision")}`
+        `${sl("Week 1", "Semana 1")}: ${cleanAssetSignal(thirtyDayPlan.week1.objective, sl("Define focus and baseline", "Definir foco y baseline"))}`,
+        `${sl("Week 2", "Semana 2")}: ${cleanAssetSignal(thirtyDayPlan.week2.objective, sl("Run controlled test", "Ejecutar prueba controlada"))}`,
+        `${sl("Week 3", "Semana 3")}: ${cleanAssetSignal(thirtyDayPlan.week3.objective, sl("Review learning and adjust", "Revisar aprendizaje y ajustar"))}`,
+        `${sl("Week 4", "Semana 4")}: ${cleanAssetSignal(thirtyDayPlan.week4.objective, sl("Make continuity decision", "Tomar decision de continuidad"))}`
       ],
-      diagnostic: [`Completion should reduce: ${mainBottleneck}`]
+      diagnostic: [`${sl("Completion should reduce", "Completarlo debe reducir")}: ${mainBottleneck}`]
     },
     content:
       language === "es"
@@ -1268,16 +1301,19 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     type: "founder_summary",
     ...labels("founder_summary"),
     sourceFocus: {
-      workspace: [`Workspace: ${workspace.name}`, `Plan state: ${workspace.plan}/${workspace.accountState}`],
-      diagnostic: [
-        `Score: ${diagnostic.overallMaturityScore}/100`,
-        `Confidence: ${diagnostic.confidence}`,
-        `Primary risk: ${mainRisk}`
+      workspace: [
+        `Workspace: ${workspace.name}`,
+        `${sl("Plan state", "Estado del plan")}: ${workspace.plan}/${workspace.accountState}`
       ],
-      roadmap: nowRoadmapTitles.map((title) => `Immediate strategic move: ${title}`),
+      diagnostic: [
+        `${sl("Score", "Puntuacion")}: ${diagnostic.overallMaturityScore}/100`,
+        `${sl("Confidence", "Confianza")}: ${localizeConfidence(diagnostic.confidence, language)}`,
+        `${sl("Primary risk", "Riesgo principal")}: ${mainRisk}`
+      ],
+      roadmap: nowRoadmapTitles.map((title) => `${sl("Immediate strategic move", "Movimiento estrategico inmediato")}: ${title}`),
       thirtyDayPlan: [
-        `Month objective: ${monthObjective}`,
-        `Decision metrics: ${joinSignals(metricsToWatch, "not specified")}`
+        `${sl("Month objective", "Objetivo del mes")}: ${monthObjective}`,
+        `${sl("Decision metrics", "Metricas de decision")}: ${joinSignals(metricsToWatch, ns)}`
       ]
     },
     content:
@@ -1288,7 +1324,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Por que: ${cleanDiagnosticSummary}`
             ]),
             section("Lo que dicen los datos", [
-              `${company}: ${diagnostic.overallMaturityScore}/100, confianza ${diagnostic.confidence}.`,
+              `${company}: ${diagnostic.overallMaturityScore}/100, confianza ${localizeConfidence(diagnostic.confidence, language)}.`,
               `Restriccion principal: ${mainBottleneck}.`,
               `Riesgo principal si no se actua: ${mainRisk}.`
             ]),

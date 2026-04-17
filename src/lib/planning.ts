@@ -68,20 +68,6 @@ function copy(language: OutputLanguage) {
   return language === "es" ? fallbackSpanish : fallbackEnglish;
 }
 
-function compactList(values: Array<string | null | undefined>, limit = 4) {
-  return values
-    .map((value) => value?.trim())
-    .filter((value): value is string => Boolean(value))
-    .slice(0, limit);
-}
-
-function joinForSentence(values: string[], language: OutputLanguage) {
-  if (values.length === 0) {
-    return language === "es" ? "sin senales especificas" : "no specific signals";
-  }
-
-  return values.join(", ");
-}
 
 function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
   const text = [
@@ -820,12 +806,7 @@ export function buildRoadmap(input: PlanningInput): RoadmapRecord {
   );
 
   const items = dedupeRoadmapItems([...nowItems, ...nextItems, ...laterItems]);
-  const profileSignals = compactList([
-    input.profile.primaryOffer,
-    input.profile.targetAudience,
-    input.profile.businessModel,
-    input.profile.industry
-  ]);
+  const type = detectBusinessType(input.profile);
   const plan = getPlanDefinition(input.workspace.plan);
 
   return {
@@ -835,8 +816,8 @@ export function buildRoadmap(input: PlanningInput): RoadmapRecord {
     sourceDiagnosticResultId: input.diagnostic.id,
     summary:
       language === "es"
-        ? `${copy(language).roadmapSummary} Plan actual: ${plan.label}. Senales usadas: ${joinForSentence(profileSignals, language)}.`
-        : `${copy(language).roadmapSummary} Current plan: ${plan.label}. Source signals: ${joinForSentence(profileSignals, language)}.`,
+        ? `${copy(language).roadmapSummary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
+        : `${copy(language).roadmapSummary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`,
     items,
     createdAt: new Date().toISOString()
   };
@@ -1411,12 +1392,6 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
   const priorities = priorityFallback(input.actionPlan, language, input.profile);
   const primaryAction = input.actionPlan.actions[0];
   const company = input.profile.companyName ?? input.workspace.name;
-  const signals = compactList([
-    input.profile.primaryOffer,
-    input.profile.targetAudience,
-    input.profile.businessModel,
-    input.diagnostic.topBottlenecks[0]?.title
-  ]);
   const metrics = categoryTagsForSignal(
     input.actionPlan.actions.map((action) => action.linkedCategory).join(" "),
     input.profile
@@ -1454,8 +1429,8 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
       title: language === "es" ? "Semana 1: Enfoque y baseline" : "Week 1: Focus and baseline",
       objective:
         language === "es"
-          ? `Definir el flujo actual (${journeyLabel(type, language)}) y confirmar senales base: ${joinForSentence(signals, language)}.`
-          : `Define the current flow (${journeyLabel(type, language)}) and confirm baseline signals: ${joinForSentence(signals, language)}.`,
+          ? `Definir el flujo actual (${journeyLabel(type, language)}) y confirmar senales base de este ${businessTypeLabel(type, language)}.`
+          : `Define the current flow (${journeyLabel(type, language)}) and confirm baseline signals for this ${businessTypeLabel(type, language)}.`,
       actions: [
         language === "es"
           ? `Definir alcance, owner y baseline para: ${priorities[0]}`
