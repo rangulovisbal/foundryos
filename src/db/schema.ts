@@ -577,6 +577,10 @@ export const sopJobs = pgTable(
       () => thirtyDayPlans.id,
       { onDelete: "set null" }
     ),
+    sourceAssetJobId: uuid("source_asset_job_id").references(() => assetJobs.id, {
+      onDelete: "set null"
+    }),
+    inputHash: varchar("input_hash", { length: 64 }),
     status: varchar("status", { length: 32 }).notNull().default("queued"),
     error: text("error"),
     startedAt: timestamp("started_at", { withTimezone: true }),
@@ -588,7 +592,8 @@ export const sopJobs = pgTable(
     index("sop_jobs_workspace_idx").on(table.workspaceId),
     index("sop_jobs_status_idx").on(table.status),
     index("sop_jobs_created_idx").on(table.createdAt),
-    index("sop_jobs_diagnostic_idx").on(table.sourceDiagnosticResultId)
+    index("sop_jobs_diagnostic_idx").on(table.sourceDiagnosticResultId),
+    index("sop_jobs_input_hash_idx").on(table.workspaceId, table.inputHash)
   ]
 );
 

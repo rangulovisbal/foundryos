@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import {
   createSopArtifacts,
   createSopJob,
+  findLatestCompletedSopJobByInputHash,
   getBusinessProfile,
+  getLatestBusinessAssets,
   getLatestDiagnosticResult,
   getLatestRoadmap,
   getLatestThirtyDayPlan,
@@ -13,6 +15,27 @@ import { getCurrentWorkspaceContext } from "@/lib/auth";
 import { buildSopArtifacts } from "@/lib/sops";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { canGenerateSops, type SopJobRecord } from "@/lib/foundation";
+
+/**
+ * Compute a deterministic SHA-256 hash of the SOP generation inputs.
+ * Keys are sorted alphabetically before serialisation so insertion order
+ * never affects the output.
+ */
+async function computeSopInputHash(
+  inputs: Record<string, string | null>
+): Promise<string> {
+  const sorted = Object.fromEntries(
+    Object.entries(inputs).sort(([a], [b]) => a.localeCompare(b))
+  );
+  const json = JSON.stringify(sorted);
+  const encoded = new TextEncoder().encode(json);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 64);
+}
 
 export async function POST() {
   let job: SopJobRecord | null = null;
@@ -36,11 +59,12 @@ export async function POST() {
       );
     }
 
-    const [profile, diagnostic, roadmap, thirtyDayPlan] = await Promise.all([
+    const [profile, diagnostic, roadmap, thirtyDayPlan, latestAssets] = await Promise.all([
       getBusinessProfile(context.workspace.id),
       getLatestDiagnosticResult(context.workspace.id),
       getLatestRoadmap(context.workspace.id),
-      getLatestThirtyDayPlan(context.workspace.id)
+      getLatestThirtyDayPlan(context.workspace.id),
+      getLatestBusinessAssets(context.workspace.id)
     ]);
 
     if (!profile) {
@@ -57,6 +81,38 @@ export async function POST() {
       );
     }
 
+    // Freeze source snapshot and compute deterministic input hash.
+    const latestAssetJobId = latestAssets[0]?.jobId ?? null;
+
+    const inputHash = await computeSopInputHash({
+      accountState: context.workspace.accountState,
+      diagnosticId: diagnostic.id,
+      latestAssetJobId,
+      outputLanguage: context.workspace.outputLanguage,
+      plan: context.workspace.plan,
+      profileId: profile.id,
+      profileUpdatedAt: profile.updatedAt,
+      roadmapId: roadmap?.id ?? null,
+      thirtyDayPlanId: thirtyDayPlan?.id ?? null
+    });
+
+    // Idempotency check: if a completed SOP set with the same input hash
+    // already exists for this workspace, return it without creating a new job.
+    const existingSet = await findLatestCompletedSopJobByInputHash(
+      context.workspace.id,
+      inputHash
+    );
+
+    if (existingSet) {
+      return NextResponse.json({
+        ok: true,
+        cached: true,
+        jobId: existingSet.job.id,
+        artifacts: existingSet.artifacts
+      });
+    }
+
+    // No matching set found — proceed with generation.
     const now = new Date().toISOString();
     job = {
       id: crypto.randomUUID(),
@@ -66,6 +122,8 @@ export async function POST() {
       sourceDiagnosticResultId: diagnostic.id,
       sourceRoadmapId: roadmap?.id ?? null,
       sourceThirtyDayPlanId: thirtyDayPlan?.id ?? null,
+      sourceAssetJobId: latestAssetJobId,
+      inputHash,
       status: "queued",
       error: null,
       startedAt: null,
@@ -95,7 +153,7 @@ export async function POST() {
       completedAt: new Date().toISOString()
     });
 
-    return NextResponse.json({ ok: true, jobId: job.id, artifacts });
+    return NextResponse.json({ ok: true, cached: false, jobId: job.id, artifacts });
   } catch (error) {
     if (job) {
       try {

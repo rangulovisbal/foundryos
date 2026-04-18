@@ -372,6 +372,8 @@ function mapSopJob(row: typeof sopJobs.$inferSelect): SopJobRecord {
     sourceDiagnosticResultId: row.sourceDiagnosticResultId,
     sourceRoadmapId: row.sourceRoadmapId,
     sourceThirtyDayPlanId: row.sourceThirtyDayPlanId,
+    sourceAssetJobId: row.sourceAssetJobId,
+    inputHash: row.inputHash,
     status: row.status as SopJobRecord["status"],
     error: row.error,
     startedAt: row.startedAt?.toISOString() ?? null,
@@ -1542,6 +1544,8 @@ export async function createSopJob(record: SopJobRecord) {
     sourceDiagnosticResultId: record.sourceDiagnosticResultId,
     sourceRoadmapId: record.sourceRoadmapId,
     sourceThirtyDayPlanId: record.sourceThirtyDayPlanId,
+    sourceAssetJobId: record.sourceAssetJobId,
+    inputHash: record.inputHash,
     status: record.status,
     error: record.error,
     startedAt: record.startedAt ? new Date(record.startedAt) : null,
@@ -1551,6 +1555,46 @@ export async function createSopJob(record: SopJobRecord) {
   });
 
   return record;
+}
+
+export async function findLatestCompletedSopJobByInputHash(
+  workspaceId: string,
+  inputHash: string
+): Promise<SopJobWithArtifacts | null> {
+  const db = await requireDb("SOP idempotency lookup");
+
+  const jobRows = await db
+    .select()
+    .from(sopJobs)
+    .where(
+      and(
+        eq(sopJobs.workspaceId, workspaceId),
+        eq(sopJobs.status, "completed"),
+        eq(sopJobs.inputHash, inputHash)
+      )
+    )
+    .orderBy(desc(sopJobs.createdAt))
+    .limit(1);
+
+  const jobRow = jobRows[0];
+  if (!jobRow) {
+    return null;
+  }
+
+  const artifactRows = await db
+    .select()
+    .from(sopArtifacts)
+    .where(eq(sopArtifacts.jobId, jobRow.id))
+    .orderBy(sopArtifacts.sopType);
+
+  if (artifactRows.length === 0) {
+    return null;
+  }
+
+  return {
+    job: mapSopJob(jobRow),
+    artifacts: artifactRows.map(mapSopArtifact)
+  };
 }
 
 export async function updateSopJob(
@@ -1631,7 +1675,7 @@ export async function listSopJobsWithArtifacts({
     .select()
     .from(sopArtifacts)
     .where(inArray(sopArtifacts.jobId, jobIds))
-    .orderBy(desc(sopArtifacts.createdAt));
+    .orderBy(sopArtifacts.sopType);
   const artifactsByJobId = new Map<string, SopArtifactRecord[]>();
 
   for (const row of artifactRows) {
@@ -1737,7 +1781,7 @@ export async function listAdminSopJobs(limit = 20) {
     .select()
     .from(sopArtifacts)
     .where(inArray(sopArtifacts.jobId, rows.map((row) => row.job.id)))
-    .orderBy(desc(sopArtifacts.createdAt));
+    .orderBy(sopArtifacts.sopType);
   const artifactsByJobId = new Map<string, SopArtifactRecord[]>();
 
   for (const row of artifactRows) {

@@ -411,6 +411,8 @@ export type SopJobRecord = {
   sourceDiagnosticResultId: string | null;
   sourceRoadmapId: string | null;
   sourceThirtyDayPlanId: string | null;
+  sourceAssetJobId: string | null;
+  inputHash: string | null;
   status: SopJobStatus;
   error: string | null;
   startedAt: string | null;
