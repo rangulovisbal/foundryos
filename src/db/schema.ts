@@ -552,6 +552,87 @@ export const businessAssets = pgTable(
   ]
 );
 
+export const sopJobs = pgTable(
+  "sop_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    sourceBusinessProfileId: uuid("source_business_profile_id").references(
+      () => workspaceBusinessProfiles.id,
+      { onDelete: "set null" }
+    ),
+    sourceDiagnosticResultId: uuid("source_diagnostic_result_id").references(
+      () => diagnosticResults.id,
+      { onDelete: "set null" }
+    ),
+    sourceRoadmapId: uuid("source_roadmap_id").references(() => roadmaps.id, {
+      onDelete: "set null"
+    }),
+    sourceThirtyDayPlanId: uuid("source_thirty_day_plan_id").references(
+      () => thirtyDayPlans.id,
+      { onDelete: "set null" }
+    ),
+    status: varchar("status", { length: 32 }).notNull().default("queued"),
+    error: text("error"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("sop_jobs_workspace_idx").on(table.workspaceId),
+    index("sop_jobs_status_idx").on(table.status),
+    index("sop_jobs_created_idx").on(table.createdAt),
+    index("sop_jobs_diagnostic_idx").on(table.sourceDiagnosticResultId)
+  ]
+);
+
+export const sopArtifacts = pgTable(
+  "sop_artifacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => sopJobs.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    sopType: varchar("sop_type", { length: 64 }).notNull(),
+    title: varchar("title", { length: 180 }).notNull(),
+    purpose: text("purpose").notNull(),
+    content: jsonb("content").$type<
+      Array<{
+        heading: string;
+        items: string[];
+      }>
+    >().notNull(),
+    sourceReferences: jsonb("source_references").$type<
+      Array<{
+        sourceType: string;
+        label: string;
+        referenceId?: string;
+        detail: string;
+      }>
+    >().notNull(),
+    generationStatus: varchar("generation_status", { length: 32 })
+      .notNull()
+      .default("completed"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("sop_artifacts_job_idx").on(table.jobId),
+    index("sop_artifacts_workspace_idx").on(table.workspaceId),
+    index("sop_artifacts_type_idx").on(table.sopType),
+    index("sop_artifacts_created_idx").on(table.createdAt)
+  ]
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {

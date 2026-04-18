@@ -16,6 +16,8 @@ import {
   passwordResetTokens,
   planningJobs,
   roadmaps,
+  sopArtifacts,
+  sopJobs,
   thirtyDayPlans,
   workspaceBusinessProfiles,
   workspaceInvitations,
@@ -43,6 +45,9 @@ import type {
   PlanningJobType,
   PlanningJobWithArtifacts,
   RoadmapRecord,
+  SopArtifactRecord,
+  SopJobRecord,
+  SopJobWithArtifacts,
   ThirtyDayPlanRecord,
   WorkspaceInvitationRecord,
   WorkspaceMembershipRecord,
@@ -85,6 +90,13 @@ export type AdminAssetJobRow = {
   workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
   requestedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
   assets: Array<Pick<BusinessAssetRecord, "id" | "assetType" | "title" | "generationStatus" | "createdAt">>;
+};
+
+export type AdminSopJobRow = {
+  job: SopJobRecord;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+  artifacts: Array<Pick<SopArtifactRecord, "id" | "sopType" | "title" | "generationStatus" | "createdAt">>;
 };
 
 function mapUser(row: typeof appUsers.$inferSelect): AppUser {
@@ -346,6 +358,40 @@ function mapBusinessAsset(row: typeof businessAssets.$inferSelect): BusinessAsse
     content: row.content,
     sourceReferences: row.sourceReferences as BusinessAssetRecord["sourceReferences"],
     generationStatus: row.generationStatus as BusinessAssetRecord["generationStatus"],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapSopJob(row: typeof sopJobs.$inferSelect): SopJobRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    requestedByUserId: row.requestedByUserId,
+    sourceBusinessProfileId: row.sourceBusinessProfileId,
+    sourceDiagnosticResultId: row.sourceDiagnosticResultId,
+    sourceRoadmapId: row.sourceRoadmapId,
+    sourceThirtyDayPlanId: row.sourceThirtyDayPlanId,
+    status: row.status as SopJobRecord["status"],
+    error: row.error,
+    startedAt: row.startedAt?.toISOString() ?? null,
+    completedAt: row.completedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapSopArtifact(row: typeof sopArtifacts.$inferSelect): SopArtifactRecord {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    workspaceId: row.workspaceId,
+    sopType: row.sopType as SopArtifactRecord["sopType"],
+    title: row.title,
+    purpose: row.purpose,
+    content: row.content,
+    sourceReferences: row.sourceReferences as SopArtifactRecord["sourceReferences"],
+    generationStatus: row.generationStatus as SopArtifactRecord["generationStatus"],
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };
@@ -1485,6 +1531,130 @@ export async function listAdminPlanningJobs(limit = 20) {
   );
 }
 
+export async function createSopJob(record: SopJobRecord) {
+  const db = await requireDb("SOP job persistence");
+
+  await db.insert(sopJobs).values({
+    id: record.id,
+    workspaceId: record.workspaceId,
+    requestedByUserId: record.requestedByUserId,
+    sourceBusinessProfileId: record.sourceBusinessProfileId,
+    sourceDiagnosticResultId: record.sourceDiagnosticResultId,
+    sourceRoadmapId: record.sourceRoadmapId,
+    sourceThirtyDayPlanId: record.sourceThirtyDayPlanId,
+    status: record.status,
+    error: record.error,
+    startedAt: record.startedAt ? new Date(record.startedAt) : null,
+    completedAt: record.completedAt ? new Date(record.completedAt) : null,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt)
+  });
+
+  return record;
+}
+
+export async function updateSopJob(
+  jobId: string,
+  patch: Partial<Pick<SopJobRecord, "status" | "error" | "startedAt" | "completedAt">>
+) {
+  const db = await requireDb("SOP job updates");
+
+  await db
+    .update(sopJobs)
+    .set({
+      status: patch.status,
+      error: patch.error,
+      startedAt:
+        patch.startedAt === undefined
+          ? undefined
+          : patch.startedAt
+            ? new Date(patch.startedAt)
+            : null,
+      completedAt:
+        patch.completedAt === undefined
+          ? undefined
+          : patch.completedAt
+            ? new Date(patch.completedAt)
+            : null,
+      updatedAt: new Date()
+    })
+    .where(eq(sopJobs.id, jobId));
+}
+
+export async function createSopArtifacts(records: SopArtifactRecord[]) {
+  if (records.length === 0) {
+    return records;
+  }
+
+  const db = await requireDb("SOP artifact persistence");
+
+  await db.insert(sopArtifacts).values(
+    records.map((record) => ({
+      id: record.id,
+      jobId: record.jobId,
+      workspaceId: record.workspaceId,
+      sopType: record.sopType,
+      title: record.title,
+      purpose: record.purpose,
+      content: record.content,
+      sourceReferences: record.sourceReferences,
+      generationStatus: record.generationStatus,
+      createdAt: new Date(record.createdAt),
+      updatedAt: new Date(record.updatedAt)
+    }))
+  );
+
+  return records;
+}
+
+export async function listSopJobsWithArtifacts({
+  workspaceId,
+  limit = 10
+}: {
+  workspaceId: string;
+  limit?: number;
+}): Promise<SopJobWithArtifacts[]> {
+  const db = await requireDb("SOP job history lookup");
+  const jobRows = await db
+    .select()
+    .from(sopJobs)
+    .where(eq(sopJobs.workspaceId, workspaceId))
+    .orderBy(desc(sopJobs.createdAt))
+    .limit(limit);
+
+  if (jobRows.length === 0) {
+    return [];
+  }
+
+  const jobIds = jobRows.map((job) => job.id);
+  const artifactRows = await db
+    .select()
+    .from(sopArtifacts)
+    .where(inArray(sopArtifacts.jobId, jobIds))
+    .orderBy(desc(sopArtifacts.createdAt));
+  const artifactsByJobId = new Map<string, SopArtifactRecord[]>();
+
+  for (const row of artifactRows) {
+    const artifact = mapSopArtifact(row);
+    const existing = artifactsByJobId.get(artifact.jobId) ?? [];
+    existing.push(artifact);
+    artifactsByJobId.set(artifact.jobId, existing);
+  }
+
+  return jobRows.map((job) => ({
+    job: mapSopJob(job),
+    artifacts: artifactsByJobId.get(job.id) ?? []
+  }));
+}
+
+export async function getLatestSopArtifacts(workspaceId: string) {
+  const history = await listSopJobsWithArtifacts({ workspaceId, limit: 10 });
+  return (
+    history.find((entry) => entry.job.status === "completed" && entry.artifacts.length > 0)
+      ?.artifacts ?? []
+  );
+}
+
 export async function listAdminAssetJobs(limit = 20) {
   const db = await requireDb("admin asset job lookup");
   const rows = await db
@@ -1540,6 +1710,66 @@ export async function listAdminAssetJobs(limit = 20) {
         title: asset.title,
         generationStatus: asset.generationStatus,
         createdAt: asset.createdAt
+      }))
+    })
+  );
+}
+
+export async function listAdminSopJobs(limit = 20) {
+  const db = await requireDb("admin SOP job lookup");
+  const rows = await db
+    .select({
+      job: sopJobs,
+      workspace: workspaces,
+      requestedByUser: appUsers
+    })
+    .from(sopJobs)
+    .innerJoin(workspaces, eq(sopJobs.workspaceId, workspaces.id))
+    .leftJoin(appUsers, eq(sopJobs.requestedByUserId, appUsers.id))
+    .orderBy(desc(sopJobs.createdAt))
+    .limit(limit);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const artifactRows = await db
+    .select()
+    .from(sopArtifacts)
+    .where(inArray(sopArtifacts.jobId, rows.map((row) => row.job.id)))
+    .orderBy(desc(sopArtifacts.createdAt));
+  const artifactsByJobId = new Map<string, SopArtifactRecord[]>();
+
+  for (const row of artifactRows) {
+    const artifact = mapSopArtifact(row);
+    const existing = artifactsByJobId.get(artifact.jobId) ?? [];
+    existing.push(artifact);
+    artifactsByJobId.set(artifact.jobId, existing);
+  }
+
+  return rows.map(
+    (row): AdminSopJobRow => ({
+      job: mapSopJob(row.job),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"]
+      },
+      requestedByUser: row.requestedByUser
+        ? {
+            id: row.requestedByUser.id,
+            email: row.requestedByUser.email,
+            fullName: row.requestedByUser.fullName
+          }
+        : null,
+      artifacts: (artifactsByJobId.get(row.job.id) ?? []).map((artifact) => ({
+        id: artifact.id,
+        sopType: artifact.sopType,
+        title: artifact.title,
+        generationStatus: artifact.generationStatus,
+        createdAt: artifact.createdAt
       }))
     })
   );

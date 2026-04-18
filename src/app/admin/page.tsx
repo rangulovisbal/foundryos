@@ -9,6 +9,7 @@ import {
   listAdminAssetJobs,
   listAdminDiagnosticJobs,
   listAdminPlanningJobs,
+  listAdminSopJobs,
   listUsers,
   listWorkspaces
 } from "@/db/foundation";
@@ -43,14 +44,16 @@ export default async function AdminPage() {
       auditLogsResult,
       diagnosticJobsResult,
       planningJobsResult,
-      assetJobsResult
+      assetJobsResult,
+      sopJobsResult
     ] = await Promise.all([
       loadAdminDataset(listUsers(), []),
       loadAdminDataset(listWorkspaces(), []),
       loadAdminDataset(listAdminAuditLogs(), []),
       loadAdminDataset(listAdminDiagnosticJobs(), []),
       loadAdminDataset(listAdminPlanningJobs(), []),
-      loadAdminDataset(listAdminAssetJobs(), [])
+      loadAdminDataset(listAdminAssetJobs(), []),
+      loadAdminDataset(listAdminSopJobs(), [])
     ]);
     const users = usersResult.data;
     const workspaces = workspacesResult.data;
@@ -58,13 +61,15 @@ export default async function AdminPage() {
     const diagnosticJobs = diagnosticJobsResult.data;
     const planningJobs = planningJobsResult.data;
     const assetJobs = assetJobsResult.data;
+    const sopJobs = sopJobsResult.data;
     const degradedSections = [
       usersResult.status !== "ok" ? "users" : null,
       workspacesResult.status !== "ok" ? "workspaces" : null,
       auditLogsResult.status !== "ok" ? "audit log" : null,
       diagnosticJobsResult.status !== "ok" ? "diagnostic jobs" : null,
       planningJobsResult.status !== "ok" ? "planning jobs" : null,
-      assetJobsResult.status !== "ok" ? "asset jobs" : null
+      assetJobsResult.status !== "ok" ? "asset jobs" : null,
+      sopJobsResult.status !== "ok" ? "SOP jobs" : null
     ].filter(Boolean);
 
     const usersById = new Map(users.map((user) => [user.id, user]));
@@ -116,6 +121,7 @@ export default async function AdminPage() {
             value={latestThirtyDayPlanJob?.job.status ?? "none"}
           />
           <StatusCard label="Asset jobs" value={assetJobs[0]?.job.status ?? "none"} />
+          <StatusCard label="SOP jobs" value={sopJobs[0]?.job.status ?? "none"} />
           <StatusCard
             label="Foundation DB"
             value={
@@ -344,6 +350,80 @@ export default async function AdminPage() {
                   <tr>
                     <td className="px-4 py-6 text-muted" colSpan={7}>
                       No asset generation jobs have been created yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="surface p-6 md:p-8">
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">
+            SOPs
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+            Recent SOP generation state
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-muted">
+            This view confirms whether SOP generation completed or failed and
+            whether the latest structured procedures are available. Export and
+            live integrations remain intentionally offline.
+          </p>
+
+          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+              <thead className="bg-white/90 text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Workspace</th>
+                  <th className="px-4 py-3 font-semibold">Requested by</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">SOPs</th>
+                  <th className="px-4 py-3 font-semibold">Types</th>
+                  <th className="px-4 py-3 font-semibold">Error</th>
+                  <th className="px-4 py-3 font-semibold">Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sopJobs.length > 0 ? (
+                  sopJobs.map((entry) => (
+                    <tr
+                      key={entry.job.id}
+                      className="border-t border-[color:var(--border)] align-top"
+                    >
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{entry.workspace.name}</p>
+                        <p className="text-muted">{entry.workspace.slug}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">
+                          {entry.requestedByUser?.fullName ?? "Unknown"}
+                        </p>
+                        <p className="text-muted">
+                          {entry.requestedByUser?.email ?? "n/a"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4 capitalize">{entry.job.status}</td>
+                      <td className="px-4 py-4">{entry.artifacts.length}</td>
+                      <td className="px-4 py-4 text-muted">
+                        {entry.artifacts.length > 0
+                          ? entry.artifacts
+                              .map((a) => a.sopType.replaceAll("_", " "))
+                              .join(", ")
+                          : "n/a"}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {entry.job.error ?? "none"}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {new Date(entry.job.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-4 py-6 text-muted" colSpan={7}>
+                      No SOP generation jobs have been created yet.
                     </td>
                   </tr>
                 )}

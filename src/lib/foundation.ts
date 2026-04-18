@@ -48,6 +48,16 @@ export const planningJobTypeOptions = [
 
 export const assetJobStatusOptions = diagnosticJobStatusOptions;
 
+export const sopJobStatusOptions = diagnosticJobStatusOptions;
+
+export const sopArtifactTypeOptions = [
+  "lead_handling",
+  "reporting_cadence",
+  "campaign_setup",
+  "content_workflow",
+  "internal_approval"
+] as const;
+
 export const businessAssetTypeOptions = [
   "positioning_summary",
   "thirty_day_action_plan_summary",
@@ -74,6 +84,8 @@ export type DiagnosticJobStatus = (typeof diagnosticJobStatusOptions)[number];
 export type PlanningJobStatus = (typeof planningJobStatusOptions)[number];
 export type PlanningJobType = (typeof planningJobTypeOptions)[number];
 export type AssetJobStatus = (typeof assetJobStatusOptions)[number];
+export type SopJobStatus = (typeof sopJobStatusOptions)[number];
+export type SopArtifactType = (typeof sopArtifactTypeOptions)[number];
 export type BusinessAssetType = (typeof businessAssetTypeOptions)[number];
 export type OutputLanguage = (typeof outputLanguageOptions)[number];
 export type RoadmapPhase = (typeof roadmapPhaseOptions)[number];
@@ -391,6 +403,58 @@ export type AssetJobWithAssets = {
   assets: BusinessAssetRecord[];
 };
 
+export type SopJobRecord = {
+  id: string;
+  workspaceId: string;
+  requestedByUserId: string | null;
+  sourceBusinessProfileId: string | null;
+  sourceDiagnosticResultId: string | null;
+  sourceRoadmapId: string | null;
+  sourceThirtyDayPlanId: string | null;
+  status: SopJobStatus;
+  error: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SopArtifactSection = {
+  heading: string;
+  items: string[];
+};
+
+export type SopArtifactSourceReference = {
+  sourceType:
+    | "workspace"
+    | "business_profile"
+    | "diagnostic"
+    | "roadmap"
+    | "thirty_day_plan";
+  label: string;
+  referenceId?: string;
+  detail: string;
+};
+
+export type SopArtifactRecord = {
+  id: string;
+  jobId: string;
+  workspaceId: string;
+  sopType: SopArtifactType;
+  title: string;
+  purpose: string;
+  content: SopArtifactSection[];
+  sourceReferences: SopArtifactSourceReference[];
+  generationStatus: SopJobStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SopJobWithArtifacts = {
+  job: SopJobRecord;
+  artifacts: SopArtifactRecord[];
+};
+
 export type AdminAuditLogRecord = {
   id: string;
   adminUserId: string;
@@ -512,6 +576,7 @@ type PlanDefinition = {
     | "actions"
     | "thirty_day_plan"
     | "assets"
+    | "sops"
     | "team"
     | "billing"
     | "monthly_refresh"
@@ -535,6 +600,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       actions: true,
       thirty_day_plan: true,
       assets: true,
+      sops: false,
       team: false,
       billing: true,
       monthly_refresh: false,
@@ -560,6 +626,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       actions: true,
       thirty_day_plan: true,
       assets: true,
+      sops: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -585,6 +652,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
       actions: true,
       thirty_day_plan: true,
       assets: true,
+      sops: true,
       team: true,
       billing: true,
       monthly_refresh: true,
@@ -717,6 +785,16 @@ export function canGenerateAssets(context: WorkspaceContext) {
     canAccessWorkspace(context.workspace.accountState) &&
     canManageWorkspace(context.membership.role, context.workspace.accountState) &&
     hasUsageRemaining(context, "asset_exports")
+  );
+}
+
+export function canGenerateSops(context: WorkspaceContext) {
+  const plan = getPlanDefinition(context.workspace.plan);
+
+  return (
+    plan.features.sops &&
+    canAccessWorkspace(context.workspace.accountState) &&
+    canManageWorkspace(context.membership.role, context.workspace.accountState)
   );
 }
 
