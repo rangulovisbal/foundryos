@@ -1,7 +1,11 @@
 import Link from "next/link";
 
-import type { WorkspaceContext } from "@/lib/foundation";
+import type { OutputLanguage, WorkspaceContext } from "@/lib/foundation";
 import { formatRoleLabel, getPlanDefinition } from "@/lib/foundation";
+
+function formatOutputLanguageLabel(lang: OutputLanguage) {
+  return lang === "es" ? "Spanish (ES)" : "English (EN)";
+}
 import { AccountStateBanner } from "@/components/account-state-banner";
 
 const navItems = [
@@ -41,7 +45,7 @@ export function AppShell({
             </p>
           </div>
 
-          <div className="grid gap-3 text-sm text-muted md:grid-cols-3">
+          <div className="grid gap-3 text-sm text-muted sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3">
               <p className="font-semibold text-ink">Plan</p>
               <p className="mt-1">{plan.label}</p>
@@ -55,6 +59,13 @@ export function AppShell({
               <p className="mt-1 capitalize">
                 {context.workspace.accountState.replaceAll("_", " ")}
               </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3">
+              <p className="font-semibold text-ink">Output language</p>
+              <p className="mt-1">
+                {formatOutputLanguageLabel(context.workspace.outputLanguage)}
+              </p>
+              <p className="mt-1 text-xs text-muted">App interface: English</p>
             </div>
           </div>
         </div>

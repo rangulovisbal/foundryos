@@ -155,19 +155,25 @@ export function BusinessProfileForm({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Output language">
-          <select
-            className={inputClass}
-            disabled={!canEdit || loading}
-            onChange={(event) =>
-              updateField("outputLanguage", event.target.value as OutputLanguage)
-            }
-            value={draft.outputLanguage}
-          >
-            <option value="en">English</option>
-            <option value="es">Spanish</option>
-          </select>
-        </Field>
+        <div>
+          <Field label="Output language">
+            <select
+              className={inputClass}
+              disabled={!canEdit || loading}
+              onChange={(event) =>
+                updateField("outputLanguage", event.target.value as OutputLanguage)
+              }
+              value={draft.outputLanguage}
+            >
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+            </select>
+          </Field>
+          <p className="mt-1.5 text-xs leading-5 text-muted">
+            Generated outputs (diagnostics, roadmap, actions, assets, and SOPs)
+            follow this language. The app interface remains in English.
+          </p>
+        </div>
         <Field label="Company name">
           <input
             className={inputClass}
