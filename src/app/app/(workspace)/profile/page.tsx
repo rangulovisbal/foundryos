@@ -56,12 +56,12 @@ export default async function BusinessProfilePage() {
             Product setup
           </p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
-            Business profile foundation
+            Guided business profile setup
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted">
-            This is the first real product module under the authenticated
-            workspace. Diagnostics use this saved context instead of relying on a
-            raw prompt or one-off intake.
+            FoundryOS now groups the same profile model into guided sections so
+            the workspace can collect clearer context before diagnostics and
+            planning runs.
           </p>
         </article>
         <article className="metric-card">

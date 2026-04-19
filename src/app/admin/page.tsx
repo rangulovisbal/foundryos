@@ -14,6 +14,7 @@ import {
   supportRequestStatusOptions
 } from "@/lib/foundation";
 import {
+  getAdminOverviewMetrics,
   listAdminAuditLogs,
   listAdminAssetJobs,
   listAdminDeletionRequests,
@@ -50,6 +51,7 @@ export default async function AdminPage() {
   try {
     const currentUser = await requireInternalAdmin();
     const [
+      overviewMetricsResult,
       usersResult,
       workspacesResult,
       auditLogsResult,
@@ -60,6 +62,12 @@ export default async function AdminPage() {
       supportRequestsResult,
       deletionRequestsResult
     ] = await Promise.all([
+      loadAdminDataset(getAdminOverviewMetrics(), {
+        allAccounts: 0,
+        workspaceMembers: 0,
+        pendingInvites: 0,
+        internalAdmins: 0
+      }),
       loadAdminDataset(listUsers(), []),
       loadAdminDataset(listWorkspaces(), []),
       loadAdminDataset(listAdminAuditLogs(), []),
@@ -71,6 +79,7 @@ export default async function AdminPage() {
       loadAdminDataset(listAdminDeletionRequests(), [])
     ]);
     const users = usersResult.data;
+    const overviewMetrics = overviewMetricsResult.data;
     const workspaces = workspacesResult.data;
     const auditLogs = auditLogsResult.data;
     const diagnosticJobs = diagnosticJobsResult.data;
@@ -80,6 +89,7 @@ export default async function AdminPage() {
     const supportRequests = supportRequestsResult.data;
     const deletionRequests = deletionRequestsResult.data;
     const degradedSections = [
+      overviewMetricsResult.status !== "ok" ? "overview metrics" : null,
       usersResult.status !== "ok" ? "users" : null,
       workspacesResult.status !== "ok" ? "workspaces" : null,
       auditLogsResult.status !== "ok" ? "audit log" : null,
@@ -127,9 +137,46 @@ export default async function AdminPage() {
           ) : null}
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatusCard label="Users" value={String(users.length)} />
-          <StatusCard label="Workspaces" value={String(workspaces.length)} />
+        <section className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+              Account overview
+            </p>
+            <p className="text-sm text-muted">
+              Counts reflect the whole preview environment across app accounts,
+              accepted workspace memberships, open invites, and internal admin access.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <StatusCard
+              detail="Every saved account in the auth database."
+              label="All accounts"
+              value={String(overviewMetrics.allAccounts)}
+            />
+            <StatusCard
+              detail="Accepted memberships across all workspaces."
+              label="Workspace members"
+              value={String(overviewMetrics.workspaceMembers)}
+            />
+            <StatusCard
+              detail="Open invitations that have not been accepted or expired."
+              label="Pending invites"
+              value={String(overviewMetrics.pendingInvites)}
+            />
+            <StatusCard
+              detail="Accounts with internal admin access."
+              label="Internal admins"
+              value={String(overviewMetrics.internalAdmins)}
+            />
+            <StatusCard
+              detail="Saved workspaces in the preview environment."
+              label="Workspaces"
+              value={String(workspaces.length)}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <StatusCard label="Diagnostic jobs" value={String(diagnosticJobs.length)} />
           <StatusCard
             label="Roadmap jobs"
@@ -841,11 +888,20 @@ export default async function AdminPage() {
   }
 }
 
-function StatusCard({ label, value }: { label: string; value: string }) {
+function StatusCard({
+  detail,
+  label,
+  value
+}: {
+  detail?: string;
+  label: string;
+  value: string;
+}) {
   return (
     <article className="metric-card">
       <p className="text-sm uppercase tracking-[0.2em] text-muted">{label}</p>
       <p className="mt-3 text-2xl font-semibold">{value}</p>
+      {detail ? <p className="mt-2 text-sm leading-6 text-muted">{detail}</p> : null}
     </article>
   );
 }

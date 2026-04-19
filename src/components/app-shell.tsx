@@ -1,12 +1,12 @@
 import Link from "next/link";
 
+import { AccountStateBanner } from "@/components/account-state-banner";
 import type { OutputLanguage, WorkspaceContext } from "@/lib/foundation";
 import { formatRoleLabel, getPlanDefinition } from "@/lib/foundation";
 
 function formatOutputLanguageLabel(lang: OutputLanguage) {
   return lang === "es" ? "Spanish (ES)" : "English (EN)";
 }
-import { AccountStateBanner } from "@/components/account-state-banner";
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard" },
@@ -66,7 +66,9 @@ export function AppShell({
               <p className="mt-1">
                 {formatOutputLanguageLabel(context.workspace.outputLanguage)}
               </p>
-              <p className="mt-1 text-xs text-muted">App interface: English</p>
+              <p className="mt-1 text-xs text-muted">
+                Generated outputs follow this language. App UI stays in English.
+              </p>
             </div>
           </div>
         </div>

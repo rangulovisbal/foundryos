@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { LockedStatePanel } from "@/components/locked-state-panel";
+import { PageSectionLinks } from "@/components/page-section-links";
+import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
 import {
   getBusinessProfile,
@@ -54,6 +56,10 @@ function resolveDisabledReason(
   }
 
   return "Asset generation is unavailable.";
+}
+
+function formatOutputLanguageLabel(language: "en" | "es") {
+  return language === "es" ? "Spanish output" : "English output";
 }
 
 export default async function AssetsPage() {
@@ -132,6 +138,45 @@ export default async function AssetsPage() {
             idleLabel="Generate assets"
             loadingLabel="Generating assets..."
             successLabel="Assets generated and saved."
+          />
+        </div>
+        <div className="mt-6 space-y-4">
+          <PageSummaryGrid
+            items={[
+              {
+                label: "Latest asset set",
+                value: latestAssets.length > 0 ? `${latestAssets.length} saved` : "Missing",
+                detail:
+                  latestAssets.length > 0
+                    ? `Latest run saved ${new Date(latestAssets[0].createdAt).toLocaleString()}.`
+                    : "Generate after profile, diagnostics, roadmap, and actions exist."
+              },
+              {
+                label: "Asset runs",
+                value: assetCounter
+                  ? `${assetCounter.usedCount}/${assetCounter.limitCount}`
+                  : "n/a",
+                detail: "Usage is still measured by generation runs in preview mode."
+              },
+              {
+                label: "Latest status",
+                value: history[0]?.job.status ?? "none",
+                detail: "The newest asset job state across this workspace."
+              },
+              {
+                label: "Output language",
+                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+                detail: "System UI stays in English. Generated asset content follows the workspace setting."
+              }
+            ]}
+          />
+          <PageSectionLinks
+            links={[
+              ...(latestAssets.length > 0
+                ? [{ href: "#asset-set", label: "Latest assets" }]
+                : []),
+              { href: "#asset-history", label: "History" }
+            ]}
           />
         </div>
       </section>
@@ -227,7 +272,7 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
 
 function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
   return (
-    <section className="space-y-6">
+    <section className="space-y-6" id="asset-set">
       <div className="surface p-6 md:p-8">
         <span className="eyebrow">Latest asset set</span>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
@@ -299,47 +344,56 @@ function AssetCard({ asset }: { asset: BusinessAssetRecord }) {
 
 function AssetHistoryTable({ history }: { history: AssetJobWithAssets[] }) {
   return (
-    <section className="surface p-6 md:p-8">
-      <p className="text-sm uppercase tracking-[0.18em] text-muted">Asset history</p>
-      <div className="mt-4 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-        <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
-          <thead className="bg-white/90 text-muted">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Created</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Assets</th>
-              <th className="px-4 py-3 font-semibold">Types</th>
-              <th className="px-4 py-3 font-semibold">Error</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.length > 0 ? (
-              history.map((entry) => (
-                <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
-                  <td className="px-4 py-4 text-muted">
-                    {new Date(entry.job.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-4 capitalize">{entry.job.status}</td>
-                  <td className="px-4 py-4">{entry.assets.length}</td>
-                  <td className="px-4 py-4 text-muted">
-                    {entry.assets.length > 0
-                      ? entry.assets.map((asset) => formatAssetType(asset.assetType)).join(", ")
-                      : "n/a"}
-                  </td>
-                  <td className="px-4 py-4 text-muted">{entry.job.error ?? "none"}</td>
-                </tr>
-              ))
-            ) : (
+    <details className="surface overflow-hidden" id="asset-history">
+      <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+        <p className="text-sm uppercase tracking-[0.18em] text-muted">Generation history</p>
+        <p className="mt-2 text-sm text-muted">
+          Expand to review older asset runs and failure states.
+        </p>
+      </summary>
+      <div className="px-6 pb-6 md:px-8 md:pb-8">
+        <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+          <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <thead className="bg-white/90 text-muted">
               <tr>
-                <td className="px-4 py-6 text-muted" colSpan={5}>
-                  No asset generation jobs have been created yet.
-                </td>
+                <th className="px-4 py-3 font-semibold">Created</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Assets</th>
+                <th className="px-4 py-3 font-semibold">Types</th>
+                <th className="px-4 py-3 font-semibold">Error</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {history.length > 0 ? (
+                history.map((entry) => (
+                  <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
+                    <td className="px-4 py-4 text-muted">
+                      {new Date(entry.job.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-4 capitalize">{entry.job.status}</td>
+                    <td className="px-4 py-4">{entry.assets.length}</td>
+                    <td className="px-4 py-4 text-muted">
+                      {entry.assets.length > 0
+                        ? entry.assets
+                            .map((asset) => formatAssetType(asset.assetType))
+                            .join(", ")
+                        : "n/a"}
+                    </td>
+                    <td className="px-4 py-4 text-muted">{entry.job.error ?? "none"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="px-4 py-6 text-muted" colSpan={5}>
+                    No asset generation jobs have been created yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </section>
+    </details>
   );
 }
 

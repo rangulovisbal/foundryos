@@ -119,6 +119,13 @@ export type AdminDeletionRequestRow = {
   reviewedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
 };
 
+export type AdminOverviewMetrics = {
+  allAccounts: number;
+  workspaceMembers: number;
+  pendingInvites: number;
+  internalAdmins: number;
+};
+
 function mapUser(row: typeof appUsers.$inferSelect): AppUser {
   return {
     id: row.id,
@@ -496,6 +503,30 @@ export async function listUsers() {
   const db = await requireDb("listing users");
   const rows = await db.select().from(appUsers).orderBy(desc(appUsers.createdAt));
   return rows.map(mapUser);
+}
+
+export async function getAdminOverviewMetrics() {
+  const db = await requireDb("admin overview metrics");
+  const [users, memberships, invites] = await Promise.all([
+    db.select({ id: appUsers.id, globalRole: appUsers.globalRole }).from(appUsers),
+    db.select({ id: workspaceMemberships.id }).from(workspaceMemberships),
+    db
+      .select({ id: workspaceInvitations.id })
+      .from(workspaceInvitations)
+      .where(
+        and(
+          isNull(workspaceInvitations.acceptedAt),
+          gt(workspaceInvitations.expiresAt, new Date())
+        )
+      )
+  ]);
+
+  return {
+    allAccounts: users.length,
+    workspaceMembers: memberships.length,
+    pendingInvites: invites.length,
+    internalAdmins: users.filter((user) => user.globalRole === "internal_admin").length
+  } satisfies AdminOverviewMetrics;
 }
 
 export async function findUserByEmail(email: string) {

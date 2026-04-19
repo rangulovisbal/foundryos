@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { PageSectionLinks } from "@/components/page-section-links";
+import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
 import {
@@ -47,6 +49,10 @@ function resolveDisabledReason(
   }
 
   return "Actions and 30-day plan generation are unavailable.";
+}
+
+function formatOutputLanguageLabel(language: "en" | "es") {
+  return language === "es" ? "Spanish output" : "English output";
 }
 
 export default async function ActionsPage() {
@@ -112,6 +118,45 @@ export default async function ActionsPage() {
             idleLabel="Generate actions"
             loadingLabel="Generating plan..."
             successLabel="Actions and 30-day plan generated and saved."
+          />
+        </div>
+        <div className="mt-6 space-y-4">
+          <PageSummaryGrid
+            items={[
+              {
+                label: "Action cards",
+                value: String(latestActionPlan?.actions.length ?? 0),
+                detail: latestActionPlan
+                  ? "Saved action list from the latest planning run."
+                  : "No persisted action list yet."
+              },
+              {
+                label: "30-day plan",
+                value: latestThirtyDayPlan ? "Saved" : "Missing",
+                detail: latestThirtyDayPlan
+                  ? latestThirtyDayPlan.monthObjective
+                  : "Generate after diagnostics."
+              },
+              {
+                label: "Quick wins",
+                value: String(latestThirtyDayPlan?.quickWins.length ?? 0),
+                detail: "Fast execution items surfaced from the latest plan."
+              },
+              {
+                label: "Output language",
+                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+                detail: "UI stays in English while generated planning follows the workspace setting."
+              }
+            ]}
+          />
+          <PageSectionLinks
+            links={[
+              ...(latestActionPlan ? [{ href: "#action-list", label: "Action list" }] : []),
+              ...(latestThirtyDayPlan
+                ? [{ href: "#thirty-day-plan", label: "30-day plan" }]
+                : []),
+              { href: "#action-history", label: "History" }
+            ]}
           />
         </div>
       </section>
@@ -181,7 +226,7 @@ function PrerequisitePanel({
 
 function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
   return (
-    <section className="surface p-6 md:p-8">
+    <section className="surface p-6 md:p-8" id="action-list">
       <span className="eyebrow">Action list</span>
       <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
         Prioritized actions from the latest planning run.
@@ -228,7 +273,7 @@ function ActionCard({ action }: { action: PlanActionItem }) {
 
 function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
   return (
-    <section className="space-y-6">
+    <section className="space-y-6" id="thirty-day-plan">
       <div className="surface p-6 md:p-8">
         <span className="eyebrow">30-day plan</span>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
@@ -292,46 +337,53 @@ function ListCard({ title, values }: { title: string; values: string[] }) {
 
 function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[] }) {
   return (
-    <section className="surface p-6 md:p-8">
-      <p className="text-sm uppercase tracking-[0.18em] text-muted">
-        30-day plan history
-      </p>
-      <div className="mt-4 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-        <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
-          <thead className="bg-white/90 text-muted">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Created</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Actions</th>
-              <th className="px-4 py-3 font-semibold">30-day plan</th>
-              <th className="px-4 py-3 font-semibold">Error</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.length > 0 ? (
-              history.map((entry) => (
-                <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
-                  <td className="px-4 py-4 text-muted">
-                    {new Date(entry.job.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-4 capitalize">{entry.job.status}</td>
-                  <td className="px-4 py-4">{entry.actionPlan ? "saved" : "n/a"}</td>
-                  <td className="px-4 py-4">
-                    {entry.thirtyDayPlan ? "saved" : "n/a"}
-                  </td>
-                  <td className="px-4 py-4 text-muted">{entry.job.error ?? "none"}</td>
-                </tr>
-              ))
-            ) : (
+    <details className="surface overflow-hidden" id="action-history">
+      <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+        <p className="text-sm uppercase tracking-[0.18em] text-muted">
+          Generation history
+        </p>
+        <p className="mt-2 text-sm text-muted">
+          Expand to review earlier action and 30-day plan runs.
+        </p>
+      </summary>
+      <div className="px-6 pb-6 md:px-8 md:pb-8">
+        <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+          <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <thead className="bg-white/90 text-muted">
               <tr>
-                <td className="px-4 py-6 text-muted" colSpan={5}>
-                  No 30-day plan generation jobs yet.
-                </td>
+                <th className="px-4 py-3 font-semibold">Created</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Actions</th>
+                <th className="px-4 py-3 font-semibold">30-day plan</th>
+                <th className="px-4 py-3 font-semibold">Error</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {history.length > 0 ? (
+                history.map((entry) => (
+                  <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
+                    <td className="px-4 py-4 text-muted">
+                      {new Date(entry.job.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-4 capitalize">{entry.job.status}</td>
+                    <td className="px-4 py-4">{entry.actionPlan ? "saved" : "n/a"}</td>
+                    <td className="px-4 py-4">
+                      {entry.thirtyDayPlan ? "saved" : "n/a"}
+                    </td>
+                    <td className="px-4 py-4 text-muted">{entry.job.error ?? "none"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="px-4 py-6 text-muted" colSpan={5}>
+                    No 30-day plan generation jobs yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </section>
+    </details>
   );
 }

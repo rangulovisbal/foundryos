@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { DiagnosticsRunButton } from "@/components/diagnostics-run-button";
 import { LockedStatePanel } from "@/components/locked-state-panel";
+import { PageSectionLinks } from "@/components/page-section-links";
+import { PageSummaryGrid } from "@/components/page-summary-grid";
 import {
   getBusinessProfile,
   getLatestDiagnosticResult,
@@ -50,6 +52,10 @@ function resolveDisabledReason(
   return "Diagnostic runs are unavailable.";
 }
 
+function formatOutputLanguageLabel(language: OutputLanguage) {
+  return language === "es" ? "Spanish output" : "English output";
+}
+
 export default async function DiagnosticsPage() {
   const context = await requireWorkspaceContext("/app/diagnostics");
   const [profile, latestResult, history] = await Promise.all([
@@ -92,6 +98,41 @@ export default async function DiagnosticsPage() {
         <div className="mt-6">
           <DiagnosticsRunButton canRun={canRun} disabledReason={disabledReason} />
         </div>
+        <div className="mt-6 space-y-4">
+          <PageSummaryGrid
+            items={[
+              {
+                label: "Latest score",
+                value: latestResult ? `${latestResult.overallMaturityScore}/100` : "Missing",
+                detail: latestResult
+                  ? `Confidence: ${localizeConfidence(latestResult.confidence, context.workspace.outputLanguage)}.`
+                  : "Run diagnostics after saving the profile."
+              },
+              {
+                label: "Category scores",
+                value: String(latestResult?.categoryScores.length ?? 0),
+                detail: "Structured scorecards saved with each completed run."
+              },
+              {
+                label: "Run usage",
+                value: `${counter?.usedCount ?? 0}/${counter?.limitCount ?? 0}`,
+                detail: "Diagnostic runs tracked against workspace entitlements."
+              },
+              {
+                label: "Output language",
+                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+                detail: "System UI stays in English. Generated diagnostic content follows the workspace setting."
+              }
+            ]}
+          />
+          <PageSectionLinks
+            links={[
+              ...(latestResult ? [{ href: "#latest-diagnostic", label: "Latest result" }] : []),
+              ...(latestResult ? [{ href: "#diagnostic-scores", label: "Scores" }] : []),
+              { href: "#diagnostic-history", label: "History" }
+            ]}
+          />
+        </div>
       </section>
 
       {!profile ? (
@@ -120,51 +161,58 @@ export default async function DiagnosticsPage() {
         />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
-        <p className="text-sm uppercase tracking-[0.18em] text-muted">
-          Run history
-        </p>
-        <div className="mt-4 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-          <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
-            <thead className="bg-white/90 text-muted">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Created</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Score</th>
-                <th className="px-4 py-3 font-semibold">Confidence</th>
-                <th className="px-4 py-3 font-semibold">Error</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.length > 0 ? (
-                history.map((entry) => (
-                  <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
-                    <td className="px-4 py-4 text-muted">
-                      {new Date(entry.job.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4 capitalize">{entry.job.status}</td>
-                    <td className="px-4 py-4">
-                      {entry.result ? `${entry.result.overallMaturityScore}/100` : "n/a"}
-                    </td>
-                    <td className="px-4 py-4 capitalize">
-                      {entry.result?.confidence ?? "n/a"}
-                    </td>
-                    <td className="px-4 py-4 text-muted">
-                      {entry.job.error ?? "none"}
+      <details className="surface overflow-hidden" id="diagnostic-history">
+        <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            Run history
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            Expand to review earlier diagnostic runs and failure states.
+          </p>
+        </summary>
+        <div className="px-6 pb-6 md:px-8 md:pb-8">
+          <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+              <thead className="bg-white/90 text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Created</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Score</th>
+                  <th className="px-4 py-3 font-semibold">Confidence</th>
+                  <th className="px-4 py-3 font-semibold">Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.length > 0 ? (
+                  history.map((entry) => (
+                    <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
+                      <td className="px-4 py-4 text-muted">
+                        {new Date(entry.job.createdAt).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-4 capitalize">{entry.job.status}</td>
+                      <td className="px-4 py-4">
+                        {entry.result ? `${entry.result.overallMaturityScore}/100` : "n/a"}
+                      </td>
+                      <td className="px-4 py-4 capitalize">
+                        {entry.result?.confidence ?? "n/a"}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {entry.job.error ?? "none"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-4 py-6 text-muted" colSpan={5}>
+                      No diagnostic runs yet.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="px-4 py-6 text-muted" colSpan={5}>
-                    No diagnostic runs yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </section>
+      </details>
     </div>
   );
 }
@@ -187,41 +235,20 @@ function LatestResult({
   language: OutputLanguage;
   result: DiagnosticResultRecord;
 }) {
-  const copy =
-    language === "es"
-      ? {
-          confidence: "Confianza",
-          evidence: "Senales capturadas",
-          inferences: "Conclusiones inferidas",
-          opportunities: "Oportunidades principales",
-          actions: "Acciones recomendadas",
-          score: "Puntuacion de madurez",
-          saved: "Guardado"
-        }
-      : {
-          confidence: "Confidence",
-          evidence: "Captured input signals",
-          inferences: "Inferred conclusions",
-          opportunities: "Top opportunities",
-          actions: "Recommended actions",
-          score: "Maturity score",
-          saved: "Saved"
-        };
-
   return (
-    <section className="space-y-6">
+    <section className="space-y-6" id="latest-diagnostic">
       <div className="surface p-6 md:p-8">
         <span className="eyebrow">Latest result</span>
         <div className="mt-4 grid gap-5 lg:grid-cols-[220px_1fr]">
           <div className="rounded-[28px] border border-[color:var(--border)] bg-ink p-6 text-sand">
             <p className="text-sm uppercase tracking-[0.18em] text-sand/70">
-              {copy.score}
+              Maturity score
             </p>
             <p className="mt-4 text-6xl font-semibold">
               {result.overallMaturityScore}
             </p>
             <p className="mt-2 text-sm text-sand/70">
-              {copy.confidence}: {localizeConfidence(result.confidence, language)}
+              Confidence: {localizeConfidence(result.confidence, language)}
             </p>
           </div>
           <div>
@@ -229,13 +256,13 @@ function LatestResult({
               {result.summary}
             </h3>
             <p className="mt-4 text-sm text-muted">
-              {copy.saved} {new Date(result.createdAt).toLocaleString()}
+              Saved {new Date(result.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
       </div>
 
-      <section className="grid gap-4 xl:grid-cols-5">
+      <section className="grid gap-4 xl:grid-cols-5" id="diagnostic-scores">
         {result.categoryScores.map((category) => (
           <article key={category.key} className="metric-card">
             <p className="text-sm uppercase tracking-[0.18em] text-muted">
@@ -248,7 +275,7 @@ function LatestResult({
       </section>
 
       <DiagnosticCardGroup
-        title={copy.evidence}
+        title="Captured input signals"
         items={result.evidenceCards.map((item) => ({
           title: item.title,
           body: `${item.observation} ${item.implication}`,
@@ -256,7 +283,7 @@ function LatestResult({
         }))}
       />
       <DiagnosticCardGroup
-        title={copy.inferences}
+        title="Inferred conclusions"
         items={result.topBottlenecks.map((item) => ({
           title: item.title,
           body: item.detail,
@@ -268,7 +295,7 @@ function LatestResult({
         })))}
       />
       <DiagnosticCardGroup
-        title={copy.opportunities}
+        title="Top opportunities"
         items={result.topOpportunities.map((item) => ({
           title: item.title,
           body: item.detail,
@@ -276,7 +303,7 @@ function LatestResult({
         }))}
       />
       <DiagnosticCardGroup
-        title={copy.actions}
+        title="Recommended actions"
         items={result.recommendedNextActions.map((item) => ({
           title: item.title,
           body: item.detail,
