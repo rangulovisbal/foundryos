@@ -638,6 +638,66 @@ export const sopArtifacts = pgTable(
   ]
 );
 
+export const supportRequests = pgTable(
+  "support_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id")
+      .notNull()
+      .references(() => appUsers.id, { onDelete: "cascade" }),
+    issueType: varchar("issue_type", { length: 64 }).notNull(),
+    message: text("message").notNull(),
+    status: varchar("status", { length: 32 }).notNull().default("submitted"),
+    adminNotes: text("admin_notes"),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("support_requests_workspace_idx").on(table.workspaceId),
+    index("support_requests_requested_by_idx").on(table.requestedByUserId),
+    index("support_requests_status_idx").on(table.status),
+    index("support_requests_created_idx").on(table.createdAt)
+  ]
+);
+
+export const deletionRequests = pgTable(
+  "deletion_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id")
+      .notNull()
+      .references(() => appUsers.id, { onDelete: "cascade" }),
+    requestType: varchar("request_type", { length: 64 }).notNull(),
+    reason: text("reason"),
+    status: varchar("status", { length: 32 }).notNull().default("submitted"),
+    adminNotes: text("admin_notes"),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("deletion_requests_workspace_idx").on(table.workspaceId),
+    index("deletion_requests_requested_by_idx").on(table.requestedByUserId),
+    index("deletion_requests_type_idx").on(table.requestType),
+    index("deletion_requests_status_idx").on(table.status),
+    index("deletion_requests_created_idx").on(table.createdAt)
+  ]
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {

@@ -10,6 +10,7 @@ import {
   appSessions,
   appUsers,
   businessAssets,
+  deletionRequests,
   diagnosticJobs,
   diagnosticResults,
   emailVerificationTokens,
@@ -18,6 +19,7 @@ import {
   roadmaps,
   sopArtifacts,
   sopJobs,
+  supportRequests,
   thirtyDayPlans,
   workspaceBusinessProfiles,
   workspaceInvitations,
@@ -34,12 +36,16 @@ import type {
   BusinessAssetRecord,
   BusinessProfileInput,
   BusinessProfileRecord,
+  DeletionRequestRecord,
+  DeletionRequestWithRequester,
   DiagnosticJobRecord,
   DiagnosticJobWithResult,
   DiagnosticResultRecord,
   EmailVerificationRecord,
   PasswordResetRecord,
   ActionPlanRecord,
+  SupportRequestRecord,
+  SupportRequestWithRequester,
   UsageCounterRecord,
   PlanningJobRecord,
   PlanningJobType,
@@ -97,6 +103,20 @@ export type AdminSopJobRow = {
   workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
   requestedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
   artifacts: Array<Pick<SopArtifactRecord, "id" | "sopType" | "title" | "generationStatus" | "createdAt">>;
+};
+
+export type AdminSupportRequestRow = {
+  request: SupportRequestRecord;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName">;
+  reviewedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+};
+
+export type AdminDeletionRequestRow = {
+  request: DeletionRequestRecord;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug" | "plan" | "accountState">;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName">;
+  reviewedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
 };
 
 function mapUser(row: typeof appUsers.$inferSelect): AppUser {
@@ -394,6 +414,43 @@ function mapSopArtifact(row: typeof sopArtifacts.$inferSelect): SopArtifactRecor
     content: row.content,
     sourceReferences: row.sourceReferences as SopArtifactRecord["sourceReferences"],
     generationStatus: row.generationStatus as SopArtifactRecord["generationStatus"],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapSupportRequest(
+  row: typeof supportRequests.$inferSelect
+): SupportRequestRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    requestedByUserId: row.requestedByUserId,
+    issueType: row.issueType as SupportRequestRecord["issueType"],
+    message: row.message,
+    status: row.status as SupportRequestRecord["status"],
+    adminNotes: row.adminNotes,
+    reviewedByUserId: row.reviewedByUserId,
+    reviewedAt: row.reviewedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+function mapDeletionRequest(
+  row: typeof deletionRequests.$inferSelect
+): DeletionRequestRecord {
+  return {
+    id: row.id,
+    workspaceId: row.workspaceId,
+    requestedByUserId: row.requestedByUserId,
+    requestType: row.requestType as DeletionRequestRecord["requestType"],
+    reason: row.reason,
+    status: row.status as DeletionRequestRecord["status"],
+    adminNotes: row.adminNotes,
+    reviewedByUserId: row.reviewedByUserId,
+    reviewedAt: row.reviewedAt?.toISOString() ?? null,
+    completedAt: row.completedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };
@@ -1317,6 +1374,275 @@ export async function getLatestBusinessAssets(workspaceId: string) {
   );
 }
 
+export async function createSupportRequest(record: SupportRequestRecord) {
+  const db = await requireDb("support request persistence");
+
+  await db.insert(supportRequests).values({
+    id: record.id,
+    workspaceId: record.workspaceId,
+    requestedByUserId: record.requestedByUserId,
+    issueType: record.issueType,
+    message: record.message,
+    status: record.status,
+    adminNotes: record.adminNotes,
+    reviewedByUserId: record.reviewedByUserId,
+    reviewedAt: record.reviewedAt ? new Date(record.reviewedAt) : null,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt)
+  });
+
+  return record;
+}
+
+export async function listSupportRequests({
+  workspaceId,
+  requestedByUserId,
+  limit = 20
+}: {
+  workspaceId: string;
+  requestedByUserId?: string;
+  limit?: number;
+}): Promise<SupportRequestWithRequester[]> {
+  const db = await requireDb("support request lookup");
+  const filters = [eq(supportRequests.workspaceId, workspaceId)];
+  if (requestedByUserId) {
+    filters.push(eq(supportRequests.requestedByUserId, requestedByUserId));
+  }
+
+  const requestRows = await db
+    .select()
+    .from(supportRequests)
+    .where(and(...filters))
+    .orderBy(desc(supportRequests.createdAt))
+    .limit(limit);
+
+  if (requestRows.length === 0) {
+    return [];
+  }
+
+  const userIds = Array.from(
+    new Set(
+      requestRows.flatMap((row) =>
+        [row.requestedByUserId, row.reviewedByUserId].filter(Boolean)
+      )
+    )
+  ) as string[];
+
+  const userRows =
+    userIds.length > 0
+      ? await db.select().from(appUsers).where(inArray(appUsers.id, userIds))
+      : [];
+  const usersById = new Map(userRows.map((row) => [row.id, mapUser(row)]));
+
+  return requestRows.map((row) => {
+    const requestedByUser = usersById.get(row.requestedByUserId);
+
+    if (!requestedByUser) {
+      throw new Error("Support request requester could not be resolved.");
+    }
+
+    return {
+      request: mapSupportRequest(row),
+      requestedByUser: {
+        id: requestedByUser.id,
+        email: requestedByUser.email,
+        fullName: requestedByUser.fullName
+      },
+      reviewedByUser: row.reviewedByUserId
+        ? (() => {
+            const user = usersById.get(row.reviewedByUserId);
+            return user
+              ? { id: user.id, email: user.email, fullName: user.fullName }
+              : null;
+          })()
+        : null
+    };
+  });
+}
+
+export async function updateSupportRequest(
+  requestId: string,
+  patch: Partial<
+    Pick<
+      SupportRequestRecord,
+      "status" | "adminNotes" | "reviewedByUserId" | "reviewedAt"
+    >
+  >
+) {
+  const db = await requireDb("support request updates");
+
+  await db
+    .update(supportRequests)
+    .set({
+      status: patch.status,
+      adminNotes:
+        patch.adminNotes === undefined ? undefined : toNullableText(patch.adminNotes),
+      reviewedByUserId: patch.reviewedByUserId,
+      reviewedAt:
+        patch.reviewedAt === undefined
+          ? undefined
+          : patch.reviewedAt
+            ? new Date(patch.reviewedAt)
+            : null,
+      updatedAt: new Date()
+    })
+    .where(eq(supportRequests.id, requestId));
+}
+
+export async function createDeletionRequest(record: DeletionRequestRecord) {
+  const db = await requireDb("deletion request persistence");
+
+  await db.insert(deletionRequests).values({
+    id: record.id,
+    workspaceId: record.workspaceId,
+    requestedByUserId: record.requestedByUserId,
+    requestType: record.requestType,
+    reason: record.reason,
+    status: record.status,
+    adminNotes: record.adminNotes,
+    reviewedByUserId: record.reviewedByUserId,
+    reviewedAt: record.reviewedAt ? new Date(record.reviewedAt) : null,
+    completedAt: record.completedAt ? new Date(record.completedAt) : null,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt)
+  });
+
+  return record;
+}
+
+export async function listDeletionRequests({
+  workspaceId,
+  requestedByUserId,
+  requestType,
+  limit = 20
+}: {
+  workspaceId: string;
+  requestedByUserId?: string;
+  requestType?: DeletionRequestRecord["requestType"];
+  limit?: number;
+}): Promise<DeletionRequestWithRequester[]> {
+  const db = await requireDb("deletion request lookup");
+  const filters = [eq(deletionRequests.workspaceId, workspaceId)];
+  if (requestedByUserId) {
+    filters.push(eq(deletionRequests.requestedByUserId, requestedByUserId));
+  }
+  if (requestType) {
+    filters.push(eq(deletionRequests.requestType, requestType));
+  }
+
+  const requestRows = await db
+    .select()
+    .from(deletionRequests)
+    .where(and(...filters))
+    .orderBy(desc(deletionRequests.createdAt))
+    .limit(limit);
+
+  if (requestRows.length === 0) {
+    return [];
+  }
+
+  const userIds = Array.from(
+    new Set(
+      requestRows.flatMap((row) =>
+        [row.requestedByUserId, row.reviewedByUserId].filter(Boolean)
+      )
+    )
+  ) as string[];
+
+  const userRows =
+    userIds.length > 0
+      ? await db.select().from(appUsers).where(inArray(appUsers.id, userIds))
+      : [];
+  const usersById = new Map(userRows.map((row) => [row.id, mapUser(row)]));
+
+  return requestRows.map((row) => {
+    const requestedByUser = usersById.get(row.requestedByUserId);
+
+    if (!requestedByUser) {
+      throw new Error("Deletion request requester could not be resolved.");
+    }
+
+    return {
+      request: mapDeletionRequest(row),
+      requestedByUser: {
+        id: requestedByUser.id,
+        email: requestedByUser.email,
+        fullName: requestedByUser.fullName
+      },
+      reviewedByUser: row.reviewedByUserId
+        ? (() => {
+            const user = usersById.get(row.reviewedByUserId);
+            return user
+              ? { id: user.id, email: user.email, fullName: user.fullName }
+              : null;
+          })()
+        : null
+    };
+  });
+}
+
+export async function findOpenDeletionRequest(input: {
+  workspaceId: string;
+  requestedByUserId: string;
+  requestType: DeletionRequestRecord["requestType"];
+}) {
+  const db = await requireDb("open deletion request lookup");
+  const rows = await db
+    .select()
+    .from(deletionRequests)
+    .where(
+      and(
+        eq(deletionRequests.workspaceId, input.workspaceId),
+        eq(deletionRequests.requestedByUserId, input.requestedByUserId),
+        eq(deletionRequests.requestType, input.requestType),
+        inArray(deletionRequests.status, [
+          "submitted",
+          "under_review",
+          "approved"
+        ])
+      )
+    )
+    .orderBy(desc(deletionRequests.createdAt))
+    .limit(1);
+
+  return rows[0] ? mapDeletionRequest(rows[0]) : null;
+}
+
+export async function updateDeletionRequest(
+  requestId: string,
+  patch: Partial<
+    Pick<
+      DeletionRequestRecord,
+      "status" | "adminNotes" | "reviewedByUserId" | "reviewedAt" | "completedAt"
+    >
+  >
+) {
+  const db = await requireDb("deletion request updates");
+
+  await db
+    .update(deletionRequests)
+    .set({
+      status: patch.status,
+      adminNotes:
+        patch.adminNotes === undefined ? undefined : toNullableText(patch.adminNotes),
+      reviewedByUserId: patch.reviewedByUserId,
+      reviewedAt:
+        patch.reviewedAt === undefined
+          ? undefined
+          : patch.reviewedAt
+            ? new Date(patch.reviewedAt)
+            : null,
+      completedAt:
+        patch.completedAt === undefined
+          ? undefined
+          : patch.completedAt
+            ? new Date(patch.completedAt)
+            : null,
+      updatedAt: new Date()
+    })
+    .where(eq(deletionRequests.id, requestId));
+}
+
 export async function syncSeatUsage(workspaceId: string) {
   const db = await requireDb("workspace seat usage sync");
   const [members, usage] = await Promise.all([
@@ -1528,6 +1854,118 @@ export async function listAdminPlanningJobs(limit = 20) {
             id: row.thirtyDayPlan.id,
             createdAt: row.thirtyDayPlan.createdAt.toISOString()
           }
+        : null
+    })
+  );
+}
+
+export async function listAdminSupportRequests(limit = 20) {
+  const db = await requireDb("admin support request lookup");
+  const rows = await db
+    .select({
+      request: supportRequests,
+      workspace: workspaces
+    })
+    .from(supportRequests)
+    .innerJoin(workspaces, eq(supportRequests.workspaceId, workspaces.id))
+    .orderBy(desc(supportRequests.createdAt))
+    .limit(limit);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const userIds = Array.from(
+    new Set(
+      rows.flatMap((row) =>
+        [row.request.requestedByUserId, row.request.reviewedByUserId].filter(Boolean)
+      )
+    )
+  ) as string[];
+  const userRows =
+    userIds.length > 0
+      ? await db.select().from(appUsers).where(inArray(appUsers.id, userIds))
+      : [];
+  const usersById = new Map(userRows.map((row) => [row.id, mapUser(row)]));
+
+  return rows.map(
+    (row): AdminSupportRequestRow => ({
+      request: mapSupportRequest(row.request),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"]
+      },
+      requestedByUser: {
+        id: row.request.requestedByUserId,
+        email: usersById.get(row.request.requestedByUserId)?.email ?? "unknown",
+        fullName: usersById.get(row.request.requestedByUserId)?.fullName ?? "Unknown"
+      },
+      reviewedByUser: row.request.reviewedByUserId
+        ? (() => {
+            const user = usersById.get(row.request.reviewedByUserId);
+            return user
+              ? { id: user.id, email: user.email, fullName: user.fullName }
+              : null;
+          })()
+        : null
+    })
+  );
+}
+
+export async function listAdminDeletionRequests(limit = 20) {
+  const db = await requireDb("admin deletion request lookup");
+  const rows = await db
+    .select({
+      request: deletionRequests,
+      workspace: workspaces
+    })
+    .from(deletionRequests)
+    .innerJoin(workspaces, eq(deletionRequests.workspaceId, workspaces.id))
+    .orderBy(desc(deletionRequests.createdAt))
+    .limit(limit);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const userIds = Array.from(
+    new Set(
+      rows.flatMap((row) =>
+        [row.request.requestedByUserId, row.request.reviewedByUserId].filter(Boolean)
+      )
+    )
+  ) as string[];
+  const userRows =
+    userIds.length > 0
+      ? await db.select().from(appUsers).where(inArray(appUsers.id, userIds))
+      : [];
+  const usersById = new Map(userRows.map((row) => [row.id, mapUser(row)]));
+
+  return rows.map(
+    (row): AdminDeletionRequestRow => ({
+      request: mapDeletionRequest(row.request),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"]
+      },
+      requestedByUser: {
+        id: row.request.requestedByUserId,
+        email: usersById.get(row.request.requestedByUserId)?.email ?? "unknown",
+        fullName: usersById.get(row.request.requestedByUserId)?.fullName ?? "Unknown"
+      },
+      reviewedByUser: row.request.reviewedByUserId
+        ? (() => {
+            const user = usersById.get(row.request.reviewedByUserId);
+            return user
+              ? { id: user.id, email: user.email, fullName: user.fullName }
+              : null;
+          })()
         : null
     })
   );

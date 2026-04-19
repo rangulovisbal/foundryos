@@ -1,15 +1,26 @@
 import { ConfigurationRequiredPanel } from "@/components/configuration-required-panel";
+import { AdminRequestStatusControls } from "@/components/admin-request-status-controls";
 import { AdminWorkspaceControls } from "@/components/admin-workspace-controls";
 import { requireInternalAdmin } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { isConfigurationError } from "@/lib/errors";
-import { formatRoleLabel } from "@/lib/foundation";
+import {
+  deletionRequestStatusOptions,
+  formatDeletionRequestStatus,
+  formatDeletionRequestType,
+  formatRoleLabel,
+  formatSupportIssueType,
+  formatSupportRequestStatus,
+  supportRequestStatusOptions
+} from "@/lib/foundation";
 import {
   listAdminAuditLogs,
   listAdminAssetJobs,
+  listAdminDeletionRequests,
   listAdminDiagnosticJobs,
   listAdminPlanningJobs,
   listAdminSopJobs,
+  listAdminSupportRequests,
   listUsers,
   listWorkspaces
 } from "@/db/foundation";
@@ -45,7 +56,9 @@ export default async function AdminPage() {
       diagnosticJobsResult,
       planningJobsResult,
       assetJobsResult,
-      sopJobsResult
+      sopJobsResult,
+      supportRequestsResult,
+      deletionRequestsResult
     ] = await Promise.all([
       loadAdminDataset(listUsers(), []),
       loadAdminDataset(listWorkspaces(), []),
@@ -53,7 +66,9 @@ export default async function AdminPage() {
       loadAdminDataset(listAdminDiagnosticJobs(), []),
       loadAdminDataset(listAdminPlanningJobs(), []),
       loadAdminDataset(listAdminAssetJobs(), []),
-      loadAdminDataset(listAdminSopJobs(), [])
+      loadAdminDataset(listAdminSopJobs(), []),
+      loadAdminDataset(listAdminSupportRequests(), []),
+      loadAdminDataset(listAdminDeletionRequests(), [])
     ]);
     const users = usersResult.data;
     const workspaces = workspacesResult.data;
@@ -62,6 +77,8 @@ export default async function AdminPage() {
     const planningJobs = planningJobsResult.data;
     const assetJobs = assetJobsResult.data;
     const sopJobs = sopJobsResult.data;
+    const supportRequests = supportRequestsResult.data;
+    const deletionRequests = deletionRequestsResult.data;
     const degradedSections = [
       usersResult.status !== "ok" ? "users" : null,
       workspacesResult.status !== "ok" ? "workspaces" : null,
@@ -69,7 +86,9 @@ export default async function AdminPage() {
       diagnosticJobsResult.status !== "ok" ? "diagnostic jobs" : null,
       planningJobsResult.status !== "ok" ? "planning jobs" : null,
       assetJobsResult.status !== "ok" ? "asset jobs" : null,
-      sopJobsResult.status !== "ok" ? "SOP jobs" : null
+      sopJobsResult.status !== "ok" ? "SOP jobs" : null,
+      supportRequestsResult.status !== "ok" ? "support requests" : null,
+      deletionRequestsResult.status !== "ok" ? "deletion requests" : null
     ].filter(Boolean);
 
     const usersById = new Map(users.map((user) => [user.id, user]));
@@ -122,6 +141,8 @@ export default async function AdminPage() {
           />
           <StatusCard label="Asset jobs" value={assetJobs[0]?.job.status ?? "none"} />
           <StatusCard label="SOP jobs" value={sopJobs[0]?.job.status ?? "none"} />
+          <StatusCard label="Support requests" value={String(supportRequests.length)} />
+          <StatusCard label="Deletion requests" value={String(deletionRequests.length)} />
           <StatusCard
             label="Foundation DB"
             value={
@@ -424,6 +445,178 @@ export default async function AdminPage() {
                   <tr>
                     <td className="px-4 py-6 text-muted" colSpan={7}>
                       No SOP generation jobs have been created yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="surface p-6 md:p-8">
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">
+            Support requests
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+            Pilot support intake visibility
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-muted">
+            These are the minimal in-product support requests created from the
+            authenticated workspace support route. Status and internal notes are
+            managed manually here during pilot operations.
+          </p>
+
+          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+              <thead className="bg-white/90 text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Workspace</th>
+                  <th className="px-4 py-3 font-semibold">Requester</th>
+                  <th className="px-4 py-3 font-semibold">Issue</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Reviewed by</th>
+                  <th className="px-4 py-3 font-semibold">Created</th>
+                  <th className="px-4 py-3 font-semibold">Controls</th>
+                </tr>
+              </thead>
+              <tbody>
+                {supportRequests.length > 0 ? (
+                  supportRequests.map((entry) => (
+                    <tr
+                      key={entry.request.id}
+                      className="border-t border-[color:var(--border)] align-top"
+                    >
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{entry.workspace.name}</p>
+                        <p className="text-muted">{entry.workspace.slug}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{entry.requestedByUser.fullName}</p>
+                        <p className="text-muted">{entry.requestedByUser.email}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">
+                          {formatSupportIssueType(entry.request.issueType)}
+                        </p>
+                        <p className="mt-2 max-w-[42ch] text-muted">
+                          {entry.request.message}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4 capitalize">
+                        {formatSupportRequestStatus(entry.request.status)}
+                      </td>
+                      <td className="px-4 py-4">
+                        {entry.reviewedByUser ? (
+                          <>
+                            <p className="font-semibold">{entry.reviewedByUser.fullName}</p>
+                            <p className="text-muted">{entry.reviewedByUser.email}</p>
+                          </>
+                        ) : (
+                          <span className="text-muted">n/a</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {new Date(entry.request.createdAt).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-4">
+                        <AdminRequestStatusControls
+                          endpoint={`/api/admin/support-requests/${entry.request.id}`}
+                          initialNotes={entry.request.adminNotes}
+                          initialStatus={entry.request.status}
+                          statusOptions={supportRequestStatusOptions}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-4 py-6 text-muted" colSpan={7}>
+                      No support requests have been created yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="surface p-6 md:p-8">
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">
+            Deletion requests
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+            Account and workspace deletion review queue
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-muted">
+            These requests are request-only in the MVP. No account or workspace
+            is deleted automatically from the user-facing surface.
+          </p>
+
+          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+              <thead className="bg-white/90 text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Workspace</th>
+                  <th className="px-4 py-3 font-semibold">Requester</th>
+                  <th className="px-4 py-3 font-semibold">Type</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Reason</th>
+                  <th className="px-4 py-3 font-semibold">Reviewed by</th>
+                  <th className="px-4 py-3 font-semibold">Created</th>
+                  <th className="px-4 py-3 font-semibold">Controls</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletionRequests.length > 0 ? (
+                  deletionRequests.map((entry) => (
+                    <tr
+                      key={entry.request.id}
+                      className="border-t border-[color:var(--border)] align-top"
+                    >
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{entry.workspace.name}</p>
+                        <p className="text-muted">{entry.workspace.slug}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{entry.requestedByUser.fullName}</p>
+                        <p className="text-muted">{entry.requestedByUser.email}</p>
+                      </td>
+                      <td className="px-4 py-4 font-semibold">
+                        {formatDeletionRequestType(entry.request.requestType)}
+                      </td>
+                      <td className="px-4 py-4 capitalize">
+                        {formatDeletionRequestStatus(entry.request.status)}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {entry.request.reason ?? "No reason added."}
+                      </td>
+                      <td className="px-4 py-4">
+                        {entry.reviewedByUser ? (
+                          <>
+                            <p className="font-semibold">{entry.reviewedByUser.fullName}</p>
+                            <p className="text-muted">{entry.reviewedByUser.email}</p>
+                          </>
+                        ) : (
+                          <span className="text-muted">n/a</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {new Date(entry.request.createdAt).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-4">
+                        <AdminRequestStatusControls
+                          endpoint={`/api/admin/deletion-requests/${entry.request.id}`}
+                          initialNotes={entry.request.adminNotes}
+                          initialStatus={entry.request.status}
+                          statusOptions={deletionRequestStatusOptions}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-4 py-6 text-muted" colSpan={8}>
+                      No deletion requests have been created yet.
                     </td>
                   </tr>
                 )}

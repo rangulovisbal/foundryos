@@ -16,6 +16,7 @@ const navItems = [
   { href: "/app/actions", label: "Actions" },
   { href: "/app/assets", label: "Assets" },
   { href: "/app/sops", label: "SOPs" },
+  { href: "/app/support", label: "Support" },
   { href: "/app/team", label: "Team" },
   { href: "/app/billing", label: "Billing" }
 ];

@@ -68,6 +68,36 @@ export const businessAssetTypeOptions = [
 ] as const;
 
 export const outputLanguageOptions = ["en", "es"] as const;
+export const supportIssueTypeOptions = [
+  "product_question",
+  "account_access",
+  "diagnostics",
+  "planning",
+  "assets",
+  "sops",
+  "billing_state",
+  "bug_report",
+  "workspace_admin",
+  "other"
+] as const;
+export const supportRequestStatusOptions = [
+  "submitted",
+  "triaged",
+  "in_progress",
+  "resolved",
+  "closed"
+] as const;
+export const deletionRequestTypeOptions = [
+  "account_deletion",
+  "workspace_deletion"
+] as const;
+export const deletionRequestStatusOptions = [
+  "submitted",
+  "under_review",
+  "approved",
+  "rejected",
+  "completed"
+] as const;
 
 export const roadmapPhaseOptions = ["now", "next", "later"] as const;
 export const effortLevelOptions = ["low", "medium", "high"] as const;
@@ -88,6 +118,10 @@ export type SopJobStatus = (typeof sopJobStatusOptions)[number];
 export type SopArtifactType = (typeof sopArtifactTypeOptions)[number];
 export type BusinessAssetType = (typeof businessAssetTypeOptions)[number];
 export type OutputLanguage = (typeof outputLanguageOptions)[number];
+export type SupportIssueType = (typeof supportIssueTypeOptions)[number];
+export type SupportRequestStatus = (typeof supportRequestStatusOptions)[number];
+export type DeletionRequestType = (typeof deletionRequestTypeOptions)[number];
+export type DeletionRequestStatus = (typeof deletionRequestStatusOptions)[number];
 export type RoadmapPhase = (typeof roadmapPhaseOptions)[number];
 export type EffortLevel = (typeof effortLevelOptions)[number];
 export type ImpactLevel = (typeof impactLevelOptions)[number];
@@ -457,6 +491,47 @@ export type SopJobWithArtifacts = {
   artifacts: SopArtifactRecord[];
 };
 
+export type SupportRequestRecord = {
+  id: string;
+  workspaceId: string;
+  requestedByUserId: string;
+  issueType: SupportIssueType;
+  message: string;
+  status: SupportRequestStatus;
+  adminNotes: string | null;
+  reviewedByUserId: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SupportRequestWithRequester = {
+  request: SupportRequestRecord;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName">;
+  reviewedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+};
+
+export type DeletionRequestRecord = {
+  id: string;
+  workspaceId: string;
+  requestedByUserId: string;
+  requestType: DeletionRequestType;
+  reason: string | null;
+  status: DeletionRequestStatus;
+  adminNotes: string | null;
+  reviewedByUserId: string | null;
+  reviewedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DeletionRequestWithRequester = {
+  request: DeletionRequestRecord;
+  requestedByUser: Pick<AppUser, "id" | "email" | "fullName">;
+  reviewedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+};
+
 export type AdminAuditLogRecord = {
   id: string;
   adminUserId: string;
@@ -566,6 +641,49 @@ export const businessProfileSchema = z.object({
 });
 
 export type BusinessProfileInput = z.infer<typeof businessProfileSchema>;
+
+export const supportRequestSchema = z.object({
+  issueType: z.enum(supportIssueTypeOptions),
+  message: z
+    .string()
+    .trim()
+    .min(20, "Add enough detail for support to understand the issue.")
+    .max(2000, "Keep the support message under 2000 characters.")
+});
+
+export const deletionRequestSchema = z.object({
+  requestType: z.enum(deletionRequestTypeOptions),
+  reason: z
+    .string()
+    .trim()
+    .max(1200, "Keep the request reason under 1200 characters.")
+    .optional()
+    .default(""),
+  confirmationText: z.string().trim().min(1, "Confirmation text is required.")
+});
+
+export const supportRequestAdminUpdateSchema = z.object({
+  status: z.enum(supportRequestStatusOptions),
+  adminNotes: z
+    .string()
+    .trim()
+    .max(1200, "Keep the admin notes under 1200 characters.")
+    .optional()
+    .default("")
+});
+
+export const deletionRequestAdminUpdateSchema = z.object({
+  status: z.enum(deletionRequestStatusOptions),
+  adminNotes: z
+    .string()
+    .trim()
+    .max(1200, "Keep the admin notes under 1200 characters.")
+    .optional()
+    .default("")
+});
+
+export type SupportRequestInput = z.infer<typeof supportRequestSchema>;
+export type DeletionRequestInput = z.infer<typeof deletionRequestSchema>;
 
 type PlanDefinition = {
   label: string;
@@ -798,6 +916,63 @@ export function canGenerateSops(context: WorkspaceContext) {
     canAccessWorkspace(context.workspace.accountState) &&
     canManageWorkspace(context.membership.role, context.workspace.accountState)
   );
+}
+
+export function canSubmitSupportRequest() {
+  return true;
+}
+
+export function canRequestAccountDeletion() {
+  return true;
+}
+
+export function canRequestWorkspaceDeletion(role: WorkspaceRole) {
+  return ["owner", "admin"].includes(role);
+}
+
+export function getDeletionConfirmationPhrase(requestType: DeletionRequestType) {
+  return requestType === "account_deletion"
+    ? "DELETE MY ACCOUNT"
+    : "DELETE WORKSPACE";
+}
+
+export function formatSupportIssueType(issueType: SupportIssueType) {
+  switch (issueType) {
+    case "product_question":
+      return "Product question";
+    case "account_access":
+      return "Account access";
+    case "diagnostics":
+      return "Diagnostics";
+    case "planning":
+      return "Planning";
+    case "assets":
+      return "Assets";
+    case "sops":
+      return "SOPs";
+    case "billing_state":
+      return "Billing status";
+    case "bug_report":
+      return "Bug report";
+    case "workspace_admin":
+      return "Workspace admin";
+    case "other":
+      return "Other";
+  }
+}
+
+export function formatSupportRequestStatus(status: SupportRequestStatus) {
+  return status.replaceAll("_", " ");
+}
+
+export function formatDeletionRequestType(requestType: DeletionRequestType) {
+  return requestType === "account_deletion"
+    ? "Account deletion"
+    : "Workspace deletion";
+}
+
+export function formatDeletionRequestStatus(status: DeletionRequestStatus) {
+  return status.replaceAll("_", " ");
 }
 
 export function getAccountStateMeta(accountState: WorkspaceAccountState) {

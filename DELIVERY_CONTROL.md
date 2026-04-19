@@ -44,6 +44,10 @@ FoundryOS is currently in a controlled MVP preview phase.
   roadmap, and workspace context
 - Structured asset generation from the latest profile, diagnostics, roadmap,
   actions, 30-day plan, and workspace context
+- SOP generation from the latest business profile, diagnostics, roadmap,
+  30-day plan, and asset context
+- Authenticated support FAQ, support request intake, and tracked account/workspace
+  deletion requests
 
 ### Internal admin foundation
 
@@ -72,8 +76,6 @@ FoundryOS is currently in a controlled MVP preview phase.
 - Integrations module
 - Insights/reporting module
 - Notifications center
-- Support center
-
 ### Commercial readiness
 
 - Live Stripe billing and entitlements as source of truth
@@ -124,6 +126,10 @@ FoundryOS is currently in a controlled MVP preview phase.
   Structured action cards and persisted 30-day plan history.
 - `/app/assets`
   Structured business assets, latest asset set, generation history, and source references.
+- `/app/sops`
+  Structured SOP generation, saved SOP artifacts, and persisted job history.
+- `/app/support`
+  Authenticated FAQ, support request intake, request history, and controlled deletion requests.
 - `/app/team`
   Team members, invitations, and role-aware invite controls.
 - `/app/billing`
@@ -218,6 +224,14 @@ FoundryOS is currently in a controlled MVP preview phase.
   Persisted business asset generation lifecycle with queued, processing, completed, and failed states.
 - `business_assets`
   Structured asset artifacts linked to source profile, diagnostic, roadmap, action plan, 30-day plan, and workspace.
+- `sop_jobs`
+  Persisted SOP generation lifecycle with queued, processing, completed, and failed states.
+- `sop_artifacts`
+  Structured SOP artifacts linked to the latest planning and asset context.
+- `support_requests`
+  Workspace-scoped support intake records with requester, issue type, status, and review metadata.
+- `deletion_requests`
+  Tracked account and workspace deletion requests with review status and safety metadata.
 - `admin_audit_logs`
   Admin changes to workspace plan/account state.
 
