@@ -1,6 +1,7 @@
 import { ConfigurationRequiredPanel } from "@/components/configuration-required-panel";
 import { AdminRequestStatusControls } from "@/components/admin-request-status-controls";
 import { AdminWorkspaceControls } from "@/components/admin-workspace-controls";
+import { PageSectionLinks } from "@/components/page-section-links";
 import { requireInternalAdmin } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { isConfigurationError } from "@/lib/errors";
@@ -102,16 +103,21 @@ export default async function AdminPage() {
     ].filter(Boolean);
 
     const usersById = new Map(users.map((user) => [user.id, user]));
-    const latestRoadmapJob = planningJobs.find(
-      (entry) => entry.job.jobType === "roadmap_generation"
+    const openSupportRequests = supportRequests.filter(
+      (entry) => !["resolved", "closed"].includes(entry.request.status)
     );
-    const latestThirtyDayPlanJob = planningJobs.find(
-      (entry) => entry.job.jobType === "thirty_day_plan_generation"
+    const openDeletionRequests = deletionRequests.filter(
+      (entry) => !["rejected", "completed"].includes(entry.request.status)
+    );
+    const workspacesNeedingReview = workspaces.filter((workspace) =>
+      ["past_due", "canceled", "suspended", "archived"].includes(
+        workspace.accountState
+      )
     );
 
     return (
-      <div className="page-shell space-y-8 pt-0">
-        <section className="surface p-6 md:p-8">
+      <div className="page-shell flex flex-col gap-8 pt-0">
+        <section className="surface order-1 p-6 md:p-8">
           <span className="eyebrow">Internal admin</span>
           <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em]">
             Preview workspace control plane.
@@ -137,7 +143,7 @@ export default async function AdminPage() {
           ) : null}
         </section>
 
-        <section className="space-y-4">
+        <section className="order-2 space-y-4" id="admin-overview">
           <div className="flex flex-col gap-2">
             <p className="text-sm uppercase tracking-[0.18em] text-muted">
               Account overview
@@ -147,7 +153,7 @@ export default async function AdminPage() {
               accepted workspace memberships, open invites, and internal admin access.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatusCard
               detail="Every saved account in the auth database."
               label="All accounts"
@@ -168,58 +174,89 @@ export default async function AdminPage() {
               label="Internal admins"
               value={String(overviewMetrics.internalAdmins)}
             />
-            <StatusCard
-              detail="Saved workspaces in the preview environment."
-              label="Workspaces"
-              value={String(workspaces.length)}
-            />
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <StatusCard label="Diagnostic jobs" value={String(diagnosticJobs.length)} />
-          <StatusCard
-            label="Roadmap jobs"
-            value={latestRoadmapJob?.job.status ?? "none"}
-          />
-          <StatusCard
-            label="30-day plan jobs"
-            value={latestThirtyDayPlanJob?.job.status ?? "none"}
-          />
-          <StatusCard label="Asset jobs" value={assetJobs[0]?.job.status ?? "none"} />
-          <StatusCard label="SOP jobs" value={sopJobs[0]?.job.status ?? "none"} />
-          <StatusCard label="Support requests" value={String(supportRequests.length)} />
-          <StatusCard label="Deletion requests" value={String(deletionRequests.length)} />
-          <StatusCard
-            label="Foundation DB"
-            value={
-              env.foundationDbMode === "remote"
-                ? "Configured"
-                : env.foundationDbMode === "embedded"
-                  ? "Embedded dev database"
-                  : "Missing DATABASE_URL"
-            }
-          />
-          <StatusCard
-            label="Billing"
-            value={env.hasStripe ? "Configured but disabled" : "Disabled"}
-          />
+        <section className="surface order-3 space-y-5 p-6 md:p-8" id="admin-action-needed">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.18em] text-muted">
+                Action-needed queues
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+                Triage live requests before reviewing history.
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-muted">
+                Open support, deletion, and limited-account workspaces stay visible here.
+                Historical job and log sections are collapsed below.
+              </p>
+            </div>
+            <PageSectionLinks
+              label="Jump to"
+              links={[
+                { href: "#support-queue", label: "Support queue" },
+                { href: "#deletion-queue", label: "Deletion queue" },
+                { href: "#workspace-controls", label: "Workspace controls" },
+                { href: "#admin-history", label: "History" }
+              ]}
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatusCard
+              detail="Submitted, triaged, or in-progress support work."
+              label="Open support"
+              value={String(openSupportRequests.length)}
+            />
+            <StatusCard
+              detail="Deletion requests that still need review or completion."
+              label="Open deletions"
+              value={String(openDeletionRequests.length)}
+            />
+            <StatusCard
+              detail="Workspaces in past due, canceled, suspended, or archived state."
+              label="Workspaces needing review"
+              value={String(workspacesNeedingReview.length)}
+            />
+          </div>
+          <div className="rounded-2xl border border-[color:var(--border)] bg-white/75 px-4 py-3 text-sm text-muted">
+            Database status:{" "}
+            {env.foundationDbMode === "remote"
+              ? "configured"
+              : env.foundationDbMode === "embedded"
+                ? "embedded dev database"
+                : "missing DATABASE_URL"}
+            . Billing remains {env.hasStripe ? "configured but disabled" : "disabled"}.
+          </div>
         </section>
 
-        <section className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            Diagnostics
+        <section className="surface order-7 p-6 md:p-8" id="admin-history">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            Historical visibility
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
-            Recent diagnostic job state
+            Expand logs and job history only when needed.
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted">
-            This is lightweight internal visibility only. It confirms job state,
-            latest score, and workspace ownership while diagnostics remain in
-            preview mode.
+            Diagnostic jobs, planning jobs, generated artifacts, authenticated preview users,
+            and recent admin state changes remain available below in collapsed sections.
           </p>
+        </section>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+        <details className="surface order-8 overflow-hidden">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted">
+              Diagnostics
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+              Recent diagnostic job state
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              Expand diagnostic jobs only when you need raw run visibility.
+            </p>
+          </summary>
+
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
             <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
               <thead className="bg-white/90 text-muted">
                 <tr>
@@ -274,22 +311,24 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
+          </div>
+        </details>
 
-        <section className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            Roadmap and planning
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
-            Recent roadmap and 30-day plan job state
-          </h2>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            This view confirms whether roadmap generation, action generation,
-            and 30-day plan generation completed or failed. Outputs remain
-            preview planning artifacts and are not connected to live billing.
-          </p>
+        <details className="surface order-9 overflow-hidden">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted">
+              Roadmap and planning
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+              Recent roadmap and 30-day plan job state
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              Expand planning jobs only when you need raw job visibility.
+            </p>
+          </summary>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
             <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
               <thead className="bg-white/90 text-muted">
                 <tr>
@@ -350,22 +389,24 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
+          </div>
+        </details>
 
-        <section className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            Assets
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
-            Recent asset generation state
-          </h2>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            This view confirms whether asset generation completed or failed and
-            whether the latest structured artifacts are available. Export and
-            live billing workflows remain intentionally offline.
-          </p>
+        <details className="surface order-10 overflow-hidden">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted">
+              Assets
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+              Recent asset generation state
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              Expand asset jobs only when you need raw generation visibility.
+            </p>
+          </summary>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
             <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
               <thead className="bg-white/90 text-muted">
                 <tr>
@@ -424,22 +465,24 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
+          </div>
+        </details>
 
-        <section className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            SOPs
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
-            Recent SOP generation state
-          </h2>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            This view confirms whether SOP generation completed or failed and
-            whether the latest structured procedures are available. Export and
-            live integrations remain intentionally offline.
-          </p>
+        <details className="surface order-11 overflow-hidden">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted">
+              SOPs
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+              Recent SOP generation state
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              Expand SOP jobs only when you need raw generation visibility.
+            </p>
+          </summary>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
             <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
               <thead className="bg-white/90 text-muted">
                 <tr>
@@ -498,9 +541,10 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
+          </div>
+        </details>
 
-        <section className="surface p-6 md:p-8">
+        <section className="surface order-4 p-6 md:p-8" id="support-queue">
           <p className="text-sm uppercase tracking-[0.2em] text-muted">
             Support requests
           </p>
@@ -587,7 +631,7 @@ export default async function AdminPage() {
           </div>
         </section>
 
-        <section className="surface p-6 md:p-8">
+        <section className="surface order-5 p-6 md:p-8" id="deletion-queue">
           <p className="text-sm uppercase tracking-[0.2em] text-muted">
             Deletion requests
           </p>
@@ -672,7 +716,7 @@ export default async function AdminPage() {
           </div>
         </section>
 
-        <section className="surface p-6 md:p-8">
+        <section className="surface order-6 p-6 md:p-8" id="workspace-controls">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-muted">
@@ -762,13 +806,19 @@ export default async function AdminPage() {
           </div>
         </section>
 
-        <section className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">Users</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
-            Authenticated preview users
-          </h2>
+        <details className="surface order-12 overflow-hidden">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted">Users</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+              Authenticated preview users
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              Expand the raw authenticated account list only when you need account-level detail.
+            </p>
+          </summary>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
             <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
               <thead className="bg-white/90 text-muted">
                 <tr>
@@ -812,16 +862,23 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
+          </div>
+        </details>
 
-        <section className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            Audit trail
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
-            Recent admin state changes
-          </h2>
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
+        <details className="surface order-13 overflow-hidden">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-muted">
+              Audit trail
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+              Recent admin state changes
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              Expand the audit trail only when you need manual state-change history.
+            </p>
+          </summary>
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
             <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
               <thead className="bg-white/90 text-muted">
                 <tr>
@@ -869,7 +926,8 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
+          </div>
+        </details>
       </div>
     );
   } catch (error) {
