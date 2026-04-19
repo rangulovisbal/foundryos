@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createSupportRequest } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
@@ -41,6 +42,19 @@ export async function POST(request: Request) {
     };
 
     await createSupportRequest(record);
+
+    await captureAnalyticsEvent({
+      event: "support_request_submitted",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        request_id: record.id,
+        issue_type: record.issueType,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState
+      }
+    });
 
     return NextResponse.json({ ok: true, requestId: record.id });
   } catch (error) {

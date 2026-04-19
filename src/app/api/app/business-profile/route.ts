@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   getBusinessProfile,
   updateWorkspace,
@@ -64,9 +65,30 @@ export async function POST(request: Request) {
     await updateWorkspace(context.workspace.id, {
       outputLanguage: payload.outputLanguage
     });
-    const profile = await upsertBusinessProfile(context.workspace.id, payload);
+    const savedProfile = await upsertBusinessProfile(context.workspace.id, payload);
 
-    return NextResponse.json({ ok: true, profile });
+    if (!savedProfile) {
+      throw new Error("Business profile could not be saved.");
+    }
+
+    await captureAnalyticsEvent({
+      event: "profile_saved",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState,
+        output_language: payload.outputLanguage,
+        has_website: Boolean(savedProfile.website && savedProfile.website.length > 0),
+        current_channels_count: savedProfile.currentChannels.length,
+        current_tools_count: savedProfile.currentTools.length,
+        primary_goals_count: savedProfile.primaryGoals.length,
+        biggest_bottlenecks_count: savedProfile.biggestBottlenecks.length
+      }
+    });
+
+    return NextResponse.json({ ok: true, profile: savedProfile });
   } catch (error) {
     return NextResponse.json(
       {

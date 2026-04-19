@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createSopArtifacts,
   createSopJob,
@@ -151,6 +152,21 @@ export async function POST() {
     await updateSopJob(job.id, {
       status: "completed",
       completedAt: new Date().toISOString()
+    });
+
+    await captureAnalyticsEvent({
+      event: "sops_generated",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        job_id: job.id,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState,
+        output_language: context.workspace.outputLanguage,
+        sop_count: artifacts.length,
+        cached: false
+      }
     });
 
     return NextResponse.json({ ok: true, cached: false, jobId: job.id, artifacts });

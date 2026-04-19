@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { registerUser } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { signupSchema } from "@/lib/foundation";
@@ -8,6 +9,18 @@ export async function POST(request: Request) {
   try {
     const payload = signupSchema.parse(await request.json());
     const result = await registerUser(payload);
+
+    await captureAnalyticsEvent({
+      event: "signup_completed",
+      distinctId: result.user.id,
+      properties: {
+        user_id: result.user.id,
+        email_delivery: result.emailDelivery,
+        delivery_mode: result.deliveryMode,
+        has_preview_verification_link: Boolean(result.verificationPreviewUrl),
+        global_role: result.user.globalRole
+      }
+    });
 
     return NextResponse.json({
       ok: true,

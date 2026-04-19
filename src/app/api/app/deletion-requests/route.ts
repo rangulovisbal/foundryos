@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createDeletionRequest,
   findOpenDeletionRequest
@@ -85,6 +86,19 @@ export async function POST(request: Request) {
     };
 
     await createDeletionRequest(record);
+
+    await captureAnalyticsEvent({
+      event: "deletion_request_submitted",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        request_id: record.id,
+        request_type: record.requestType,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState
+      }
+    });
 
     return NextResponse.json({ ok: true, requestId: record.id });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createAssetJob,
   createBusinessAssets,
@@ -106,6 +107,20 @@ export async function POST() {
     await updateAssetJob(job.id, {
       status: "completed",
       completedAt: new Date().toISOString()
+    });
+
+    await captureAnalyticsEvent({
+      event: "assets_generated",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        job_id: job.id,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState,
+        output_language: context.workspace.outputLanguage,
+        asset_count: assets.length
+      }
     });
 
     return NextResponse.json({ ok: true, jobId: job.id, assets });

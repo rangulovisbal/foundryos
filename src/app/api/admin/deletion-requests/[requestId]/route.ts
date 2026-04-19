@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { updateDeletionRequest } from "@/db/foundation";
 import { requireInternalAdmin } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
@@ -21,6 +22,18 @@ export async function PATCH(
       reviewedByUserId: admin.id,
       reviewedAt: now,
       completedAt: payload.status === "completed" ? now : null
+    });
+
+    await captureAnalyticsEvent({
+      event: "admin_request_status_updated",
+      distinctId: admin.id,
+      properties: {
+        admin_user_id: admin.id,
+        request_kind: "deletion",
+        request_id: requestId,
+        status: payload.status,
+        has_admin_notes: payload.adminNotes.trim().length > 0
+      }
     });
 
     return NextResponse.json({ ok: true });

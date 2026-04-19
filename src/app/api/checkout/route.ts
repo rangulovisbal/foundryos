@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createCheckoutSession } from "@/lib/payments";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
@@ -30,6 +31,17 @@ export async function POST(request: Request) {
 
     const json = await request.json();
     const payload = checkoutSchema.parse(json);
+
+    await captureAnalyticsEvent({
+      event: "checkout_started",
+      distinctId: payload.email?.trim().toLowerCase() || `checkout:${payload.planId}`,
+      properties: {
+        plan_id: payload.planId,
+        has_email: Boolean(payload.email),
+        has_company: Boolean(payload.company)
+      }
+    });
+
     const session = await createCheckoutSession(payload);
 
     return NextResponse.json({ url: session.url });

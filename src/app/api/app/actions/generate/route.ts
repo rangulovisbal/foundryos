@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createActionPlan,
   createPlanningJob,
@@ -97,6 +98,20 @@ export async function POST() {
     await updatePlanningJob(job.id, {
       status: "completed",
       completedAt: new Date().toISOString()
+    });
+
+    await captureAnalyticsEvent({
+      event: "actions_generated",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        job_id: job.id,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState,
+        output_language: context.workspace.outputLanguage,
+        action_count: actionPlan.actions.length
+      }
     });
 
     return NextResponse.json({ ok: true, jobId: job.id, actionPlan, thirtyDayPlan });

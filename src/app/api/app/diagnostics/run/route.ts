@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createDiagnosticJob,
   createDiagnosticResult,
@@ -83,6 +84,21 @@ export async function POST() {
       completedAt: new Date().toISOString()
     });
     await incrementWorkspaceUsageCounter(context.workspace.id, "diagnostic_runs");
+
+    await captureAnalyticsEvent({
+      event: "diagnostic_generated",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        job_id: job.id,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState,
+        output_language: context.workspace.outputLanguage,
+        overall_maturity_score: result.overallMaturityScore,
+        confidence: result.confidence
+      }
+    });
 
     return NextResponse.json({ ok: true, jobId: job.id, result });
   } catch (error) {

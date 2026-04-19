@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createWorkspaceForUser, getCurrentUserSession } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceCreationSchema } from "@/lib/foundation";
@@ -17,6 +18,18 @@ export async function POST(request: Request) {
       user: current.user,
       name: payload.name,
       plan: payload.plan
+    });
+
+    await captureAnalyticsEvent({
+      event: "workspace_created",
+      distinctId: current.user.id,
+      properties: {
+        user_id: current.user.id,
+        workspace_id: workspace.id,
+        workspace_plan: workspace.plan,
+        account_state: workspace.accountState,
+        output_language: workspace.outputLanguage
+      }
     });
 
     return NextResponse.json({ ok: true, workspace });
