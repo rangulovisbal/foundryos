@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { publicLegalLinks } from "@/lib/legal";
+
 export function SiteFooter() {
   const hasLiveCheckout = Boolean(process.env.STRIPE_SECRET_KEY);
 
@@ -30,15 +34,27 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-[color:var(--border)] pt-4 text-sm text-muted">
-          <a className="transition hover:text-ink" href="/login">
+          <Link className="transition hover:text-ink" href="/security">
+            Security
+          </Link>
+          {publicLegalLinks.map((link) => (
+            <Link
+              key={link.href}
+              className="transition hover:text-ink"
+              href={link.href}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link className="transition hover:text-ink" href="/login">
             Customer login
-          </a>
-          <a className="transition hover:text-ink" href="/signup">
+          </Link>
+          <Link className="transition hover:text-ink" href="/signup">
             Create account
-          </a>
-          <a className="transition hover:text-ink" href="/admin/login">
+          </Link>
+          <Link className="transition hover:text-ink" href="/admin/login">
             Internal admin
-          </a>
+          </Link>
         </div>
       </div>
     </footer>

@@ -18,7 +18,7 @@ const report = generateSnapshotReport(sampleIntake);
 
 const heroBullets = [
   "Built for startups and lean teams already selling something real",
-  "First outputs in 24 hours",
+  "Structured first outputs after intake review",
   "No need to hire a full senior growth and ops team"
 ];
 
@@ -105,7 +105,7 @@ const fit = {
 const trustPoints = [
   "Payments handled securely by Stripe",
   "No payment card data stored by the product",
-  "Security page and launch-readiness checklist visible",
+  "Security and legal pages are visible",
   "Lead capture protected with rate limiting and optional Cloudflare Turnstile"
 ];
 
@@ -133,7 +133,7 @@ const faqs = [
   {
     question: "How fast is the first value?",
     answer:
-      "The product is positioned to deliver first outputs within 24 hours after intake and payment, with deeper recurring value inside FoundryOS Core."
+      "The pilot is designed to deliver structured first outputs quickly after intake review. Exact timing depends on the current deployment and whether billing or follow-up steps are still manual."
   },
   {
     question: "Do you store payment data?",

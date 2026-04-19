@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { publicLegalLinks } from "@/lib/legal";
+
 const controls = [
   "Account separation by customer",
   "Role-based permissions",
@@ -9,18 +13,6 @@ const controls = [
   "No sensitive data by default"
 ];
 
-const docs = [
-  "Terms of Service",
-  "Privacy Policy",
-  "Cookie Policy",
-  "Refund Policy",
-  "DPA",
-  "AI disclosure",
-  "Subprocessor list",
-  "Retention policy",
-  "Incident response plan"
-];
-
 const hasLiveCheckout = Boolean(process.env.STRIPE_SECRET_KEY);
 
 const handling = [
@@ -28,8 +20,9 @@ const handling = [
     ? "Payments are handled by Stripe Checkout and Stripe Billing."
     : "Checkout is designed to run through Stripe once billing is enabled on this deployment.",
   "The product does not store payment card details.",
+  "Support and deletion requests remain request-based and are reviewed manually in the current pilot.",
   "Lead capture can be protected with rate limiting and Cloudflare Turnstile.",
-  "Critical outputs should remain subject to human review."
+  "Generated outputs are structured operating drafts and should remain subject to human review."
 ];
 
 export default function SecurityPage() {
@@ -64,22 +57,22 @@ export default function SecurityPage() {
         </div>
 
         <div className="surface p-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-muted">
-            Launch and compliance checklist
-          </p>
+          <p className="text-sm uppercase tracking-[0.2em] text-muted">Public legal documents</p>
           <p className="mt-4 text-sm leading-7 text-muted">
-            These are the required public-facing trust documents for a full
-            launch. This page makes the checklist visible, but it does not mean
-            each document has been drafted, reviewed, and published yet.
+            These are the current public-facing pilot policies. They clarify how
+            the product works today without implying that billing automation,
+            compliance automation, or full legal review is already complete.
           </p>
           <div className="mt-4 space-y-3">
-            {docs.map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted"
+            {publicLegalLinks.map((item) => (
+              <Link
+                key={item.href}
+                className="block rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted transition hover:bg-white"
+                href={item.href}
               >
-                {item}
-              </div>
+                <p className="font-semibold text-ink">{item.label}</p>
+                <p className="mt-1">{item.description}</p>
+              </Link>
             ))}
           </div>
         </div>

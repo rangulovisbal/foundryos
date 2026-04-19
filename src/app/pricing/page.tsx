@@ -28,25 +28,10 @@ const planIncludes: Record<string, string[]> = {
   ]
 };
 
-const purchaseSteps = [
-  {
-    title: "Pay securely with Stripe",
-    body: "Checkout happens on Stripe. The product does not store card data."
-  },
-  {
-    title: "Complete the intake",
-    body: "After purchase, you provide the business context needed to score the account and build the plan."
-  },
-  {
-    title: "Receive your first outputs",
-    body: "Snapshot customers receive a scorecard and roadmap. FoundryOS Core customers move into recurring refreshes."
-  }
-];
-
 const trustItems = [
   "Payments handled securely by Stripe",
   "No payment card data stored locally",
-  "Security page and launch-readiness checklist visible",
+  "Security and legal policy pages are visible",
   "Clear plan boundaries and no hidden scope creep"
 ];
 
@@ -63,6 +48,22 @@ export default function PricingPage() {
   const hasLiveCheckout = pricingPlans.some(
     (plan) => plan.checkoutEnabled && isPlanCheckoutConfigured(plan.id)
   );
+  const purchaseSteps = [
+    {
+      title: "Start access with the current billing mode",
+      body: hasLiveCheckout
+        ? "Checkout happens on Stripe when it is enabled on this deployment. The product does not store card data."
+        : "This deployment is still in request-access mode, so access starts with a manual review instead of live checkout."
+    },
+    {
+      title: "Complete the intake",
+      body: "Once access starts, you provide the business context needed to score the account and build the plan."
+    },
+    {
+      title: "Receive your first outputs",
+      body: "Snapshot customers receive a scorecard and roadmap. FoundryOS Core customers move into recurring refreshes once those workflows are enabled for the workspace."
+    }
+  ] as const;
 
   return (
     <div className="page-shell space-y-8 pt-0">
@@ -136,7 +137,7 @@ export default function PricingPage() {
       </section>
 
       <section className="surface p-6 md:p-8">
-        <span className="eyebrow">What happens after you buy</span>
+        <span className="eyebrow">What happens after access starts</span>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {purchaseSteps.map((step) => (
             <article

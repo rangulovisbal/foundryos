@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { DeletionRequestForm } from "@/components/deletion-request-form";
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import { SupportRequestForm } from "@/components/support-request-form";
@@ -17,6 +19,7 @@ import {
   getDeletionConfirmationPhrase,
   isLockedState
 } from "@/lib/foundation";
+import { publicLegalLinks } from "@/lib/legal";
 
 const faqItems = [
   {
@@ -120,6 +123,24 @@ export default async function SupportPage() {
             <p className="mt-3 text-sm leading-7 text-muted">{item.answer}</p>
           </article>
         ))}
+      </section>
+
+      <section className="surface p-6 md:p-8">
+        <p className="text-sm uppercase tracking-[0.18em] text-muted">Legal and trust documents</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {publicLegalLinks.map((link) => (
+            <Link
+              key={link.href}
+              className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5 transition hover:bg-white"
+              href={link.href}
+            >
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
+                {link.label}
+              </p>
+              <p className="mt-3 text-sm leading-7 text-muted">{link.description}</p>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
