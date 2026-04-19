@@ -78,11 +78,12 @@ export default async function DiagnosticsPage() {
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
           <div>
             <h2 className="text-3xl font-semibold tracking-[-0.04em]">
-              Structured business diagnostics with persisted history.
+              Deterministic business diagnostics with visible evidence.
             </h2>
             <p className="mt-4 body-lg">
-              Each run creates a job record, saves a structured result, and uses
-              workspace entitlements before allowing another run.
+              Each run creates a job record, saves a structured result, shows what
+              the read is based on, and uses workspace entitlements before allowing
+              another run.
             </p>
           </div>
           <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
@@ -111,7 +112,7 @@ export default async function DiagnosticsPage() {
               {
                 label: "Category scores",
                 value: String(latestResult?.categoryScores.length ?? 0),
-                detail: "Structured scorecards saved with each completed run."
+                detail: "Each score now carries visible evidence references and main drivers."
               },
               {
                 label: "Run usage",
@@ -228,6 +229,57 @@ function localizeConfidence(
   return confidence;
 }
 
+function dedupe(items: string[]) {
+  return Array.from(new Set(items));
+}
+
+function explanationHighlights(
+  result: DiagnosticResultRecord,
+  language: OutputLanguage
+) {
+  const basis = dedupe(
+    result.categoryScores.flatMap((item) => item.basedOn ?? []).concat(
+      result.evidenceCards.flatMap((item) => item.basedOn ?? [])
+    )
+  ).slice(0, 4);
+
+  return basis.map((item) =>
+    language === "es" ? `Basado en ${item}` : `Based on ${item}`
+  );
+}
+
+function ambiguityCards(result: DiagnosticResultRecord) {
+  return result.evidenceCards.filter((item) =>
+    /ambiguity|ambiguedad/i.test(item.title)
+  );
+}
+
+function resultHasInsufficientSignal(result: DiagnosticResultRecord) {
+  return result.topBottlenecks.some((item) =>
+    /not enough signal|no hay suficiente senal|insufficient signal/i.test(
+      `${item.title} ${item.detail}`
+    )
+  );
+}
+
+function trustNote(result: DiagnosticResultRecord, language: OutputLanguage) {
+  if (resultHasInsufficientSignal(result)) {
+    return language === "es"
+      ? "El sistema esta siendo conservador a proposito: con senal debil, el resultado solo debe orientar."
+      : "The system is being intentionally conservative: with weak signal, this result should only guide direction.";
+  }
+
+  if (ambiguityCards(result).length > 0) {
+    return language === "es"
+      ? "Hay entradas en tension dentro del perfil, asi que la confianza baja hasta que se resuelva esa ambiguedad."
+      : "Some profile inputs are in tension, so confidence is lowered until that ambiguity is resolved.";
+  }
+
+  return language === "es"
+    ? "Esta lectura se genera de forma determinista a partir del perfil guardado; no es telemetria en vivo ni comprension autonoma del negocio."
+    : "This read is generated deterministically from the saved profile; it is not live telemetry or autonomous business understanding.";
+}
+
 function LatestResult({
   language,
   result
@@ -235,6 +287,9 @@ function LatestResult({
   language: OutputLanguage;
   result: DiagnosticResultRecord;
 }) {
+  const highlights = explanationHighlights(result, language);
+  const ambiguities = ambiguityCards(result);
+
   return (
     <section className="space-y-6" id="latest-diagnostic">
       <div className="surface p-6 md:p-8">
@@ -262,6 +317,28 @@ function LatestResult({
         </div>
       </div>
 
+      <section className="surface p-6 md:p-8">
+        <p className="text-sm uppercase tracking-[0.18em] text-muted">
+          {language === "es" ? "Por que sale este resultado" : "Why this result looks this way"}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {highlights.map((item) => (
+            <span key={item} className="pill bg-white/85 text-ink">
+              {item}
+            </span>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-muted">{trustNote(result, language)}</p>
+        {ambiguities.length > 0 ? (
+          <div className="mt-4 rounded-[22px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              {language === "es" ? "Ambiguedad a resolver" : "Ambiguity to resolve"}
+            </p>
+            <p className="mt-2 text-sm text-muted">{ambiguities[0].implication}</p>
+          </div>
+        ) : null}
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-5" id="diagnostic-scores">
         {result.categoryScores.map((category) => (
           <article key={category.key} className="metric-card">
@@ -270,44 +347,75 @@ function LatestResult({
             </p>
             <p className="mt-3 text-3xl font-semibold">{category.score}</p>
             <p className="mt-2 text-sm text-muted">{category.rationale}</p>
+            {category.basedOn?.length ? (
+              <p className="mt-3 text-xs uppercase tracking-[0.16em] text-muted">
+                {language === "es" ? "Basado en" : "Based on"}:{" "}
+                {category.basedOn.join(", ")}
+              </p>
+            ) : null}
+            {category.drivers && category.drivers.length > 0 ? (
+              <ul className="mt-3 space-y-2 text-sm text-muted">
+                {category.drivers.slice(0, 2).map((driver) => (
+                  <li
+                    key={`${category.key}-${driver.label}`}
+                    className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-3 py-2"
+                  >
+                    <span className="font-semibold">
+                      {driver.points > 0 ? "+" : ""}
+                      {driver.points}
+                    </span>{" "}
+                    {driver.label}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </article>
         ))}
       </section>
 
       <DiagnosticCardGroup
         title="Captured input signals"
+        language={language}
         items={result.evidenceCards.map((item) => ({
           title: item.title,
           body: `${item.observation} ${item.implication}`,
-          meta: "evidence"
+          meta: item.signalQuality ?? "evidence",
+          basis: item.basedOn
         }))}
       />
       <DiagnosticCardGroup
         title="Inferred conclusions"
+        language={language}
         items={result.topBottlenecks.map((item) => ({
           title: item.title,
           body: item.detail,
-          meta: item.severity
+          meta: item.severity,
+          basis: item.basedOn
         })).concat(result.topRisks.map((item) => ({
           title: item.title,
           body: item.detail,
-          meta: item.severity
+          meta: item.severity,
+          basis: item.basedOn
         })))}
       />
       <DiagnosticCardGroup
         title="Top opportunities"
+        language={language}
         items={result.topOpportunities.map((item) => ({
           title: item.title,
           body: item.detail,
-          meta: item.impact
+          meta: item.impact,
+          basis: item.basedOn
         }))}
       />
       <DiagnosticCardGroup
         title="Recommended actions"
+        language={language}
         items={result.recommendedNextActions.map((item) => ({
           title: item.title,
           body: item.detail,
-          meta: `${item.owner} | ${item.timeframe}`
+          meta: `${item.owner} | ${item.timeframe}`,
+          basis: item.basedOn
         }))}
       />
     </section>
@@ -315,11 +423,13 @@ function LatestResult({
 }
 
 function DiagnosticCardGroup({
+  language,
   title,
   items
 }: {
+  language: OutputLanguage;
   title: string;
-  items: Array<{ title: string; body: string; meta: string }>;
+  items: Array<{ title: string; body: string; meta: string; basis?: string[] }>;
 }) {
   return (
     <section className="surface p-6 md:p-8">
@@ -335,6 +445,11 @@ function DiagnosticCardGroup({
             </p>
             <h3 className="mt-3 text-xl font-semibold">{item.title}</h3>
             <p className="mt-3 text-sm leading-7 text-muted">{item.body}</p>
+            {item.basis && item.basis.length > 0 ? (
+              <p className="mt-4 text-xs uppercase tracking-[0.16em] text-muted">
+                {language === "es" ? "Basado en" : "Based on"}: {item.basis.join(", ")}
+              </p>
+            ) : null}
           </article>
         ))}
       </div>

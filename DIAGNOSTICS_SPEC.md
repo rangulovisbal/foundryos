@@ -43,6 +43,13 @@ Each completed result stores:
 - evidence/reason cards
 - summary
 
+The current hardening pass also requires that:
+
+- category scores show visible evidence references and major score drivers
+- key conclusions point back to named input categories
+- contradiction or inconsistency is surfaced honestly instead of hidden behind summary prose
+- weak signal triggers directional language instead of overconfident certainty
+
 ## Revised scoring logic
 
 The diagnostic score is no longer primarily a profile-completeness score.
@@ -82,8 +89,47 @@ High confidence is earned only when all of the following are true:
 - no high-severity issue is present
 
 Medium confidence requires enough evidence, limited contradictions, and either
-data visibility or a defined funnel. Missing structure, weak reporting, low
-evidence, or multiple severe issues reduce confidence to low.
+data visibility, defined funnel structure, or visible cadence.
+
+Confidence is not a tone choice. It is a deterministic function of:
+
+- completeness
+- consistency
+- specificity
+- evidence quality
+
+Missing structure, weak reporting, low evidence, contradiction, or multiple
+severe issues reduce confidence to low.
+
+When the signal is too weak, the system must acknowledge that the result is
+directional and not yet strong enough to be treated as roadmap truth.
+
+## Contradiction handling
+
+The diagnostics layer now explicitly checks for conflicts such as:
+
+- low-budget context paired with high-complexity or enterprise-scale ambition
+- data or reporting goals with no named supporting tools
+- reporting tooling listed while visibility is still described as weak
+- mature-stage claims without corresponding funnel, data, or cadence foundations
+
+Detected contradictions must:
+
+- reduce confidence
+- appear visibly in the result
+- influence risk framing
+- avoid authoritative-sounding summaries
+
+## Visible explanation layer
+
+The diagnostics UI should make the result easier to trust by showing:
+
+- what the score is based on
+- which input categories drove the score up or down
+- what ambiguity lowered confidence when present
+
+This explanation layer should stay concise and non-technical. It is meant to
+help a founder understand the basis of the read, not inspect an internal model.
 
 ## Risk-generation rules
 
@@ -188,8 +234,10 @@ statement.
 ## Founder audit notes
 
 - Do not treat the score as a sales claim; it is an internal operating heuristic.
+- Do not describe the product as autonomous business understanding.
 - Review Spanish output manually before using it in founder- or customer-facing material.
 - Validate that severe bottlenecks lower scores enough before building roadmap automation.
+- Validate that weak or contradictory profiles stay visibly low-confidence.
 - Do not create roadmap items directly from diagnostics until the next slice adds a reviewable planning layer.
 - Keep live billing disabled until Stripe is intentionally promoted to source of truth.
 

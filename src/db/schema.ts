@@ -280,23 +280,62 @@ export const diagnosticResults = pgTable(
       .references(() => workspaces.id, { onDelete: "cascade" }),
     overallMaturityScore: integer("overall_maturity_score").notNull(),
     categoryScores: jsonb("category_scores").$type<
-      Array<{ key: string; label: string; score: number; rationale: string }>
+      Array<{
+        key: string;
+        label: string;
+        score: number;
+        rationale: string;
+        basedOn: string[];
+        drivers?: Array<{
+          label: string;
+          points: number;
+          tone: "positive" | "negative";
+          basedOn: string[];
+        }>;
+      }>
     >().notNull(),
     topBottlenecks: jsonb("top_bottlenecks").$type<
-      Array<{ title: string; detail: string; severity: string }>
+      Array<{
+        title: string;
+        detail: string;
+        severity: string;
+        basedOn?: string[];
+      }>
     >().notNull(),
     topRisks: jsonb("top_risks").$type<
-      Array<{ title: string; detail: string; severity: string }>
+      Array<{
+        title: string;
+        detail: string;
+        severity: string;
+        basedOn?: string[];
+      }>
     >().notNull(),
     topOpportunities: jsonb("top_opportunities").$type<
-      Array<{ title: string; detail: string; impact: string }>
+      Array<{
+        title: string;
+        detail: string;
+        impact: string;
+        basedOn?: string[];
+      }>
     >().notNull(),
     confidence: varchar("confidence", { length: 32 }).notNull(),
     recommendedNextActions: jsonb("recommended_next_actions").$type<
-      Array<{ title: string; detail: string; owner: string; timeframe: string }>
+      Array<{
+        title: string;
+        detail: string;
+        owner: string;
+        timeframe: string;
+        basedOn?: string[];
+      }>
     >().notNull(),
     evidenceCards: jsonb("evidence_cards").$type<
-      Array<{ title: string; observation: string; implication: string }>
+      Array<{
+        title: string;
+        observation: string;
+        implication: string;
+        basedOn?: string[];
+        signalQuality?: "strong" | "mixed" | "weak";
+      }>
     >().notNull(),
     summary: text("summary").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()

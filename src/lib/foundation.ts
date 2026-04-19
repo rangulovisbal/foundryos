@@ -235,18 +235,27 @@ export type DiagnosticCategoryScore = {
   label: string;
   score: number;
   rationale: string;
+  basedOn: string[];
+  drivers?: Array<{
+    label: string;
+    points: number;
+    tone: "positive" | "negative";
+    basedOn: string[];
+  }>;
 };
 
 export type DiagnosticFinding = {
   title: string;
   detail: string;
   severity: "low" | "medium" | "high";
+  basedOn?: string[];
 };
 
 export type DiagnosticOpportunity = {
   title: string;
   detail: string;
   impact: "low" | "medium" | "high";
+  basedOn?: string[];
 };
 
 export type DiagnosticNextAction = {
@@ -254,12 +263,15 @@ export type DiagnosticNextAction = {
   detail: string;
   owner: string;
   timeframe: string;
+  basedOn?: string[];
 };
 
 export type DiagnosticEvidenceCard = {
   title: string;
   observation: string;
   implication: string;
+  basedOn?: string[];
+  signalQuality?: "strong" | "mixed" | "weak";
 };
 
 export type DiagnosticJobRecord = {
