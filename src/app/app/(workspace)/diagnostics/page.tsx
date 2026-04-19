@@ -280,6 +280,24 @@ function trustNote(result: DiagnosticResultRecord, language: OutputLanguage) {
     : "This read is generated deterministically from the saved profile; it is not live telemetry or autonomous business understanding.";
 }
 
+function maturityNarrative(result: DiagnosticResultRecord, language: OutputLanguage) {
+  if (result.overallMaturityScore >= 75) {
+    return language === "es"
+      ? "La base operativa ya tiene forma y las mejoras son mas de enfoque que de supervivencia."
+      : "The operating foundation is taking shape, so improvement is more about focus than basic survival.";
+  }
+
+  if (result.overallMaturityScore >= 50) {
+    return language === "es"
+      ? "Hay una base util, pero todavia faltan sistemas y prioridades mas consistentes."
+      : "There is a usable base, but systems and priorities still need more consistency.";
+  }
+
+  return language === "es"
+    ? "El resultado sigue siendo util, pero senala que faltan fundamentos antes de escalar."
+    : "The result is still useful, but it points to missing fundamentals before scale.";
+}
+
 function LatestResult({
   language,
   result
@@ -337,6 +355,57 @@ function LatestResult({
             <p className="mt-2 text-sm text-muted">{ambiguities[0].implication}</p>
           </div>
         ) : null}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-4">
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {language === "es" ? "Madurez actual" : "Current maturity"}
+          </p>
+          <p className="mt-3 text-2xl font-semibold">{result.overallMaturityScore}/100</p>
+          <p className="mt-2 text-sm text-muted">{maturityNarrative(result, language)}</p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {language === "es" ? "Confianza" : "Confidence"}
+          </p>
+          <p className="mt-3 text-2xl font-semibold">
+            {localizeConfidence(result.confidence, language)}
+          </p>
+          <p className="mt-2 text-sm text-muted">{trustNote(result, language)}</p>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {language === "es" ? "Brechas principales" : "Top gaps"}
+          </p>
+          <div className="mt-4 space-y-3">
+            {result.topBottlenecks.slice(0, 2).map((gap) => (
+              <div
+                className="rounded-[20px] border border-[color:var(--border)] bg-white/80 px-3 py-3 text-sm text-muted"
+                key={gap.title}
+              >
+                <p className="font-semibold text-ink">{gap.title}</p>
+                <p className="mt-1">{gap.detail}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="metric-card">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {language === "es" ? "Siguiente paso" : "Next 30 days"}
+          </p>
+          <div className="mt-4 space-y-3">
+            {result.recommendedNextActions.slice(0, 2).map((action) => (
+              <div
+                className="rounded-[20px] border border-[color:var(--border)] bg-white/80 px-3 py-3 text-sm text-muted"
+                key={action.title}
+              >
+                <p className="font-semibold text-ink">{action.title}</p>
+                <p className="mt-1">{action.timeframe}</p>
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-5" id="diagnostic-scores">
@@ -435,20 +504,30 @@ function DiagnosticCardGroup({
     <section className="surface p-6 md:p-8">
       <p className="text-sm uppercase tracking-[0.18em] text-muted">{title}</p>
       <div className="mt-4 grid gap-4 md:grid-cols-3">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <article
-            key={`${title}-${item.title}`}
+            key={`${title}-${item.title}-${index}`}
             className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-              {item.meta}
-            </p>
-            <h3 className="mt-3 text-xl font-semibold">{item.title}</h3>
+            <div className="flex flex-wrap gap-2">
+              <span className="pill bg-white text-ink">{item.meta}</span>
+              {item.basis?.slice(0, 2).map((basis) => (
+                <span className="pill bg-sand text-ink" key={`${item.title}-${basis}`}>
+                  {basis}
+                </span>
+              ))}
+            </div>
+            <h3 className="mt-4 text-xl font-semibold">{item.title}</h3>
             <p className="mt-3 text-sm leading-7 text-muted">{item.body}</p>
             {item.basis && item.basis.length > 0 ? (
-              <p className="mt-4 text-xs uppercase tracking-[0.16em] text-muted">
-                {language === "es" ? "Basado en" : "Based on"}: {item.basis.join(", ")}
-              </p>
+              <details className="mt-4 rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-3 text-sm text-muted">
+                <summary className="cursor-pointer font-semibold text-ink">
+                  {language === "es" ? "Ver base completa" : "View full basis"}
+                </summary>
+                <p className="mt-3">
+                  {language === "es" ? "Basado en" : "Based on"}: {item.basis.join(", ")}
+                </p>
+              </details>
             ) : null}
           </article>
         ))}

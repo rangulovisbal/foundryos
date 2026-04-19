@@ -217,6 +217,12 @@ function PrerequisitePanel({
 }
 
 function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
+  const phaseCounts = {
+    now: roadmap.items.filter((item) => item.phase === "now").length,
+    next: roadmap.items.filter((item) => item.phase === "next").length,
+    later: roadmap.items.filter((item) => item.phase === "later").length
+  };
+
   return (
     <section className="space-y-6" id="roadmap-result">
       <div className="surface p-6 md:p-8">
@@ -227,6 +233,32 @@ function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
         <p className="mt-4 text-sm text-muted">
           Saved {new Date(roadmap.createdAt).toLocaleString()}
         </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Total items
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{roadmap.items.length}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Now
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{phaseCounts.now}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Next
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{phaseCounts.next}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Later
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{phaseCounts.later}</p>
+          </article>
+        </div>
       </div>
 
       {(["now", "next", "later"] as const).map((phase) => (
@@ -253,47 +285,63 @@ function RoadmapPhaseGroup({
 
   return (
     <section className="surface p-6 md:p-8" id={sectionId}>
-      <p className="text-sm uppercase tracking-[0.18em] text-muted">{label}</p>
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        {items.length > 0 ? (
-          items.map((item) => (
-            <article
-              className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
-              key={`${phase}-${item.title}`}
-            >
-              <div className="flex flex-wrap gap-2">
-                {item.categoryTags.map((tag) => (
-                  <span
-                    className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted"
-                    key={tag}
-                  >
-                    {tag}
+      <div className="grid gap-6 xl:grid-cols-[220px_1fr]">
+        <div>
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">{label}</p>
+          <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
+            {phase === "now"
+              ? "Start here"
+              : phase === "next"
+                ? "Stage after the immediate fixes"
+                : "Hold until the foundation is steadier"}
+          </h3>
+          <p className="mt-3 text-sm text-muted">
+            {items.length > 0
+              ? `${items.length} saved roadmap items in this phase.`
+              : `No ${label.toLowerCase()} items saved.`}
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {items.length > 0 ? (
+            items.map((item) => (
+              <article
+                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+                key={`${phase}-${item.title}`}
+              >
+                <div className="flex flex-wrap gap-2">
+                  <span className="pill bg-sand text-ink">{item.effortLevel} effort</span>
+                  <span className="pill bg-white text-ink">
+                    {item.expectedImpact} impact
                   </span>
-                ))}
-              </div>
-              <h3 className="mt-4 text-xl font-semibold">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-muted">{item.description}</p>
-              <div className="mt-4 grid gap-2 text-sm text-muted">
-                <p>
-                  <strong className="text-ink">Effort:</strong> {item.effortLevel}
-                </p>
-                <p>
-                  <strong className="text-ink">Expected impact:</strong>{" "}
-                  {item.expectedImpact}
-                </p>
-                <p>
-                  <strong className="text-ink">Dependencies:</strong>{" "}
-                  {item.dependencies.join(", ")}
-                </p>
-                <p>
-                  <strong className="text-ink">Why:</strong> {item.reasoning}
-                </p>
-              </div>
-            </article>
-          ))
-        ) : (
-          <p className="text-sm text-muted">No {label.toLowerCase()} items saved.</p>
-        )}
+                  {item.categoryTags.map((tag) => (
+                    <span className="pill bg-white/85 text-ink" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <h3 className="mt-4 text-xl font-semibold">{item.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted">{item.description}</p>
+                <details className="mt-4 rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-4 text-sm text-muted">
+                  <summary className="cursor-pointer font-semibold text-ink">
+                    View reasoning and dependencies
+                  </summary>
+                  <div className="mt-3 grid gap-3">
+                    <p>
+                      <strong className="text-ink">Dependencies:</strong>{" "}
+                      {item.dependencies.join(", ")}
+                    </p>
+                    <p>
+                      <strong className="text-ink">Why this phase:</strong> {item.reasoning}
+                    </p>
+                  </div>
+                </details>
+              </article>
+            ))
+          ) : (
+            <p className="text-sm text-muted">No {label.toLowerCase()} items saved.</p>
+          )}
+        </div>
       </div>
     </section>
   );

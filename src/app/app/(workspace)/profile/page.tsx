@@ -5,8 +5,12 @@ import { LockedStatePanel } from "@/components/locked-state-panel";
 import { getBusinessProfile } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
 import {
+  canManageWorkspace,
+  canRunDiagnostics,
   canEditBusinessProfile,
+  getUsageCounter,
   isLockedState,
+  isReadOnlyState,
   type BusinessProfileRecord
 } from "@/lib/foundation";
 
@@ -35,6 +39,33 @@ function profileCompletion(profile: BusinessProfileRecord | null) {
   return Math.round((values.filter(Boolean).length / values.length) * 100);
 }
 
+function resolveDiagnosticDisabledReason(
+  context: Awaited<ReturnType<typeof requireWorkspaceContext>>
+) {
+  if (isLockedState(context.workspace.accountState)) {
+    return "Diagnostics are locked for this workspace account state.";
+  }
+
+  if (isReadOnlyState(context.workspace.accountState)) {
+    return "Diagnostics are read-only while this workspace account state is limited.";
+  }
+
+  if (!canManageWorkspace(context.membership.role, context.workspace.accountState)) {
+    return "Only workspace owners and admins can run diagnostics in this MVP.";
+  }
+
+  const counter = getUsageCounter(context, "diagnostic_runs");
+  if (!counter) {
+    return "This workspace does not have a diagnostic run entitlement configured.";
+  }
+
+  if (counter.usedCount >= counter.limitCount) {
+    return `Diagnostic run limit reached: ${counter.usedCount}/${counter.limitCount}.`;
+  }
+
+  return "Diagnostic runs are unavailable.";
+}
+
 export default async function BusinessProfilePage() {
   const context = await requireWorkspaceContext("/app/profile");
   const profile = await getBusinessProfile(context.workspace.id);
@@ -43,6 +74,8 @@ export default async function BusinessProfilePage() {
     context.membership.role,
     context.workspace.accountState
   );
+  const canRunDiagnostic = canRunDiagnostics(context);
+  const diagnosticDisabledReason = resolveDiagnosticDisabledReason(context);
 
   return (
     <div className="space-y-6">
@@ -77,6 +110,8 @@ export default async function BusinessProfilePage() {
 
       <BusinessProfileForm
         canEdit={canEdit}
+        canRunDiagnostic={canRunDiagnostic}
+        diagnosticDisabledReason={diagnosticDisabledReason}
         outputLanguage={context.workspace.outputLanguage}
         profile={profile}
       />
@@ -84,11 +119,12 @@ export default async function BusinessProfilePage() {
       <section className="surface p-6 md:p-8">
         <span className="eyebrow">Next step</span>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
-          Run diagnostics after saving the profile.
+          Review the profile, then run diagnostics from the same flow.
         </h2>
         <p className="mt-4 body-lg">
-          The diagnostics module will persist each run, keep history, and show
-          structured evidence rather than a plain AI text dump.
+          The review step now saves the same business profile payload underneath,
+          then can launch the diagnostic directly with visible evidence and
+          trust-aware confidence.
         </p>
         <Link
           className="mt-6 inline-flex rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"

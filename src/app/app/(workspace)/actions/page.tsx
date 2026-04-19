@@ -225,6 +225,11 @@ function PrerequisitePanel({
 }
 
 function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
+  const highPriority = actionPlan.actions.filter((action) => action.priority === "high").length;
+  const inProgress = actionPlan.actions.filter(
+    (action) => action.status === "in_progress"
+  ).length;
+
   return (
     <section className="surface p-6 md:p-8" id="action-list">
       <span className="eyebrow">Action list</span>
@@ -234,6 +239,26 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
       <p className="mt-4 text-sm text-muted">
         Saved {new Date(actionPlan.createdAt).toLocaleString()}
       </p>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+            Total actions
+          </p>
+          <p className="mt-3 text-2xl font-semibold">{actionPlan.actions.length}</p>
+        </article>
+        <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+            High priority
+          </p>
+          <p className="mt-3 text-2xl font-semibold">{highPriority}</p>
+        </article>
+        <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+            In progress
+          </p>
+          <p className="mt-3 text-2xl font-semibold">{inProgress}</p>
+        </article>
+      </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {actionPlan.actions.map((action) => (
           <ActionCard action={action} key={`${action.priority}-${action.title}`} />
@@ -247,26 +272,25 @@ function ActionCard({ action }: { action: PlanActionItem }) {
   return (
     <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
       <div className="flex flex-wrap gap-2">
-        <span className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+        <span className="pill bg-white text-ink">
           {action.priority} priority
         </span>
-        <span className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+        <span className="pill bg-sand text-ink">
           {action.status.replaceAll("_", " ")}
         </span>
+        <span className="pill bg-white text-ink">{action.linkedCategory}</span>
       </div>
       <h3 className="mt-4 text-xl font-semibold">{action.title}</h3>
       <p className="mt-3 text-sm leading-7 text-muted">{action.description}</p>
-      <div className="mt-4 grid gap-2 text-sm text-muted">
-        <p>
-          <strong className="text-ink">Owner:</strong> {action.ownerSuggestion}
-        </p>
-        <p>
-          <strong className="text-ink">Category:</strong> {action.linkedCategory}
-        </p>
-        <p>
-          <strong className="text-ink">Reasoning:</strong> {action.linkedReasoning}
-        </p>
-      </div>
+      <p className="mt-4 text-sm text-muted">
+        <strong className="text-ink">Owner:</strong> {action.ownerSuggestion}
+      </p>
+      <details className="mt-4 rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-4 text-sm text-muted">
+        <summary className="cursor-pointer font-semibold text-ink">
+          View reasoning
+        </summary>
+        <p className="mt-3">{action.linkedReasoning}</p>
+      </details>
     </article>
   );
 }
@@ -282,6 +306,26 @@ function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
         <p className="mt-4 text-sm text-muted">
           Saved {new Date(plan.createdAt).toLocaleString()}
         </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Top priorities
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{plan.topPriorities.length}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Quick wins
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{plan.quickWins.length}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Metrics to watch
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{plan.metricsToWatch.length}</p>
+          </article>
+        </div>
       </div>
 
       <section className="grid gap-4 lg:grid-cols-3">
@@ -310,14 +354,19 @@ function WeekCard({ week }: { week: ThirtyDayPlanWeek }) {
     <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
       <p className="text-sm uppercase tracking-[0.18em] text-muted">{week.title}</p>
       <h3 className="mt-3 text-xl font-semibold">{week.objective}</h3>
-      <ul className="mt-4 space-y-3 text-sm leading-7 text-muted">
-        {week.actions.map((action) => (
-          <li key={action}>- {action}</li>
-        ))}
-      </ul>
       <p className="mt-4 text-sm text-muted">
         <strong className="text-ink">Signal:</strong> {week.successSignal}
       </p>
+      <details className="mt-4 rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-4 text-sm text-muted">
+        <summary className="cursor-pointer font-semibold text-ink">
+          View weekly actions
+        </summary>
+        <ul className="mt-3 space-y-3 leading-7">
+          {week.actions.map((action) => (
+            <li key={action}>- {action}</li>
+          ))}
+        </ul>
+      </details>
     </article>
   );
 }

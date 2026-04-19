@@ -271,6 +271,8 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
 }
 
 function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
+  const assetTypes = Array.from(new Set(assets.map((asset) => formatAssetType(asset.assetType))));
+
   return (
     <section className="space-y-6" id="asset-set">
       <div className="surface p-6 md:p-8">
@@ -281,6 +283,33 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
         <p className="mt-4 text-sm text-muted">
           Last generated {new Date(assets[0].createdAt).toLocaleString()}
         </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Asset types
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{assetTypes.length}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Saved artifacts
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{assets.length}</p>
+          </article>
+          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Source-backed
+            </p>
+            <p className="mt-3 text-2xl font-semibold">Yes</p>
+          </article>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {assetTypes.map((type) => (
+            <span className="pill bg-white/85 text-ink" key={type}>
+              {type}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -296,12 +325,13 @@ function AssetCard({ asset }: { asset: BusinessAssetRecord }) {
   return (
     <article className="rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6">
       <div className="flex flex-wrap gap-2">
-        <span className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+        <span className="pill bg-white text-ink">
           {formatAssetType(asset.assetType)}
         </span>
-        <span className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+        <span className="pill bg-sand text-ink">
           {asset.generationStatus}
         </span>
+        <span className="pill bg-white text-ink">{asset.content.length} sections</span>
       </div>
       <h3 className="mt-4 text-2xl font-semibold tracking-[-0.03em]">
         {asset.title}
@@ -310,19 +340,19 @@ function AssetCard({ asset }: { asset: BusinessAssetRecord }) {
 
       <div className="mt-5 grid gap-4">
         {asset.content.map((section) => (
-          <div
+          <details
             className="rounded-[22px] border border-[color:var(--border)] bg-sand/50 p-4"
             key={`${asset.id}-${section.heading}`}
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-ink">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-[0.14em] text-ink">
               {section.heading}
-            </p>
+            </summary>
             <ul className="mt-3 space-y-2 text-sm leading-7 text-muted">
               {section.items.map((item) => (
                 <li key={item}>- {item}</li>
               ))}
             </ul>
-          </div>
+          </details>
         ))}
       </div>
 
