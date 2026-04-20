@@ -26,3 +26,21 @@ export function formatLanguageLongLabel(language: OutputLanguage) {
 export function getHtmlLanguage(language: OutputLanguage) {
   return language === "es" ? "es" : "en";
 }
+
+export function getLanguageLocale(language: OutputLanguage) {
+  return language === "es" ? "es-ES" : "en-US";
+}
+
+export function formatDateTimeForLanguage(
+  language: OutputLanguage,
+  value: string | number | Date
+) {
+  return new Date(value).toLocaleString(getLanguageLocale(language));
+}
+
+export function formatDateForLanguage(
+  language: OutputLanguage,
+  value: string | number | Date
+) {
+  return new Date(value).toLocaleDateString(getLanguageLocale(language));
+}

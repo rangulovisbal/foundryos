@@ -6,7 +6,7 @@ import {
   getPlanDefinition,
   isLockedState
 } from "@/lib/foundation";
-import { copyForLanguage } from "@/lib/language";
+import { copyForLanguage, formatDateForLanguage } from "@/lib/language";
 
 export default async function BillingPage() {
   const context = await requireWorkspaceContext("/app/billing");
@@ -77,9 +77,7 @@ export default async function BillingPage() {
             </p>
             <p className="mt-2 text-sm text-muted">
               {copyForLanguage(language, "Period ends", "El periodo termina")}{" "}
-              {new Date(item.periodEnd).toLocaleDateString(
-                language === "es" ? "es-ES" : "en-US"
-              )}
+              {formatDateForLanguage(language, item.periodEnd)}
               .
             </p>
           </article>

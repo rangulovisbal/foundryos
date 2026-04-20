@@ -8,7 +8,7 @@ import {
   isLockedState
 } from "@/lib/foundation";
 import { listWorkspaceInvitations, listWorkspaceMembers } from "@/db/foundation";
-import { copyForLanguage } from "@/lib/language";
+import { copyForLanguage, formatDateTimeForLanguage } from "@/lib/language";
 
 export default async function TeamPage() {
   const context = await requireWorkspaceContext("/app/team");
@@ -62,7 +62,9 @@ export default async function TeamPage() {
                 <th className="px-4 py-3 font-semibold">
                   {copyForLanguage(language, "Name", "Nombre")}
                 </th>
-                <th className="px-4 py-3 font-semibold">Email</th>
+                <th className="px-4 py-3 font-semibold">
+                  {copyForLanguage(language, "Email", "Correo")}
+                </th>
                 <th className="px-4 py-3 font-semibold">
                   {copyForLanguage(language, "Workspace role", "Rol en el espacio")}
                 </th>
@@ -99,7 +101,9 @@ export default async function TeamPage() {
           <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
             <thead className="bg-white/90 text-muted">
               <tr>
-                <th className="px-4 py-3 font-semibold">Email</th>
+                <th className="px-4 py-3 font-semibold">
+                  {copyForLanguage(language, "Email", "Correo")}
+                </th>
                 <th className="px-4 py-3 font-semibold">
                   {copyForLanguage(language, "Role", "Rol")}
                 </th>
@@ -125,7 +129,7 @@ export default async function TeamPage() {
                         : copyForLanguage(language, "pending", "pendiente")}
                     </td>
                     <td className="px-4 py-4 text-muted">
-                      {new Date(invitation.expiresAt).toLocaleString()}
+                      {formatDateTimeForLanguage(language, invitation.expiresAt)}
                     </td>
                   </tr>
                 ))

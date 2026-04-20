@@ -42,7 +42,7 @@ import {
   type DiagnosticResultRecord,
   type OutputLanguage
 } from "@/lib/foundation";
-import { copyForLanguage } from "@/lib/language";
+import { copyForLanguage, formatDateTimeForLanguage } from "@/lib/language";
 
 function resolveDisabledReason(
   context: Awaited<ReturnType<typeof requireWorkspaceContext>>,
@@ -386,7 +386,7 @@ export default async function DiagnosticsPage() {
                   </div>
                   <p className="mt-4 text-xs uppercase tracking-[0.16em] text-muted">
                     {copyForLanguage(language, "Saved", "Guardado")}{" "}
-                    {new Date(latestResult.createdAt).toLocaleString()}
+                    {formatDateTimeForLanguage(language, latestResult.createdAt)}
                   </p>
                 </div>
               </div>
@@ -511,7 +511,7 @@ export default async function DiagnosticsPage() {
                   history.map((entry) => (
                     <tr key={entry.job.id} className="border-t border-[color:var(--border)]">
                       <td className="px-4 py-4 text-muted">
-                        {new Date(entry.job.createdAt).toLocaleString()}
+                        {formatDateTimeForLanguage(language, entry.job.createdAt)}
                       </td>
                       <td className="px-4 py-4 capitalize">{entry.job.status}</td>
                       <td className="px-4 py-4">

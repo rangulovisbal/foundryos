@@ -104,7 +104,7 @@ export function ResendVerificationForm({
         <input
           className="rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none"
           onChange={(event) => setCurrentEmail(event.target.value)}
-          placeholder="you@company.com"
+          placeholder={copyForLanguage(language, "you@company.com", "tu@empresa.com")}
           type="email"
           value={currentEmail}
         />

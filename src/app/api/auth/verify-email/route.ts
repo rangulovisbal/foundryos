@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = NextResponse.redirect(new URL("/app", appUrl), 307);
+    const response = NextResponse.redirect(new URL("/app", appUrl), 303);
     const user = await verifyEmailAndCreateSession(token, response);
 
     if (!user) {

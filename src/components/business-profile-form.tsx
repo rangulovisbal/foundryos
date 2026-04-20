@@ -4,6 +4,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import type { BusinessProfileRecord, OutputLanguage } from "@/lib/foundation";
+import {
+  copyForLanguage,
+  formatDateTimeForLanguage
+} from "@/lib/language";
 
 type ProfileDraft = {
   companyName: string;
@@ -40,64 +44,94 @@ type StepDefinition = {
   fields: Array<keyof ProfileDraft>;
 };
 
-const wizardSteps: StepDefinition[] = [
-  {
-    key: "business-basics",
-    label: "Business basics",
-    description:
-      "Start with the core identity of the business so later answers stay grounded in the right company context.",
-    fields: ["companyName", "website", "industry", "businessModel"]
-  },
-  {
-    key: "current-state",
-    label: "Current state",
-    description:
-      "Capture the current shape of the company: team, geography, stage, and budget range.",
-    fields: ["teamSize", "geography", "lifecycleStage", "budgetBand"]
-  },
-  {
-    key: "offer-audience",
-    label: "Offer and audience",
-    description:
-      "Describe what the company sells and who it is built for. The diagnostic depends heavily on this step.",
-    fields: ["primaryOffer", "targetAudience"]
-  },
-  {
-    key: "bottlenecks",
-    label: "Pain points",
-    description:
-      "List the biggest operational or commercial constraints in the founder’s own language.",
-    fields: ["biggestBottlenecks"]
-  },
-  {
-    key: "goals",
-    label: "Goals",
-    description:
-      "State the operating outcomes the workspace wants the system to optimize for next.",
-    fields: ["primaryGoals"]
-  },
-  {
-    key: "systems",
-    label: "Tools, channels, and operations",
-    description:
-      "Name the channels and systems already in use so the diagnostic can reason from what exists today.",
-    fields: ["currentChannels", "currentTools"]
-  },
-  {
-    key: "output-language",
-    label: "Primary language",
-    description:
-      "Choose the primary workspace language. Generated outputs follow this setting and the app experience is moving toward the same language.",
-    fields: ["outputLanguage"]
-  },
-  {
-    key: "review",
-    label: "Review and run",
-    description:
-      "Review the captured profile, save it, and optionally run diagnostics from this reviewed input.",
-    fields: []
-  }
-];
+function getWizardSteps(language: OutputLanguage): StepDefinition[] {
+  return [
+    {
+      key: "business-basics",
+      label: copyForLanguage(language, "Business basics", "Datos básicos"),
+      description: copyForLanguage(
+        language,
+        "Start with the core identity of the business so later answers stay grounded in the right company context.",
+        "Empieza por la identidad principal del negocio para que las respuestas posteriores queden ancladas en el contexto correcto."
+      ),
+      fields: ["companyName", "website", "industry", "businessModel"]
+    },
+    {
+      key: "current-state",
+      label: copyForLanguage(language, "Current state", "Estado actual"),
+      description: copyForLanguage(
+        language,
+        "Capture the current shape of the company: team, geography, stage, and budget range.",
+        "Captura la situación actual de la empresa: equipo, geografía, etapa y rango de presupuesto."
+      ),
+      fields: ["teamSize", "geography", "lifecycleStage", "budgetBand"]
+    },
+    {
+      key: "offer-audience",
+      label: copyForLanguage(language, "Offer and audience", "Oferta y audiencia"),
+      description: copyForLanguage(
+        language,
+        "Describe what the company sells and who it is built for. The diagnostic depends heavily on this step.",
+        "Describe qué vende la empresa y para quién está pensada. El diagnóstico depende mucho de este paso."
+      ),
+      fields: ["primaryOffer", "targetAudience"]
+    },
+    {
+      key: "bottlenecks",
+      label: copyForLanguage(language, "Pain points", "Puntos de dolor"),
+      description: copyForLanguage(
+        language,
+        "List the biggest operational or commercial constraints in the founder’s own language.",
+        "Enumera las mayores limitaciones operativas o comerciales con el lenguaje real del fundador u operador."
+      ),
+      fields: ["biggestBottlenecks"]
+    },
+    {
+      key: "goals",
+      label: copyForLanguage(language, "Goals", "Objetivos"),
+      description: copyForLanguage(
+        language,
+        "State the operating outcomes the workspace wants the system to optimize for next.",
+        "Indica los resultados operativos que el espacio quiere optimizar a continuación."
+      ),
+      fields: ["primaryGoals"]
+    },
+    {
+      key: "systems",
+      label: copyForLanguage(
+        language,
+        "Tools, channels, and operations",
+        "Herramientas, canales y operaciones"
+      ),
+      description: copyForLanguage(
+        language,
+        "Name the channels and systems already in use so the diagnostic can reason from what exists today.",
+        "Nombra los canales y sistemas que ya se usan para que el diagnóstico razone desde la realidad actual."
+      ),
+      fields: ["currentChannels", "currentTools"]
+    },
+    {
+      key: "output-language",
+      label: copyForLanguage(language, "Primary language", "Idioma principal"),
+      description: copyForLanguage(
+        language,
+        "Choose the primary workspace language. Generated outputs follow this setting and the app experience is moving toward the same language.",
+        "Elige el idioma principal del espacio. Los resultados generados siguen esta configuración y la experiencia de la app se alinea con ese idioma donde ya está conectado."
+      ),
+      fields: ["outputLanguage"]
+    },
+    {
+      key: "review",
+      label: copyForLanguage(language, "Review and run", "Revisar y ejecutar"),
+      description: copyForLanguage(
+        language,
+        "Review the captured profile, save it, and optionally run diagnostics from this reviewed input.",
+        "Revisa el perfil capturado, guárdalo y, si quieres, ejecuta el diagnóstico desde esta versión revisada."
+      ),
+      fields: []
+    }
+  ];
+}
 
 function listToText(values: string[] | undefined) {
   return (values ?? []).join("\n");
@@ -165,6 +199,7 @@ function getInitialStep(
   profile: BusinessProfileRecord | null,
   outputLanguage: OutputLanguage
 ) {
+  const wizardSteps = getWizardSteps(outputLanguage);
   const draft = buildInitialDraft(profile, outputLanguage);
   const firstIncomplete = wizardSteps.find(
     (step) => step.key !== "review" && !stepProgress(draft, step).isComplete
@@ -173,15 +208,17 @@ function getInitialStep(
   return firstIncomplete?.key ?? "review";
 }
 
-function compactValue(value: string) {
-  return value.trim().length > 0 ? value.trim() : "Not provided yet.";
+function compactValue(value: string, language: OutputLanguage) {
+  return value.trim().length > 0
+    ? value.trim()
+    : copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.");
 }
 
 function compactList(value: string) {
   return textToList(value);
 }
 
-function progressPercent(draft: ProfileDraft) {
+function progressPercent(draft: ProfileDraft, wizardSteps: StepDefinition[]) {
   const completableSteps = wizardSteps.filter((step) => step.key !== "review");
   const completeCount = completableSteps.filter((step) =>
     stepProgress(draft, step).isComplete
@@ -190,60 +227,62 @@ function progressPercent(draft: ProfileDraft) {
   return Math.round((completeCount / completableSteps.length) * 100);
 }
 
-function reviewGroups(draft: ProfileDraft) {
+function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
   return [
     {
-      title: "Business basics",
+      title: copyForLanguage(language, "Business basics", "Datos básicos"),
       items: [
-        ["Company name", compactValue(draft.companyName)] as [string, string],
-        ["Website", compactValue(draft.website)] as [string, string],
-        ["Industry", compactValue(draft.industry)] as [string, string],
-        ["Business model", compactValue(draft.businessModel)] as [string, string]
+        [copyForLanguage(language, "Company name", "Nombre de la empresa"), compactValue(draft.companyName, language)] as [string, string],
+        [copyForLanguage(language, "Website", "Sitio web"), compactValue(draft.website, language)] as [string, string],
+        [copyForLanguage(language, "Industry", "Industria"), compactValue(draft.industry, language)] as [string, string],
+        [copyForLanguage(language, "Business model", "Modelo de negocio"), compactValue(draft.businessModel, language)] as [string, string]
       ]
     },
     {
-      title: "Current state",
+      title: copyForLanguage(language, "Current state", "Estado actual"),
       items: [
-        ["Team size", compactValue(draft.teamSize)] as [string, string],
-        ["Geography", compactValue(draft.geography)] as [string, string],
-        ["Lifecycle stage", compactValue(draft.lifecycleStage)] as [string, string],
-        ["Budget band", compactValue(draft.budgetBand)] as [string, string]
+        [copyForLanguage(language, "Team size", "Tamaño del equipo"), compactValue(draft.teamSize, language)] as [string, string],
+        [copyForLanguage(language, "Geography", "Geografía"), compactValue(draft.geography, language)] as [string, string],
+        [copyForLanguage(language, "Lifecycle stage", "Etapa del negocio"), compactValue(draft.lifecycleStage, language)] as [string, string],
+        [copyForLanguage(language, "Budget band", "Rango de presupuesto"), compactValue(draft.budgetBand, language)] as [string, string]
       ]
     },
     {
-      title: "Offer and audience",
+      title: copyForLanguage(language, "Offer and audience", "Oferta y audiencia"),
       items: [
-        ["Primary offer", compactValue(draft.primaryOffer)] as [string, string],
-        ["Target audience", compactValue(draft.targetAudience)] as [string, string]
+        [copyForLanguage(language, "Primary offer", "Oferta principal"), compactValue(draft.primaryOffer, language)] as [string, string],
+        [copyForLanguage(language, "Target audience", "Audiencia objetivo"), compactValue(draft.targetAudience, language)] as [string, string]
       ]
     },
     {
-      title: "Pain points and goals",
+      title: copyForLanguage(language, "Pain points and goals", "Puntos de dolor y objetivos"),
       items: [
         [
-          "Biggest bottlenecks",
-          compactList(draft.biggestBottlenecks).join(", ") || "Not provided yet."
+          copyForLanguage(language, "Biggest bottlenecks", "Mayores cuellos de botella"),
+          compactList(draft.biggestBottlenecks).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
         ] as [string, string],
         [
-          "Primary goals",
-          compactList(draft.primaryGoals).join(", ") || "Not provided yet."
+          copyForLanguage(language, "Primary goals", "Objetivos principales"),
+          compactList(draft.primaryGoals).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
         ] as [string, string]
       ]
     },
     {
-      title: "Systems and output",
+      title: copyForLanguage(language, "Systems and output", "Sistemas y salida"),
       items: [
         [
-          "Current channels",
-          compactList(draft.currentChannels).join(", ") || "Not provided yet."
+          copyForLanguage(language, "Current channels", "Canales actuales"),
+          compactList(draft.currentChannels).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
         ] as [string, string],
         [
-          "Current tools",
-          compactList(draft.currentTools).join(", ") || "Not provided yet."
+          copyForLanguage(language, "Current tools", "Herramientas actuales"),
+          compactList(draft.currentTools).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
         ] as [string, string],
         [
-          "Primary language",
-          draft.outputLanguage === "es" ? "Spanish output" : "English output"
+          copyForLanguage(language, "Primary language", "Idioma principal"),
+          draft.outputLanguage === "es"
+            ? copyForLanguage(language, "Spanish output", "Salida en español")
+            : copyForLanguage(language, "English output", "Salida en inglés")
         ] as [string, string]
       ]
     }
@@ -255,6 +294,7 @@ function renderStepFields({
   canEdit,
   draft,
   inputClass,
+  language,
   loading,
   textareaClass,
   updateField
@@ -263,6 +303,7 @@ function renderStepFields({
   canEdit: boolean;
   draft: ProfileDraft;
   inputClass: string;
+  language: OutputLanguage;
   loading: boolean;
   textareaClass: string;
   updateField: (field: keyof ProfileDraft, value: string) => void;
@@ -271,16 +312,16 @@ function renderStepFields({
     case "business-basics":
       return (
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Company name">
+          <Field label={copyForLanguage(language, "Company name", "Nombre de la empresa")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("companyName", event.target.value)}
-              placeholder="FoundryOS Studio"
+              placeholder={copyForLanguage(language, "FoundryOS Studio", "FoundryOS Studio")}
               value={draft.companyName}
             />
           </Field>
-          <Field label="Website">
+          <Field label={copyForLanguage(language, "Website", "Sitio web")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
@@ -289,21 +330,29 @@ function renderStepFields({
               value={draft.website}
             />
           </Field>
-          <Field label="Industry">
+          <Field label={copyForLanguage(language, "Industry", "Industria")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("industry", event.target.value)}
-              placeholder="B2B SaaS, services, ecommerce..."
+              placeholder={copyForLanguage(
+                language,
+                "B2B SaaS, services, ecommerce...",
+                "SaaS B2B, servicios, ecommerce..."
+              )}
               value={draft.industry}
             />
           </Field>
-          <Field label="Business model">
+          <Field label={copyForLanguage(language, "Business model", "Modelo de negocio")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("businessModel", event.target.value)}
-              placeholder="Subscription, project services, marketplace..."
+              placeholder={copyForLanguage(
+                language,
+                "Subscription, project services, marketplace...",
+                "Suscripción, servicios por proyecto, marketplace..."
+              )}
               value={draft.businessModel}
             />
           </Field>
@@ -312,39 +361,43 @@ function renderStepFields({
     case "current-state":
       return (
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Team size">
+          <Field label={copyForLanguage(language, "Team size", "Tamaño del equipo")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("teamSize", event.target.value)}
-              placeholder="Solo, 2-5, 6-10..."
+              placeholder={copyForLanguage(language, "Solo, 2-5, 6-10...", "Solo, 2-5, 6-10...")}
               value={draft.teamSize}
             />
           </Field>
-          <Field label="Geography">
+          <Field label={copyForLanguage(language, "Geography", "Geografía")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("geography", event.target.value)}
-              placeholder="US, Spain, EU, global..."
+              placeholder={copyForLanguage(language, "US, Spain, EU, global...", "España, UE, LatAm, global...")}
               value={draft.geography}
             />
           </Field>
-          <Field label="Lifecycle stage">
+          <Field label={copyForLanguage(language, "Lifecycle stage", "Etapa del negocio")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("lifecycleStage", event.target.value)}
-              placeholder="Pre-revenue, validated, growing..."
+              placeholder={copyForLanguage(
+                language,
+                "Pre-revenue, validated, growing...",
+                "Pre-ingresos, validado, creciendo..."
+              )}
               value={draft.lifecycleStage}
             />
           </Field>
-          <Field label="Budget band">
+          <Field label={copyForLanguage(language, "Budget band", "Rango de presupuesto")}>
             <input
               className={inputClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("budgetBand", event.target.value)}
-              placeholder="Under 1k, 1k-5k, 5k+..."
+              placeholder={copyForLanguage(language, "Under 1k, 1k-5k, 5k+...", "Menos de 1k, 1k-5k, 5k+...")}
               value={draft.budgetBand}
             />
           </Field>
@@ -353,21 +406,29 @@ function renderStepFields({
     case "offer-audience":
       return (
         <div className="grid gap-4 lg:grid-cols-2">
-          <Field label="Primary offer">
+          <Field label={copyForLanguage(language, "Primary offer", "Oferta principal")}>
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("primaryOffer", event.target.value)}
-              placeholder="What the business sells, how it is packaged, and why a buyer chooses it."
+              placeholder={copyForLanguage(
+                language,
+                "What the business sells, how it is packaged, and why a buyer chooses it.",
+                "Qué vende el negocio, cómo se empaqueta y por qué un comprador lo elige."
+              )}
               value={draft.primaryOffer}
             />
           </Field>
-          <Field label="Target audience">
+          <Field label={copyForLanguage(language, "Target audience", "Audiencia objetivo")}>
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("targetAudience", event.target.value)}
-              placeholder="Who the business is built for, what they are trying to solve, and why they buy."
+              placeholder={copyForLanguage(
+                language,
+                "Who the business is built for, what they are trying to solve, and why they buy.",
+                "Para quién está construido el negocio, qué intenta resolver y por qué compra."
+              )}
               value={draft.targetAudience}
             />
           </Field>
@@ -376,59 +437,71 @@ function renderStepFields({
     case "bottlenecks":
       return (
         <div className="space-y-4">
-          <Field label="Biggest bottlenecks">
+          <Field label={copyForLanguage(language, "Biggest bottlenecks", "Mayores cuellos de botella")}>
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("biggestBottlenecks", event.target.value)}
-              placeholder={"Manual onboarding\nUnclear channel priorities\nWeak reporting visibility"}
+              placeholder={copyForLanguage(
+                language,
+                "Manual onboarding\nUnclear channel priorities\nWeak reporting visibility",
+                "Onboarding manual\nPrioridades de canal poco claras\nPoca visibilidad de reporting"
+              )}
               value={draft.biggestBottlenecks}
             />
           </Field>
           <p className="text-sm text-muted">
-            Add one bottleneck per line. Keep the wording close to how the founder
-            or operator actually describes the problem.
+            {copyForLanguage(
+              language,
+              "Add one bottleneck per line. Keep the wording close to how the founder or operator actually describes the problem.",
+              "Añade un cuello de botella por línea. Mantén el texto cerca de cómo el fundador u operador describe realmente el problema."
+            )}
           </p>
         </div>
       );
     case "goals":
       return (
         <div className="space-y-4">
-          <Field label="Primary goals">
+          <Field label={copyForLanguage(language, "Primary goals", "Objetivos principales")}>
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("primaryGoals", event.target.value)}
-              placeholder={
-                "Increase qualified leads\nReduce founder operations time\nImprove weekly KPI visibility"
-              }
+              placeholder={copyForLanguage(
+                language,
+                "Increase qualified leads\nReduce founder operations time\nImprove weekly KPI visibility",
+                "Aumentar leads cualificados\nReducir tiempo operativo del fundador\nMejorar visibilidad semanal de KPIs"
+              )}
               value={draft.primaryGoals}
             />
           </Field>
           <p className="text-sm text-muted">
-            Add one goal per line. These goals feed the deterministic diagnostic
-            and later planning outputs.
+            {copyForLanguage(
+              language,
+              "Add one goal per line. These goals feed the deterministic diagnostic and later planning outputs.",
+              "Añade un objetivo por línea. Estos objetivos alimentan el diagnóstico determinista y los resultados de planificación posteriores."
+            )}
           </p>
         </div>
       );
     case "systems":
       return (
         <div className="grid gap-4 lg:grid-cols-2">
-          <Field label="Current channels">
+          <Field label={copyForLanguage(language, "Current channels", "Canales actuales")}>
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("currentChannels", event.target.value)}
-              placeholder={"SEO\nReferrals\nLinkedIn outbound"}
+              placeholder={copyForLanguage(language, "SEO\nReferrals\nLinkedIn outbound", "SEO\nReferencias\nOutbound en LinkedIn")}
               value={draft.currentChannels}
             />
           </Field>
-          <Field label="Current tools">
+          <Field label={copyForLanguage(language, "Current tools", "Herramientas actuales")}>
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
               onChange={(event) => updateField("currentTools", event.target.value)}
-              placeholder={"HubSpot\nGoogle Analytics\nWeekly scorecard"}
+              placeholder={copyForLanguage(language, "HubSpot\nGoogle Analytics\nWeekly scorecard", "HubSpot\nGoogle Analytics\nScorecard semanal")}
               value={draft.currentTools}
             />
           </Field>
@@ -437,7 +510,7 @@ function renderStepFields({
     case "output-language":
       return (
         <div className="space-y-4">
-          <Field label="Primary workspace language">
+          <Field label={copyForLanguage(language, "Primary workspace language", "Idioma principal del espacio")}>
             <select
               className={inputClass}
               disabled={!canEdit || loading}
@@ -446,13 +519,16 @@ function renderStepFields({
               }
               value={draft.outputLanguage}
             >
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
+              <option value="en">{copyForLanguage(language, "English", "Inglés")}</option>
+              <option value="es">{copyForLanguage(language, "Spanish", "Español")}</option>
             </select>
           </Field>
           <div className="rounded-[24px] border border-[color:var(--border)] bg-sand/55 p-4 text-sm text-muted">
-            Generated outputs follow this setting across diagnostics, planning,
-            and assets. The app UI remains in English for the current MVP.
+            {copyForLanguage(
+              language,
+              "Generated outputs follow this setting across diagnostics, planning, and assets. The workspace experience uses this language where the language layer is already wired.",
+              "Los resultados generados siguen esta configuración en diagnóstico, planificación y activos. La experiencia del espacio usa este idioma donde la capa de idioma ya está conectada."
+            )}
           </div>
         </div>
       );
@@ -461,16 +537,18 @@ function renderStepFields({
         <div className="space-y-5">
           <div className="rounded-[24px] border border-[color:var(--border)] bg-sand/55 p-5">
             <p className="text-sm uppercase tracking-[0.18em] text-muted">
-              Review before save
+              {copyForLanguage(language, "Review before save", "Revisión antes de guardar")}
             </p>
             <p className="mt-3 text-sm leading-7 text-muted">
-              This step uses the exact same profile payload as before. The only
-              change is the intake flow: review the captured context, then save it
-              or save and run diagnostics from the reviewed input.
+              {copyForLanguage(
+                language,
+                "This step uses the exact same profile payload as before. The only change is the intake flow: review the captured context, then save it or save and run diagnostics from the reviewed input.",
+                "Este paso usa exactamente el mismo payload del perfil que antes. El único cambio es el flujo de captura: revisa el contexto recogido y luego guárdalo o guarda y ejecuta el diagnóstico desde esta versión revisada."
+              )}
             </p>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            {reviewGroups(draft).map((group) => (
+            {reviewGroups(draft, language).map((group) => (
               <ReviewCard group={group} key={group.title} />
             ))}
           </div>
@@ -504,13 +582,15 @@ export function BusinessProfileForm({
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
   const [loadingAction, setLoadingAction] = useState<"save" | "run" | null>(null);
+  const language = draft.outputLanguage;
+  const wizardSteps = useMemo(() => getWizardSteps(language), [language]);
 
   const activeStepIndex = wizardSteps.findIndex((step) => step.key === activeStep);
   const activeDefinition = wizardSteps[activeStepIndex] ?? wizardSteps[0];
   const completedSteps = wizardSteps.filter(
     (step) => step.key !== "review" && stepProgress(draft, step).isComplete
   ).length;
-  const progress = progressPercent(draft);
+  const progress = progressPercent(draft, wizardSteps);
   const inputClass =
     "w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none disabled:opacity-60";
   const textareaClass =
@@ -521,7 +601,7 @@ export function BusinessProfileForm({
       wizardSteps
         .filter((step) => step.key !== "review" && !stepProgress(draft, step).isComplete)
         .map((step) => step.label),
-    [draft]
+    [draft, wizardSteps]
   );
 
   function updateField(field: keyof ProfileDraft, value: string) {
@@ -556,7 +636,14 @@ export function BusinessProfileForm({
     const payload = (await response.json()) as { error?: string };
 
     if (!response.ok) {
-      throw new Error(payload.error ?? "Profile save failed.");
+      throw new Error(
+        payload.error ??
+          copyForLanguage(
+            language,
+            "Profile save failed.",
+            "No se pudo guardar el perfil."
+          )
+      );
     }
   }
 
@@ -567,7 +654,14 @@ export function BusinessProfileForm({
     const payload = (await response.json()) as { error?: string };
 
     if (!response.ok) {
-      throw new Error(payload.error ?? "Diagnostic run failed.");
+      throw new Error(
+        payload.error ??
+          copyForLanguage(
+            language,
+            "Diagnostic run failed.",
+            "No se pudo ejecutar el diagnóstico."
+          )
+      );
     }
   }
 
@@ -596,12 +690,24 @@ export function BusinessProfileForm({
       }
 
       setMessageTone("success");
-      setMessage("Business profile saved. You can keep editing or run diagnostics from the review step.");
+      setMessage(
+        copyForLanguage(
+          language,
+          "Business profile saved. You can keep editing or run diagnostics from the review step.",
+          "Perfil del negocio guardado. Puedes seguir editándolo o ejecutar el diagnóstico desde el paso de revisión."
+        )
+      );
       router.refresh();
     } catch (error) {
       setMessageTone("error");
       setMessage(
-        error instanceof Error ? error.message : "The profile action could not be completed."
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(
+              language,
+              "The profile action could not be completed.",
+              "No se pudo completar la acción del perfil."
+            )
       );
     } finally {
       setLoadingAction(null);
@@ -625,20 +731,32 @@ export function BusinessProfileForm({
       <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
         <div className="space-y-4">
           <div>
-            <span className="eyebrow">Guided intake wizard</span>
+            <span className="eyebrow">
+              {copyForLanguage(language, "Guided intake wizard", "Asistente de captura guiada")}
+            </span>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
-              Build the profile step by step, then review it before diagnostics.
+              {copyForLanguage(
+                language,
+                "Build the profile step by step, then review it before diagnostics.",
+                "Construye el perfil paso a paso y revísalo antes del diagnóstico."
+              )}
             </h2>
             <p className="mt-4 body-lg">
-              The underlying profile model and save behavior stay the same. This
-              flow is only here to improve signal quality and make the intake
-              easier to complete well.
+              {copyForLanguage(
+                language,
+                "The underlying profile model and save behavior stay the same. This flow is only here to improve signal quality and make the intake easier to complete well.",
+                "El modelo de perfil y el comportamiento de guardado siguen siendo los mismos. Este flujo existe solo para mejorar la calidad de la señal y hacer más fácil completar bien la captura."
+              )}
             </p>
           </div>
 
           {!canEdit ? (
             <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
-              This profile is read-only for your role or current account state.
+              {copyForLanguage(
+                language,
+                "This profile is read-only for your role or current account state.",
+                "Este perfil está en solo lectura para tu rol o para el estado actual de la cuenta."
+              )}
             </div>
           ) : null}
 
@@ -646,12 +764,16 @@ export function BusinessProfileForm({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm uppercase tracking-[0.18em] text-muted">
-                  Intake progress
+                  {copyForLanguage(language, "Intake progress", "Progreso de captura")}
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{progress}%</p>
               </div>
               <p className="text-sm text-muted">
-                {completedSteps}/{wizardSteps.length - 1} steps completed
+                {copyForLanguage(
+                  language,
+                  `${completedSteps}/${wizardSteps.length - 1} steps completed`,
+                  `${completedSteps}/${wizardSteps.length - 1} pasos completados`
+                )}
               </p>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/80">
@@ -684,7 +806,7 @@ export function BusinessProfileForm({
                         isActive ? "text-sand/70" : "text-muted"
                       }`}
                     >
-                      Step {index + 1}
+                      {copyForLanguage(language, `Step ${index + 1}`, `Paso ${index + 1}`)}
                     </p>
                     <span
                       className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${
@@ -698,12 +820,12 @@ export function BusinessProfileForm({
                       }`}
                     >
                       {step.key === "review"
-                        ? "final"
+                        ? copyForLanguage(language, "final", "final")
                         : currentProgress.isComplete
-                          ? "ready"
+                          ? copyForLanguage(language, "ready", "listo")
                           : currentProgress.completedCount > 0
-                            ? "in progress"
-                            : "not started"}
+                            ? copyForLanguage(language, "in progress", "en curso")
+                            : copyForLanguage(language, "not started", "sin empezar")}
                     </span>
                   </div>
                   <p className="mt-2 text-base font-semibold">{step.label}</p>
@@ -713,8 +835,16 @@ export function BusinessProfileForm({
                     }`}
                   >
                     {step.key === "review"
-                      ? "Review the full profile, then save or run diagnostics."
-                      : `${currentProgress.completedCount}/${currentProgress.totalCount} fields filled`}
+                      ? copyForLanguage(
+                          language,
+                          "Review the full profile, then save or run diagnostics.",
+                          "Revisa el perfil completo y luego guarda o ejecuta el diagnóstico."
+                        )
+                      : copyForLanguage(
+                          language,
+                          `${currentProgress.completedCount}/${currentProgress.totalCount} fields filled`,
+                          `${currentProgress.completedCount}/${currentProgress.totalCount} campos completados`
+                        )}
                   </p>
                 </button>
               );
@@ -737,14 +867,21 @@ export function BusinessProfileForm({
                 </p>
               </div>
               <p className="text-sm text-muted">
-                Step {activeStepIndex + 1} of {wizardSteps.length}
+                {copyForLanguage(
+                  language,
+                  `Step ${activeStepIndex + 1} of ${wizardSteps.length}`,
+                  `Paso ${activeStepIndex + 1} de ${wizardSteps.length}`
+                )}
               </p>
             </div>
 
             {activeStep === "review" && reviewWarnings.length > 0 ? (
               <div className="mt-6 rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm text-muted">
-                Review note: these steps still have missing fields: {reviewWarnings.join(", ")}.
-                You can still save a partial profile, but diagnostics will have weaker signal.
+                {copyForLanguage(
+                  language,
+                  `Review note: these steps still have missing fields: ${reviewWarnings.join(", ")}. You can still save a partial profile, but diagnostics will have weaker signal.`,
+                  `Nota de revisión: estos pasos todavía tienen campos sin completar: ${reviewWarnings.join(", ")}. Puedes guardar un perfil parcial, pero el diagnóstico tendrá una señal más débil.`
+                )}
               </div>
             ) : null}
 
@@ -754,6 +891,7 @@ export function BusinessProfileForm({
                 canEdit,
                 draft,
                 inputClass,
+                language,
                 loading: loadingAction !== null,
                 textareaClass,
                 updateField
@@ -770,7 +908,7 @@ export function BusinessProfileForm({
                   onClick={() => moveStep("back")}
                   type="button"
                 >
-                  Back
+                  {copyForLanguage(language, "Back", "Atrás")}
                 </button>
                 <button
                   className="rounded-[24px] border border-[color:var(--border)] bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink disabled:opacity-50"
@@ -778,7 +916,7 @@ export function BusinessProfileForm({
                   onClick={() => moveStep("next")}
                   type="button"
                 >
-                  Next
+                  {copyForLanguage(language, "Next", "Siguiente")}
                 </button>
                 <button
                   className="rounded-[24px] border border-[color:var(--border)] bg-sand/60 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink disabled:opacity-50"
@@ -786,7 +924,9 @@ export function BusinessProfileForm({
                   onClick={() => void handlePersist("save")}
                   type="button"
                 >
-                  {loadingAction === "save" ? "Saving..." : "Save draft"}
+                  {loadingAction === "save"
+                    ? copyForLanguage(language, "Saving...", "Guardando...")
+                    : copyForLanguage(language, "Save draft", "Guardar borrador")}
                 </button>
               </div>
 
@@ -798,7 +938,9 @@ export function BusinessProfileForm({
                     onClick={() => void handlePersist("save")}
                     type="button"
                   >
-                    {loadingAction === "save" ? "Saving profile..." : "Save profile"}
+                    {loadingAction === "save"
+                      ? copyForLanguage(language, "Saving profile...", "Guardando perfil...")
+                      : copyForLanguage(language, "Save profile", "Guardar perfil")}
                   </button>
                   <button
                     className="rounded-[24px] border border-ink bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink disabled:opacity-60"
@@ -807,8 +949,8 @@ export function BusinessProfileForm({
                     type="button"
                   >
                     {loadingAction === "run"
-                      ? "Saving and running..."
-                      : "Save and run diagnostic"}
+                      ? copyForLanguage(language, "Saving and running...", "Guardando y ejecutando...")
+                      : copyForLanguage(language, "Save and run diagnostic", "Guardar y ejecutar diagnóstico")}
                   </button>
                 </div>
               ) : null}
@@ -816,11 +958,16 @@ export function BusinessProfileForm({
 
             {profile?.updatedAt ? (
               <p className="text-sm text-muted">
-                Last saved {new Date(profile.updatedAt).toLocaleString()}
+                {copyForLanguage(language, "Last saved", "Último guardado")}{" "}
+                {formatDateTimeForLanguage(language, profile.updatedAt)}
               </p>
             ) : (
               <p className="text-sm text-muted">
-                Draft saves use the same persisted business profile model already in the app.
+                {copyForLanguage(
+                  language,
+                  "Draft saves use the same persisted business profile model already in the app.",
+                  "Los borradores usan el mismo modelo de perfil persistido que ya existe en la app."
+                )}
               </p>
             )}
 

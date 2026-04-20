@@ -98,11 +98,11 @@ export function ForgotPasswordForm({
     <div className="space-y-5">
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <label className="space-y-2 text-sm font-medium">
-          <span>Email</span>
+          <span>{copyForLanguage(language, "Email", "Correo")}</span>
           <input
             className="w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none"
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@company.com"
+            placeholder={copyForLanguage(language, "you@company.com", "tu@empresa.com")}
             type="email"
             value={email}
           />

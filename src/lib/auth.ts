@@ -19,6 +19,7 @@ import {
   createWorkspaceMembership,
   deleteSessionByTokenHash,
   findInvitationByTokenHash,
+  findWorkspaceById,
   findWorkspaceMembership,
   findSessionByTokenHash,
   findUserByEmail,
@@ -764,18 +765,38 @@ export async function inviteUserToWorkspace(input: {
   email: string;
   role: WorkspaceInvitationRecord["role"];
 }) {
+  const language = input.actor.workspace.outputLanguage;
+
   if (!canManageWorkspace(input.actor.membership.role, input.actor.workspace.accountState)) {
-    throw new Error("You do not have permission to invite members in this workspace.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "You do not have permission to invite members in this workspace.",
+        "No tienes permisos para invitar miembros en este espacio."
+      )
+    );
   }
 
   if (!getPlanDefinition(input.actor.workspace.plan).features.team) {
-    throw new Error("Team invites are not available on this plan.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "Team invites are not available on this plan.",
+        "Las invitaciones de equipo no están disponibles en este plan."
+      )
+    );
   }
 
   const normalizedEmail = normalizeEmail(input.email);
   const members = await listWorkspaceMembers(input.workspaceId);
   if (members.some((member) => member.user.email === normalizedEmail)) {
-    throw new Error("This user is already a member of the workspace.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "This user is already a member of the workspace.",
+        "Esta persona ya forma parte del espacio."
+      )
+    );
   }
 
   const rawToken = createRawToken();
@@ -823,14 +844,38 @@ export async function inviteUserToWorkspace(input: {
 }
 
 export async function acceptWorkspaceInvite(rawToken: string, user: AppUser) {
+  const language = user.preferredLanguage ?? DEFAULT_LANGUAGE;
   const invitation = await findInvitationByTokenHash(hashToken(rawToken));
 
   if (!invitation) {
-    throw new Error("This invitation is invalid or expired.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "This invitation is invalid or expired.",
+        "Esta invitación no es válida o ha caducado."
+      )
+    );
   }
 
   if (normalizeEmail(user.email) !== normalizeEmail(invitation.email)) {
-    throw new Error("This invitation belongs to a different email address.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "This invitation belongs to a different email address.",
+        "Esta invitación pertenece a otra dirección de correo."
+      )
+    );
+  }
+
+  const workspace = await findWorkspaceById(invitation.workspaceId);
+  if (!workspace) {
+    throw new Error(
+      copyForLanguage(
+        language,
+        "This workspace could not be found.",
+        "No se pudo encontrar este espacio."
+      )
+    );
   }
 
   const existingMembership = await findWorkspaceMembership(
@@ -842,11 +887,22 @@ export async function acceptWorkspaceInvite(rawToken: string, user: AppUser) {
       await acceptWorkspaceInvitation(invitation.id, new Date().toISOString());
     }
     await syncSeatUsage(invitation.workspaceId);
-    return invitation.workspaceId;
+    if (user.preferredLanguage !== workspace.outputLanguage) {
+      await updateUser(user.id, {
+        preferredLanguage: workspace.outputLanguage
+      });
+    }
+    return workspace;
   }
 
   if (invitation.acceptedAt) {
-    throw new Error("This invitation has already been accepted.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "This invitation has already been accepted.",
+        "Esta invitación ya fue aceptada."
+      )
+    );
   }
 
   const now = new Date().toISOString();
@@ -861,8 +917,13 @@ export async function acceptWorkspaceInvite(rawToken: string, user: AppUser) {
 
   await acceptWorkspaceInvitation(invitation.id, now);
   await syncSeatUsage(invitation.workspaceId);
+  if (user.preferredLanguage !== workspace.outputLanguage) {
+    await updateUser(user.id, {
+      preferredLanguage: workspace.outputLanguage
+    });
+  }
 
-  return invitation.workspaceId;
+  return workspace;
 }
 
 export async function bootstrapInternalAdminFromToken(token: string, response: NextResponse) {

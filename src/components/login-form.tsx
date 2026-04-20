@@ -110,9 +110,9 @@ export function LoginForm({
     <div className="space-y-5">
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <InputField
-          label="Email"
+          label={copyForLanguage(language, "Email", "Correo")}
           onChange={setEmail}
-          placeholder="you@company.com"
+          placeholder={copyForLanguage(language, "you@company.com", "tu@empresa.com")}
           type="email"
           value={email}
         />

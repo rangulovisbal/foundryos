@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getRequestAppUrl, resendVerificationEmail } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
+import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage } from "@/lib/language-server";
 
 const resendVerificationSchema = z.object({
@@ -11,11 +12,12 @@ const resendVerificationSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const language = await getCookieLanguage();
+
   try {
     const appUrl = getRequestAppUrl(request);
     const body = (await request.json()) as Record<string, unknown>;
     const payload = resendVerificationSchema.parse(body);
-    const language = await getCookieLanguage();
     const result = await resendVerificationEmail({
       appUrl,
       email: payload.email,
@@ -32,7 +34,14 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: getErrorMessage(error, "Verification email could not be prepared.")
+        error: getErrorMessage(
+          error,
+          copyForLanguage(
+            language,
+            "Verification email could not be prepared.",
+            "No se pudo preparar el correo de verificación."
+          )
+        )
       },
       { status: getErrorStatus(error, 400) }
     );

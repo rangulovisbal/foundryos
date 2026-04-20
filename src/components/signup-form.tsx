@@ -108,7 +108,11 @@ export function SignupForm({
         );
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Signup failed.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(language, "Signup failed.", "No se pudo crear la cuenta.")
+      );
     } finally {
       setLoading(false);
     }
@@ -124,9 +128,9 @@ export function SignupForm({
           value={fullName}
         />
         <InputField
-          label="Email"
+          label={copyForLanguage(language, "Email", "Correo")}
           onChange={setEmail}
-          placeholder="you@company.com"
+          placeholder={copyForLanguage(language, "you@company.com", "tu@empresa.com")}
           type="email"
           value={email}
         />

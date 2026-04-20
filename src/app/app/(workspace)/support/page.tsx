@@ -20,7 +20,7 @@ import {
   getDeletionConfirmationPhrase,
   isLockedState
 } from "@/lib/foundation";
-import { copyForLanguage } from "@/lib/language";
+import { copyForLanguage, formatDateTimeForLanguage } from "@/lib/language";
 import { publicLegalLinks } from "@/lib/legal";
 
 function supportFaqItems(language: OutputLanguage) {
@@ -58,6 +58,35 @@ function supportFaqItems(language: OutputLanguage) {
       )
     }
   ] as const;
+}
+
+function legalDescription(language: OutputLanguage, href: string) {
+  switch (href) {
+    case "/terms":
+      return copyForLanguage(
+        language,
+        "Pilot product terms, preview scope, and usage boundaries.",
+        "Términos del producto piloto, alcance de la vista previa y límites de uso."
+      );
+    case "/privacy":
+      return copyForLanguage(
+        language,
+        "What workspace and account data is stored and how it is used.",
+        "Qué datos del espacio y de la cuenta se guardan y cómo se utilizan."
+      );
+    case "/cookie":
+      return copyForLanguage(
+        language,
+        "Essential cookies, optional services, and browser controls.",
+        "Cookies esenciales, servicios opcionales y controles del navegador."
+      );
+    default:
+      return copyForLanguage(
+        language,
+        "Third-party processors and operational infrastructure used by the app.",
+        "Subencargados y la infraestructura operativa utilizada por la app."
+      );
+  }
 }
 
 export default async function SupportPage() {
@@ -162,7 +191,9 @@ export default async function SupportPage() {
                       ? copyForLanguage(language, "Cookie", "Cookies")
                       : copyForLanguage(language, "Subprocessors", "Subencargados")}
               </p>
-              <p className="mt-3 text-sm leading-7 text-muted">{link.description}</p>
+              <p className="mt-3 text-sm leading-7 text-muted">
+                {legalDescription(language, link.href)}
+              </p>
             </Link>
           ))}
         </div>
@@ -287,7 +318,7 @@ function SupportHistoryPanel({
                     {formatSupportRequestStatus(entry.request.status, language)}
                   </td>
                   <td className="px-4 py-4 text-muted">
-                    {new Date(entry.request.createdAt).toLocaleString()}
+                    {formatDateTimeForLanguage(language, entry.request.createdAt)}
                   </td>
                 </tr>
               ))
@@ -363,7 +394,7 @@ function DeletionHistoryPanel({
                       copyForLanguage(language, "No reason added.", "Sin motivo añadido.")}
                   </td>
                   <td className="px-4 py-4 text-muted">
-                    {new Date(entry.request.createdAt).toLocaleString()}
+                    {formatDateTimeForLanguage(language, entry.request.createdAt)}
                   </td>
                 </tr>
               ))

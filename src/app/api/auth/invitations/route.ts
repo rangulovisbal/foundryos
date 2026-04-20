@@ -8,9 +8,10 @@ import {
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { inviteMemberSchema } from "@/lib/foundation";
 import { copyForLanguage } from "@/lib/language";
+import { getCookieLanguage } from "@/lib/language-server";
 
 export async function POST(request: Request) {
-  let language: "en" | "es" = "en";
+  let language = await getCookieLanguage();
 
   try {
     const appUrl = getRequestAppUrl(request);
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: copyForLanguage(
-            "en",
+            language,
             "Authentication required.",
             "Necesitas iniciar sesión."
           )

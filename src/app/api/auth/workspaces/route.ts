@@ -4,16 +4,29 @@ import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createWorkspaceForUser, getCurrentUserSession } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceCreationSchema } from "@/lib/foundation";
-import { setLanguageCookie } from "@/lib/language-server";
+import { copyForLanguage } from "@/lib/language";
+import { getCookieLanguage, setLanguageCookie } from "@/lib/language-server";
 
 export async function POST(request: Request) {
+  let language = await getCookieLanguage();
+
   try {
     const current = await getCurrentUserSession();
 
     if (!current) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return NextResponse.json(
+        {
+          error: copyForLanguage(
+            language,
+            "Authentication required.",
+            "Necesitas iniciar sesión."
+          )
+        },
+        { status: 401 }
+      );
     }
 
+    language = current.user.preferredLanguage ?? language;
     const payload = workspaceCreationSchema.parse(await request.json());
     const workspace = await createWorkspaceForUser({
       user: current.user,
@@ -40,7 +53,14 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: getErrorMessage(error, "Workspace could not be created.")
+        error: getErrorMessage(
+          error,
+          copyForLanguage(
+            language,
+            "Workspace could not be created.",
+            "No se pudo crear el espacio."
+          )
+        )
       },
       { status: getErrorStatus(error, 400) }
     );

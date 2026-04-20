@@ -5,9 +5,12 @@ import { captureAnalyticsEvent } from "@/lib/analytics";
 import { getRequestAppUrl, registerUser } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { signupSchema } from "@/lib/foundation";
-import { setLanguageCookie } from "@/lib/language-server";
+import { copyForLanguage } from "@/lib/language";
+import { getCookieLanguage, setLanguageCookie } from "@/lib/language-server";
 
 export async function POST(request: Request) {
+  const language = await getCookieLanguage();
+
   try {
     const appUrl = getRequestAppUrl(request);
     const body = (await request.json()) as Record<string, unknown>;
@@ -45,7 +48,10 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: getErrorMessage(error, "Signup failed.")
+        error: getErrorMessage(
+          error,
+          copyForLanguage(language, "Signup failed.", "No se pudo crear la cuenta.")
+        )
       },
       { status: getErrorStatus(error, 400) }
     );
