@@ -3,12 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import type { OutputLanguage } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
+
 export function DiagnosticsRunButton({
   canRun,
-  disabledReason
+  disabledReason,
+  language
 }: {
   canRun: boolean;
   disabledReason: string;
+  language: OutputLanguage;
 }) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
@@ -32,15 +37,28 @@ export function DiagnosticsRunButton({
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Diagnostic run failed.");
+        throw new Error(
+          payload.error ??
+            copyForLanguage(language, "Diagnostic run failed.", "El diagnóstico falló.")
+        );
       }
 
       setMessageTone("success");
-      setMessage("Diagnostic run completed and saved.");
+      setMessage(
+        copyForLanguage(
+          language,
+          "Diagnostic run completed and saved.",
+          "El diagnóstico se completó y quedó guardado."
+        )
+      );
       router.refresh();
     } catch (error) {
       setMessageTone("error");
-      setMessage(error instanceof Error ? error.message : "Diagnostic run failed.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(language, "Diagnostic run failed.", "El diagnóstico falló.")
+      );
     } finally {
       setLoading(false);
     }
@@ -54,7 +72,9 @@ export function DiagnosticsRunButton({
         onClick={handleRun}
         type="button"
       >
-        {loading ? "Running diagnostic..." : "Run diagnostic"}
+        {loading
+          ? copyForLanguage(language, "Running diagnostic...", "Ejecutando diagnóstico...")
+          : copyForLanguage(language, "Run diagnostic", "Ejecutar diagnóstico")}
       </button>
       {!canRun ? <p className="text-sm text-muted">{disabledReason}</p> : null}
       {message ? (
