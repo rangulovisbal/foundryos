@@ -21,11 +21,7 @@ export const env = {
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ),
   hasOpenAI: Boolean(process.env.OPENAI_API_KEY),
-  hasResend: Boolean(
-    process.env.RESEND_API_KEY &&
-      process.env.RESEND_FROM_EMAIL &&
-      process.env.RESEND_TO_EMAIL
-  ),
+  hasResend: Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL),
   hasTurnstile: Boolean(
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY
   ),

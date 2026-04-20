@@ -145,7 +145,8 @@ export default async function ActionsPage() {
               {
                 label: "Output language",
                 value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail: "UI stays in English while generated planning follows the workspace setting."
+                detail:
+                  "The workspace language drives generated planning content and the core app experience."
               }
             ]}
           />

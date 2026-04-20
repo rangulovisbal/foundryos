@@ -12,37 +12,57 @@ import {
 } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
 import {
+  formatPlanDescription,
+  formatRoleLabel,
   getPlanDefinition,
   isLockedState,
   type BusinessAssetRecord,
   type DiagnosticResultRecord,
   type ThirtyDayPlanRecord
 } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
 
 function formatConfidence(
-  confidence: DiagnosticResultRecord["confidence"] | null | undefined
+  confidence: DiagnosticResultRecord["confidence"] | null | undefined,
+  language: "en" | "es"
 ) {
   if (!confidence) {
-    return "Not available";
+    return copyForLanguage(language, "Not available", "No disponible");
   }
 
-  return confidence.charAt(0).toUpperCase() + confidence.slice(1);
+  return copyForLanguage(
+    language,
+    confidence.charAt(0).toUpperCase() + confidence.slice(1),
+    confidence === "high" ? "Alta" : confidence === "medium" ? "Media" : "Baja"
+  );
 }
 
-function maturityLabel(score: number | null) {
+function maturityLabel(score: number | null, language: "en" | "es") {
   if (score === null) {
-    return "Not assessed";
+    return copyForLanguage(language, "Not assessed", "Sin evaluar");
   }
 
   if (score >= 75) {
-    return "Execution foundation is forming";
+    return copyForLanguage(
+      language,
+      "Execution foundation is forming",
+      "La base de ejecución está tomando forma"
+    );
   }
 
   if (score >= 50) {
-    return "Core systems need tightening";
+    return copyForLanguage(
+      language,
+      "Core systems need tightening",
+      "Los sistemas principales necesitan más solidez"
+    );
   }
 
-  return "Foundations still need structure";
+  return copyForLanguage(
+    language,
+    "Foundations still need structure",
+    "La base todavía necesita más estructura"
+  );
 }
 
 function dashboardBasis(result: DiagnosticResultRecord | null) {
@@ -82,11 +102,13 @@ function ModuleCard({
   detail,
   href,
   label,
-  value
+  value,
+  language
 }: {
   detail: string;
   href: string;
   label: string;
+  language: "en" | "es";
   value: string;
 }) {
   return (
@@ -95,7 +117,7 @@ function ModuleCard({
       <p className="mt-3 text-2xl font-semibold">{value}</p>
       <p className="mt-2 text-sm text-muted">{detail}</p>
       <Link className="mt-4 inline-flex text-sm font-semibold text-ink underline" href={href}>
-        Open {label.toLowerCase()}
+        {copyForLanguage(language, `Open ${label.toLowerCase()}`, `Abrir ${label.toLowerCase()}`)}
       </Link>
     </article>
   );
@@ -119,6 +141,7 @@ export default async function WorkspaceDashboardPage() {
     getLatestBusinessAssets(context.workspace.id)
   ]);
   const plan = getPlanDefinition(context.workspace.plan);
+  const language = context.workspace.outputLanguage;
   const maturityScore = latestDiagnostic?.overallMaturityScore ?? null;
   const topGaps = latestDiagnostic?.topBottlenecks.slice(0, 3) ?? [];
   const evidenceBasis = dashboardBasis(latestDiagnostic);
@@ -128,33 +151,47 @@ export default async function WorkspaceDashboardPage() {
   return (
     <div className="space-y-6">
       {isLockedState(context.workspace.accountState) ? (
-        <LockedStatePanel accountState={context.workspace.accountState} />
+        <LockedStatePanel
+          accountState={context.workspace.accountState}
+          language={language}
+        />
       ) : null}
 
       <section className="surface p-6 md:p-8">
-        <span className="eyebrow">Workspace dashboard</span>
+        <span className="eyebrow">
+          {copyForLanguage(language, "Workspace dashboard", "Panel del espacio")}
+        </span>
         <div className="mt-4 grid gap-6 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
           <div>
             <h2 className="text-3xl font-semibold tracking-[-0.04em]">
-              A clearer operating snapshot for {context.workspace.name}.
+              {copyForLanguage(
+                language,
+                `A clearer operating snapshot for ${context.workspace.name}.`,
+                `Una vista operativa más clara para ${context.workspace.name}.`
+              )}
             </h2>
             <p className="mt-4 body-lg">
-              This dashboard now surfaces the most useful saved context first:
-              current maturity, top gaps, the next 30 days, confidence, and
-              what the read is based on.
+              {copyForLanguage(
+                language,
+                "This dashboard surfaces the most useful saved context first: current maturity, top gaps, the next 30 days, confidence, and what the read is based on.",
+                "Este panel muestra primero el contexto guardado más útil: madurez actual, principales brechas, próximos 30 días, confianza y en qué se basa la lectura."
+              )}
             </p>
           </div>
           <div className="rounded-[28px] border border-[color:var(--border)] bg-ink p-6 text-sand">
             <p className="text-sm uppercase tracking-[0.18em] text-sand/70">
-              Current maturity
+              {copyForLanguage(language, "Current maturity", "Madurez actual")}
             </p>
             <p className="mt-4 text-6xl font-semibold">
               {maturityScore === null ? "--" : maturityScore}
             </p>
-            <p className="mt-3 text-sm text-sand/80">{maturityLabel(maturityScore)}</p>
+            <p className="mt-3 text-sm text-sand/80">
+              {maturityLabel(maturityScore, language)}
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="pill bg-white/12 text-sand">
-                Confidence: {formatConfidence(latestDiagnostic?.confidence)}
+                {copyForLanguage(language, "Confidence", "Confianza")}:{" "}
+                {formatConfidence(latestDiagnostic?.confidence, language)}
               </span>
               <span className="pill bg-white/12 text-sand">{plan.label}</span>
             </div>
@@ -165,33 +202,61 @@ export default async function WorkspaceDashboardPage() {
           <PageSummaryGrid
             items={[
               {
-                label: "Profile",
-                value: profile ? "Saved" : "Needs setup",
+                label: copyForLanguage(language, "Profile", "Perfil"),
+                value: profile
+                  ? copyForLanguage(language, "Saved", "Guardado")
+                  : copyForLanguage(language, "Needs setup", "Falta configurar"),
                 detail: profile
-                  ? "The guided intake can refine the same saved profile model."
-                  : "Complete the guided intake before expecting strong diagnostics."
+                  ? copyForLanguage(
+                      language,
+                      "The guided intake can refine the same saved profile model.",
+                      "La captura guiada puede refinar el mismo perfil guardado."
+                    )
+                  : copyForLanguage(
+                      language,
+                      "Complete the guided intake before expecting strong diagnostics.",
+                      "Completa la captura guiada antes de esperar un diagnóstico sólido."
+                    )
               },
               {
-                label: "Confidence",
-                value: formatConfidence(latestDiagnostic?.confidence),
+                label: copyForLanguage(language, "Confidence", "Confianza"),
+                value: formatConfidence(latestDiagnostic?.confidence, language),
                 detail: latestDiagnostic
-                  ? "Confidence reflects completeness, consistency, specificity, and evidence quality."
-                  : "Confidence appears after the first diagnostic run."
+                  ? copyForLanguage(
+                      language,
+                      "Confidence reflects completeness, consistency, specificity, and evidence quality.",
+                      "La confianza refleja integridad, consistencia, especificidad y calidad de la evidencia."
+                    )
+                  : copyForLanguage(
+                      language,
+                      "Confidence appears after the first diagnostic run.",
+                      "La confianza aparece después del primer diagnóstico."
+                    )
               },
               {
-                label: "Top gaps",
+                label: copyForLanguage(language, "Top gaps", "Principales brechas"),
                 value: String(topGaps.length),
                 detail:
                   topGaps.length > 0
                     ? topGaps.map((gap) => gap.title).join(" | ")
-                    : "No major gaps surfaced yet."
+                    : copyForLanguage(
+                        language,
+                        "No major gaps surfaced yet.",
+                        "Todavía no aparecen brechas principales."
+                      )
               },
               {
-                label: "Next 30 days",
-                value: latestThirtyDayPlan ? "Planned" : "Not planned",
+                label: copyForLanguage(language, "Next 30 days", "Próximos 30 días"),
+                value: latestThirtyDayPlan
+                  ? copyForLanguage(language, "Planned", "Planificado")
+                  : copyForLanguage(language, "Not planned", "Sin plan"),
                 detail: latestThirtyDayPlan
                   ? latestThirtyDayPlan.monthObjective
-                  : "Generate actions and the 30-day plan after diagnostics."
+                  : copyForLanguage(
+                      language,
+                      "Generate actions and the 30-day plan after diagnostics.",
+                      "Genera acciones y el plan de 30 días después del diagnóstico."
+                    )
               }
             ]}
           />
@@ -200,11 +265,13 @@ export default async function WorkspaceDashboardPage() {
 
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <article className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.18em] text-muted">Top gaps</p>
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Top gaps", "Principales brechas")}
+          </p>
           <div className="mt-4 grid gap-4">
             {topGaps.length > 0 ? (
               topGaps.map((gap) => (
-                <div
+              <div
                   className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
                   key={gap.title}
                 >
@@ -222,14 +289,20 @@ export default async function WorkspaceDashboardPage() {
               ))
             ) : (
               <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5 text-sm text-muted">
-                Run diagnostics to surface the most pressing execution gaps.
+                {copyForLanguage(
+                  language,
+                  "Run diagnostics to surface the most pressing execution gaps.",
+                  "Ejecuta el diagnóstico para mostrar las brechas operativas más urgentes."
+                )}
               </div>
             )}
           </div>
         </article>
 
         <article className="surface p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.18em] text-muted">What this is based on</p>
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "What this is based on", "En qué se basa")}
+          </p>
           {evidenceBasis.length > 0 ? (
             <>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -240,15 +313,20 @@ export default async function WorkspaceDashboardPage() {
                 ))}
               </div>
               <p className="mt-4 text-sm text-muted">
-                This view is grounded in the saved profile and deterministic
-                scoring layer. It is not using live telemetry or hidden
-                external signals yet.
+                {copyForLanguage(
+                  language,
+                  "This view is grounded in the saved profile and deterministic scoring layer. It is not using live telemetry or hidden external signals yet.",
+                  "Esta vista se basa en el perfil guardado y en la capa de puntuación determinista. Todavía no usa telemetría en vivo ni señales externas ocultas."
+                )}
               </p>
             </>
           ) : (
             <p className="mt-4 text-sm text-muted">
-              Evidence basis appears after a diagnostic run saves score drivers
-              and visible input references.
+              {copyForLanguage(
+                language,
+                "Evidence basis appears after a diagnostic run saves score drivers and visible input references.",
+                "La base de evidencia aparece cuando un diagnóstico guarda los impulsores de puntuación y las referencias visibles de entrada."
+              )}
             </p>
           )}
         </article>
@@ -257,18 +335,24 @@ export default async function WorkspaceDashboardPage() {
       <section className="surface p-6 md:p-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.18em] text-muted">Next 30 days</p>
+            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+              {copyForLanguage(language, "Next 30 days", "Próximos 30 días")}
+            </p>
             <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
               {latestThirtyDayPlan
                 ? latestThirtyDayPlan.monthObjective
-                : "No 30-day plan has been generated yet."}
+                : copyForLanguage(
+                    language,
+                    "No 30-day plan has been generated yet.",
+                    "Todavía no se ha generado un plan de 30 días."
+                  )}
             </h3>
           </div>
           <Link
             className="inline-flex rounded-[24px] border border-[color:var(--border)] bg-white/85 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink"
             href="/app/actions"
           >
-            Open actions
+            {copyForLanguage(language, "Open actions", "Abrir acciones")}
           </Link>
         </div>
 
@@ -284,82 +368,125 @@ export default async function WorkspaceDashboardPage() {
                 </p>
                 <h4 className="mt-3 text-xl font-semibold">{moment.title}</h4>
                 <p className="mt-4 text-sm text-muted">
-                  <strong className="text-ink">Success signal:</strong> {moment.signal}
+                  <strong className="text-ink">
+                    {copyForLanguage(language, "Success signal", "Señal de éxito")}:
+                  </strong>{" "}
+                  {moment.signal}
                 </p>
               </article>
             ))}
           </div>
         ) : (
           <div className="mt-6 rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5 text-sm text-muted">
-            Generate actions to turn the diagnostic into a practical weekly plan.
+            {copyForLanguage(
+              language,
+              "Generate actions to turn the diagnostic into a practical weekly plan.",
+              "Genera acciones para convertir el diagnóstico en un plan semanal práctico."
+            )}
           </div>
         )}
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ModuleCard
-          detail={profile ? "Saved profile context is available." : "Start the guided intake."}
+          detail={
+            profile
+              ? copyForLanguage(language, "Saved profile context is available.", "El contexto del perfil ya está guardado.")
+              : copyForLanguage(language, "Start the guided intake.", "Inicia la captura guiada.")
+          }
           href="/app/profile"
-          label="Profile"
-          value={profile ? "Saved" : "Not started"}
+          label={copyForLanguage(language, "Profile", "Perfil")}
+          language={language}
+          value={profile ? copyForLanguage(language, "Saved", "Guardado") : copyForLanguage(language, "Not started", "Sin empezar")}
         />
         <ModuleCard
           detail={
             latestDiagnostic
               ? `Latest score ${latestDiagnostic.overallMaturityScore}/100.`
-              : "Run the first diagnostic."
+              : copyForLanguage(language, "Run the first diagnostic.", "Ejecuta el primer diagnóstico.")
           }
           href="/app/diagnostics"
-          label="Diagnostics"
-          value={latestDiagnostic ? "Saved" : "Not generated"}
+          label={copyForLanguage(language, "Diagnostics", "Diagnóstico")}
+          language={language}
+          value={
+            latestDiagnostic
+              ? copyForLanguage(language, "Saved", "Guardado")
+              : copyForLanguage(language, "Not generated", "Sin generar")
+          }
         />
         <ModuleCard
           detail={
             latestRoadmap
               ? `${latestRoadmap.items.length} roadmap items are saved.`
-              : "Generate a staged roadmap next."
+              : copyForLanguage(language, "Generate a staged roadmap next.", "Genera después una hoja de ruta por etapas.")
           }
           href="/app/roadmap"
-          label="Roadmap"
-          value={latestRoadmap ? "Saved" : "Not generated"}
+          label={copyForLanguage(language, "Roadmap", "Hoja de ruta")}
+          language={language}
+          value={
+            latestRoadmap
+              ? copyForLanguage(language, "Saved", "Guardado")
+              : copyForLanguage(language, "Not generated", "Sin generar")
+          }
         />
         <ModuleCard
           detail={
             latestActionPlan
               ? `${latestActionPlan.actions.length} action cards are saved.`
-              : "Generate actions and a 30-day plan."
+              : copyForLanguage(language, "Generate actions and a 30-day plan.", "Genera acciones y un plan de 30 días.")
           }
           href="/app/actions"
-          label="Actions"
-          value={latestActionPlan ? "Saved" : "Not generated"}
+          label={copyForLanguage(language, "Actions", "Acciones")}
+          language={language}
+          value={
+            latestActionPlan
+              ? copyForLanguage(language, "Saved", "Guardado")
+              : copyForLanguage(language, "Not generated", "Sin generar")
+          }
         />
         <ModuleCard
           detail={
             latestAssets.length > 0
               ? `Saved types: ${assetTypes.join(", ")}.`
-              : "Generate preview artifacts after planning."
+              : copyForLanguage(language, "Generate preview artifacts after planning.", "Genera activos piloto después de planificar.")
           }
           href="/app/assets"
-          label="Assets"
-          value={latestAssets.length > 0 ? `${latestAssets.length} saved` : "Not generated"}
+          label={copyForLanguage(language, "Assets", "Activos")}
+          language={language}
+          value={
+            latestAssets.length > 0
+              ? copyForLanguage(language, `${latestAssets.length} saved`, `${latestAssets.length} guardados`)
+              : copyForLanguage(language, "Not generated", "Sin generar")
+          }
         />
         <ModuleCard
-          detail={`Role: ${context.membership.role}. Global role: ${context.user.globalRole.replaceAll("_", " ")}.`}
+          detail={copyForLanguage(
+            language,
+            `Role: ${context.membership.role}. Global role: ${context.user.globalRole.replaceAll("_", " ")}.`,
+            `Rol: ${formatRoleLabel(context.membership.role, language)}. Rol global: ${formatRoleLabel(context.user.globalRole, language)}.`
+          )}
           href="/app/team"
-          label="Team"
+          label={copyForLanguage(language, "Team", "Equipo")}
+          language={language}
           value={context.workspace.slug}
         />
         <ModuleCard
-          detail={plan.description}
+          detail={formatPlanDescription(context.workspace.plan, language)}
           href="/app/dashboard"
-          label="Plan"
+          label={copyForLanguage(language, "Plan", "Plan")}
+          language={language}
           value={plan.label}
         />
         <ModuleCard
-          detail="Support, deletion requests, and pilot operations stay explicit."
+          detail={copyForLanguage(
+            language,
+            "Support, deletion requests, and pilot operations stay explicit.",
+            "El soporte, las solicitudes de eliminación y la operativa piloto siguen siendo explícitos."
+          )}
           href="/app/support"
-          label="Support"
-          value="Pilot-ready"
+          label={copyForLanguage(language, "Support", "Soporte")}
+          language={language}
+          value={copyForLanguage(language, "Pilot-ready", "Listo para piloto")}
         />
       </section>
     </div>

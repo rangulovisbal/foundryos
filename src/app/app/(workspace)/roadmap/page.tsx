@@ -141,7 +141,8 @@ export default async function RoadmapPage() {
               {
                 label: "Output language",
                 value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail: "System UI stays in English. Generated roadmap content follows the workspace setting."
+                detail:
+                  "The workspace language drives generated roadmap content and the core app experience."
               }
             ]}
           />

@@ -133,6 +133,7 @@ function mapUser(row: typeof appUsers.$inferSelect): AppUser {
     fullName: row.fullName,
     passwordHash: row.passwordHash,
     emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
+    preferredLanguage: (row.preferredLanguage as AppUser["preferredLanguage"]) ?? null,
     globalRole: row.globalRole as AppUser["globalRole"],
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
@@ -491,6 +492,7 @@ export async function createUser(record: AppUser) {
     fullName: record.fullName,
     passwordHash: record.passwordHash,
     emailVerifiedAt: record.emailVerifiedAt ? new Date(record.emailVerifiedAt) : null,
+    preferredLanguage: record.preferredLanguage,
     globalRole: record.globalRole,
     createdAt: new Date(record.createdAt),
     updatedAt: new Date(record.updatedAt)
@@ -550,7 +552,12 @@ export async function findUserById(userId: string) {
 
 export async function updateUser(
   userId: string,
-  patch: Partial<Pick<AppUser, "passwordHash" | "emailVerifiedAt" | "globalRole" | "fullName">>
+  patch: Partial<
+    Pick<
+      AppUser,
+      "passwordHash" | "emailVerifiedAt" | "globalRole" | "fullName" | "preferredLanguage"
+    >
+  >
 ) {
   const db = await requireDb("user updates");
   const updatedAt = new Date().toISOString();
@@ -566,6 +573,7 @@ export async function updateUser(
           : patch.emailVerifiedAt
             ? new Date(patch.emailVerifiedAt)
             : null,
+      preferredLanguage: patch.preferredLanguage,
       globalRole: patch.globalRole,
       updatedAt: new Date(updatedAt)
     })

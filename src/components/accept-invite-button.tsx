@@ -3,7 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function AcceptInviteButton({ token }: { token: string }) {
+import type { OutputLanguage } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
+
+export function AcceptInviteButton({
+  language,
+  token
+}: {
+  language: OutputLanguage;
+  token: string;
+}) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,14 +33,27 @@ export function AcceptInviteButton({ token }: { token: string }) {
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Invitation could not be accepted.");
+        throw new Error(
+          payload.error ??
+            copyForLanguage(
+              language,
+              "Invitation could not be accepted.",
+              "No se pudo aceptar la invitación."
+            )
+        );
       }
 
       router.push("/app/dashboard");
       router.refresh();
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "Invitation could not be accepted."
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(
+              language,
+              "Invitation could not be accepted.",
+              "No se pudo aceptar la invitación."
+            )
       );
     } finally {
       setLoading(false);
@@ -46,7 +68,9 @@ export function AcceptInviteButton({ token }: { token: string }) {
         onClick={handleAccept}
         type="button"
       >
-        {loading ? "Joining..." : "Accept invitation"}
+        {loading
+          ? copyForLanguage(language, "Joining...", "Uniéndose...")
+          : copyForLanguage(language, "Accept invitation", "Aceptar invitación")}
       </button>
       {message ? (
         <div className="rounded-2xl border border-coral/30 bg-coral/10 px-4 py-3 text-sm text-coral">

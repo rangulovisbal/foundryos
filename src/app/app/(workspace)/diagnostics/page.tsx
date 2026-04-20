@@ -122,7 +122,8 @@ export default async function DiagnosticsPage() {
               {
                 label: "Output language",
                 value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail: "System UI stays in English. Generated diagnostic content follows the workspace setting."
+                detail:
+                  "The workspace language drives generated diagnostic content and the core app experience."
               }
             ]}
           />

@@ -12,6 +12,7 @@ import {
   canRequestAccountDeletion,
   canRequestWorkspaceDeletion,
   canSubmitSupportRequest,
+  type OutputLanguage,
   formatDeletionRequestStatus,
   formatDeletionRequestType,
   formatSupportIssueType,
@@ -19,51 +20,53 @@ import {
   getDeletionConfirmationPhrase,
   isLockedState
 } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
 import { publicLegalLinks } from "@/lib/legal";
 
-const faqItems = [
-  {
-    question: "What FoundryOS does",
-    answer:
-      "FoundryOS turns saved business context into structured diagnostics, planning, assets, and SOPs so a founder or operator can review operating priorities in one workspace."
-  },
-  {
-    question: "What is preview-only right now",
-    answer:
-      "Billing automation, live checkout control, production support operations, and deeper downstream delivery workflows remain preview-only or manual in the current MVP."
-  },
-  {
-    question: "How outputs are generated",
-    answer:
-      "Each module reads saved workspace context and persisted upstream artifacts. The app stores deterministic structured outputs and histories instead of showing a raw one-off AI text dump."
-  },
-  {
-    question: "What output language means",
-    answer:
-      "Output language controls the language of generated business artifacts. The current app interface remains English while outputs normalize into the selected workspace language."
-  },
-  {
-    question: "What billing status means",
-    answer:
-      "Billing status controls preview access and write restrictions at the workspace level. Live billing is not yet the system of record, so internal admin still manages state manually for MVP testing."
-  },
-  {
-    question: "How support works",
-    answer:
-      "Support requests submitted here are stored in the product and reviewed manually by the founder/internal admin team. There is no full ticketing portal or SLA automation yet."
-  },
-  {
-    question: "How to request account or workspace deletion",
-    answer:
-      "Use the request forms on this page. They create tracked review requests only. No account or workspace is deleted automatically from this UI in the current MVP."
-  }
-] as const;
+function supportFaqItems(language: OutputLanguage) {
+  return [
+    {
+      question: copyForLanguage(language, "What FoundryOS does", "Qué hace FoundryOS"),
+      answer: copyForLanguage(
+        language,
+        "FoundryOS turns saved business context into structured diagnostics, planning, assets, and SOPs so a founder or operator can review operating priorities in one workspace.",
+        "FoundryOS convierte el contexto guardado del negocio en diagnósticos, planificación, activos y SOPs estructurados para que un fundador u operador revise prioridades operativas en un solo espacio."
+      )
+    },
+    {
+      question: copyForLanguage(language, "What is pilot-only right now", "Qué sigue siendo solo piloto"),
+      answer: copyForLanguage(
+        language,
+        "Billing automation, live checkout control, production support operations, and deeper downstream delivery workflows remain pilot-only or manual in the current MVP.",
+        "La automatización de facturación, el control del checkout en vivo, las operaciones de soporte en producción y los flujos de entrega posteriores siguen siendo solo piloto o manuales en el MVP actual."
+      )
+    },
+    {
+      question: copyForLanguage(language, "How outputs are generated", "Cómo se generan los resultados"),
+      answer: copyForLanguage(
+        language,
+        "Each module reads saved workspace context and persisted upstream artifacts. The app stores deterministic structured outputs and histories instead of showing a raw one-off AI text dump.",
+        "Cada módulo lee el contexto guardado del espacio y los artefactos persistidos. La app guarda resultados e historiales estructurados y deterministas en lugar de mostrar un texto aislado generado por IA."
+      )
+    },
+    {
+      question: copyForLanguage(language, "What the primary language means", "Qué significa el idioma principal"),
+      answer: copyForLanguage(
+        language,
+        "The primary language drives the workspace experience where it is already wired and also controls the language of generated business artifacts.",
+        "El idioma principal guía la experiencia del espacio donde ya está conectado y también controla el idioma de los artefactos generados."
+      )
+    }
+  ] as const;
+}
 
 export default async function SupportPage() {
   const context = await requireWorkspaceContext("/app/support");
+  const language = context.workspace.outputLanguage;
   const canViewWorkspaceRequests = ["owner", "admin"].includes(
     context.membership.role
   );
+  const faqItems = supportFaqItems(language);
   const [supportRequests, accountDeletionRequests, workspaceDeletionRequests] =
     await Promise.all([
       listSupportRequests({
@@ -89,22 +92,36 @@ export default async function SupportPage() {
   return (
     <div className="space-y-6">
       {isLockedState(context.workspace.accountState) ? (
-        <LockedStatePanel accountState={context.workspace.accountState} />
+        <LockedStatePanel
+          accountState={context.workspace.accountState}
+          language={language}
+        />
       ) : null}
 
       <section className="surface p-6 md:p-8">
-        <span className="eyebrow">Support and trust</span>
+        <span className="eyebrow">
+          {copyForLanguage(language, "Support and trust", "Soporte y confianza")}
+        </span>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
-          Help, support requests, and controlled deletion requests.
+          {copyForLanguage(
+            language,
+            "Help, support requests, and controlled deletion requests.",
+            "Ayuda, solicitudes de soporte y solicitudes de eliminación controladas."
+          )}
         </h2>
         <p className="mt-4 body-lg">
-          This MVP route is the minimum operational trust layer for pilot use.
-          Support and deletion flows are tracked here, but execution still
-          happens manually.
+          {copyForLanguage(
+            language,
+            "This route is the minimum operational trust layer for pilot use. Support and deletion flows are tracked here, but execution still happens manually.",
+            "Esta ruta es la capa mínima de confianza operativa para uso piloto. Los flujos de soporte y eliminación se registran aquí, pero la ejecución sigue siendo manual."
+          )}
         </p>
         <div className="mt-5 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
-          Support and deletion request forms remain available even when the
-          workspace is in a restricted preview state.
+          {copyForLanguage(
+            language,
+            "Support and deletion request forms remain available even when the workspace is in a restricted pilot state.",
+            "Los formularios de soporte y eliminación siguen disponibles incluso cuando el espacio está en un estado piloto restringido."
+          )}
         </div>
       </section>
 
@@ -126,7 +143,9 @@ export default async function SupportPage() {
       </section>
 
       <section className="surface p-6 md:p-8">
-        <p className="text-sm uppercase tracking-[0.18em] text-muted">Legal and trust documents</p>
+        <p className="text-sm uppercase tracking-[0.18em] text-muted">
+          {copyForLanguage(language, "Legal and trust documents", "Documentos legales y de confianza")}
+        </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {publicLegalLinks.map((link) => (
             <Link
@@ -135,7 +154,13 @@ export default async function SupportPage() {
               href={link.href}
             >
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
-                {link.label}
+                {link.href === "/terms"
+                  ? copyForLanguage(language, "Terms", "Términos")
+                  : link.href === "/privacy"
+                    ? copyForLanguage(language, "Privacy", "Privacidad")
+                    : link.href === "/cookie"
+                      ? copyForLanguage(language, "Cookie", "Cookies")
+                      : copyForLanguage(language, "Subprocessors", "Subencargados")}
               </p>
               <p className="mt-3 text-sm leading-7 text-muted">{link.description}</p>
             </Link>
@@ -144,9 +169,13 @@ export default async function SupportPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <SupportRequestForm canSubmit={canSubmitSupportRequest()} />
+        <SupportRequestForm
+          canSubmit={canSubmitSupportRequest()}
+          language={language}
+        />
         <SupportHistoryPanel
           canViewWorkspaceRequests={canViewWorkspaceRequests}
+          language={language}
           supportRequests={supportRequests}
         />
       </section>
@@ -154,28 +183,40 @@ export default async function SupportPage() {
       <section className="grid gap-6 xl:grid-cols-2">
         <DeletionRequestForm
           canSubmit={canRequestAccountDeletion()}
-          confirmationPhrase={getDeletionConfirmationPhrase("account_deletion")}
-          description="Request manual review of your account deletion. This does not execute immediate hard deletion from the app."
+          confirmationPhrase={getDeletionConfirmationPhrase("account_deletion", language)}
+          description={copyForLanguage(
+            language,
+            "Request manual review of your account deletion. This does not execute immediate hard deletion from the app.",
+            "Solicita una revisión manual de la eliminación de tu cuenta. Esto no ejecuta una eliminación inmediata desde la app."
+          )}
+          language={language}
           requestType="account_deletion"
-          title="Request account deletion"
+          title={copyForLanguage(language, "Request account deletion", "Solicitar eliminación de cuenta")}
         />
         <DeletionRequestForm
           canSubmit={canRequestWorkspaceDeletion(context.membership.role)}
-          confirmationPhrase={getDeletionConfirmationPhrase("workspace_deletion")}
-          description="Only workspace owners and admins can request workspace deletion. This creates a tracked review request; no workspace is deleted automatically from this UI."
+          confirmationPhrase={getDeletionConfirmationPhrase("workspace_deletion", language)}
+          description={copyForLanguage(
+            language,
+            "Only workspace owners and admins can request workspace deletion. This creates a tracked review request; no workspace is deleted automatically from this UI.",
+            "Solo los propietarios y administradores del espacio pueden solicitar su eliminación. Esto crea una solicitud registrada; ningún espacio se elimina automáticamente desde esta interfaz."
+          )}
+          language={language}
           requestType="workspace_deletion"
-          title="Request workspace deletion"
+          title={copyForLanguage(language, "Request workspace deletion", "Solicitar eliminación del espacio")}
         />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
         <DeletionHistoryPanel
           deletionRequests={accountDeletionRequests}
-          title="Your account deletion requests"
+          language={language}
+          title={copyForLanguage(language, "Your account deletion requests", "Tus solicitudes de eliminación de cuenta")}
         />
         <DeletionHistoryPanel
           deletionRequests={workspaceDeletionRequests}
-          title="Workspace deletion requests"
+          language={language}
+          title={copyForLanguage(language, "Workspace deletion requests", "Solicitudes de eliminación del espacio")}
         />
       </section>
     </div>
@@ -184,29 +225,41 @@ export default async function SupportPage() {
 
 function SupportHistoryPanel({
   canViewWorkspaceRequests,
+  language,
   supportRequests
 }: {
   canViewWorkspaceRequests: boolean;
+  language: OutputLanguage;
   supportRequests: Awaited<ReturnType<typeof listSupportRequests>>;
 }) {
   return (
     <section className="surface p-6 md:p-8">
       <p className="text-sm uppercase tracking-[0.18em] text-muted">
-        {canViewWorkspaceRequests ? "Workspace support queue" : "Your support requests"}
+        {canViewWorkspaceRequests
+          ? copyForLanguage(language, "Workspace support queue", "Cola de soporte del espacio")
+          : copyForLanguage(language, "Your support requests", "Tus solicitudes de soporte")}
       </p>
       <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em]">
-        Recent support requests
+        {copyForLanguage(language, "Recent support requests", "Solicitudes recientes de soporte")}
       </h3>
       <div className="mt-5 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
         <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
           <thead className="bg-white/90 text-muted">
             <tr>
-              <th className="px-4 py-3 font-semibold">Issue</th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Issue", "Asunto")}
+              </th>
               {canViewWorkspaceRequests ? (
-                <th className="px-4 py-3 font-semibold">Requester</th>
+                <th className="px-4 py-3 font-semibold">
+                  {copyForLanguage(language, "Requester", "Solicitante")}
+                </th>
               ) : null}
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Created</th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Status", "Estado")}
+              </th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Created", "Creada")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -218,7 +271,7 @@ function SupportHistoryPanel({
                 >
                   <td className="px-4 py-4">
                     <p className="font-semibold">
-                      {formatSupportIssueType(entry.request.issueType)}
+                      {formatSupportIssueType(entry.request.issueType, language)}
                     </p>
                     <p className="mt-2 max-w-[52ch] text-muted">
                       {entry.request.message}
@@ -231,7 +284,7 @@ function SupportHistoryPanel({
                     </td>
                   ) : null}
                   <td className="px-4 py-4 capitalize">
-                    {formatSupportRequestStatus(entry.request.status)}
+                    {formatSupportRequestStatus(entry.request.status, language)}
                   </td>
                   <td className="px-4 py-4 text-muted">
                     {new Date(entry.request.createdAt).toLocaleString()}
@@ -244,7 +297,11 @@ function SupportHistoryPanel({
                   className="px-4 py-6 text-muted"
                   colSpan={canViewWorkspaceRequests ? 4 : 3}
                 >
-                  No support requests have been submitted yet.
+                  {copyForLanguage(
+                    language,
+                    "No support requests have been submitted yet.",
+                    "Todavía no se han enviado solicitudes de soporte."
+                  )}
                 </td>
               </tr>
             )}
@@ -257,23 +314,35 @@ function SupportHistoryPanel({
 
 function DeletionHistoryPanel({
   deletionRequests,
+  language,
   title
 }: {
   deletionRequests: Awaited<ReturnType<typeof listDeletionRequests>>;
+  language: OutputLanguage;
   title: string;
 }) {
   return (
     <section className="surface p-6 md:p-8">
-      <p className="text-sm uppercase tracking-[0.18em] text-muted">Deletion requests</p>
+      <p className="text-sm uppercase tracking-[0.18em] text-muted">
+        {copyForLanguage(language, "Deletion requests", "Solicitudes de eliminación")}
+      </p>
       <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em]">{title}</h3>
       <div className="mt-5 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
         <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
           <thead className="bg-white/90 text-muted">
             <tr>
-              <th className="px-4 py-3 font-semibold">Type</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Reason</th>
-              <th className="px-4 py-3 font-semibold">Created</th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Type", "Tipo")}
+              </th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Status", "Estado")}
+              </th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Reason", "Motivo")}
+              </th>
+              <th className="px-4 py-3 font-semibold">
+                {copyForLanguage(language, "Created", "Creada")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -284,13 +353,14 @@ function DeletionHistoryPanel({
                   key={entry.request.id}
                 >
                   <td className="px-4 py-4 font-semibold">
-                    {formatDeletionRequestType(entry.request.requestType)}
+                    {formatDeletionRequestType(entry.request.requestType, language)}
                   </td>
                   <td className="px-4 py-4 capitalize">
-                    {formatDeletionRequestStatus(entry.request.status)}
+                    {formatDeletionRequestStatus(entry.request.status, language)}
                   </td>
                   <td className="px-4 py-4 text-muted">
-                    {entry.request.reason ?? "No reason added."}
+                    {entry.request.reason ??
+                      copyForLanguage(language, "No reason added.", "Sin motivo añadido.")}
                   </td>
                   <td className="px-4 py-4 text-muted">
                     {new Date(entry.request.createdAt).toLocaleString()}
@@ -300,7 +370,11 @@ function DeletionHistoryPanel({
             ) : (
               <tr>
                 <td className="px-4 py-6 text-muted" colSpan={4}>
-                  No deletion requests have been submitted yet.
+                  {copyForLanguage(
+                    language,
+                    "No deletion requests have been submitted yet.",
+                    "Todavía no se han enviado solicitudes de eliminación."
+                  )}
                 </td>
               </tr>
             )}

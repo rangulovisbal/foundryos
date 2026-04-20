@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 
+import type { OutputLanguage } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
+
 export function TeamInviteForm({
-  canInvite
+  canInvite,
+  language
 }: {
   canInvite: boolean;
+  language: OutputLanguage;
 }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -42,16 +47,37 @@ export function TeamInviteForm({
       };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Invite failed.");
+        throw new Error(
+          payload.error ??
+            copyForLanguage(
+              language,
+              "Invitation failed.",
+              "No se pudo crear la invitación."
+            )
+        );
       }
 
-      setMessage("Invitation created for preview testing.");
+      setMessage(
+        copyForLanguage(
+          language,
+          "Invitation created for pilot use.",
+          "Invitación creada para uso piloto."
+        )
+      );
       setPreviewUrl(payload.previewUrl ?? null);
       setEmailDelivery(payload.emailDelivery ?? true);
       setEmail("");
       setRole("member");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Invite failed.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(
+              language,
+              "Invitation failed.",
+              "No se pudo crear la invitación."
+            )
+      );
     } finally {
       setLoading(false);
     }
@@ -60,7 +86,7 @@ export function TeamInviteForm({
   return (
     <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
-        Invite member
+        {copyForLanguage(language, "Invite member", "Invitar miembro")}
       </p>
       <form className="mt-4 grid gap-4 md:grid-cols-[1fr_180px_auto]" onSubmit={handleSubmit}>
         <input
@@ -77,22 +103,27 @@ export function TeamInviteForm({
           onChange={(event) => setRole(event.target.value)}
           value={role}
         >
-          <option value="admin">Admin</option>
-          <option value="member">Member</option>
-          <option value="viewer">Viewer</option>
+          <option value="admin">{copyForLanguage(language, "Admin", "Admin")}</option>
+          <option value="member">{copyForLanguage(language, "Member", "Miembro")}</option>
+          <option value="viewer">{copyForLanguage(language, "Viewer", "Lector")}</option>
         </select>
         <button
           className="rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand disabled:opacity-60"
           disabled={!canInvite || loading}
           type="submit"
         >
-          {loading ? "Inviting..." : "Send invite"}
+          {loading
+            ? copyForLanguage(language, "Inviting...", "Invitando...")
+            : copyForLanguage(language, "Send invite", "Enviar invitación")}
         </button>
       </form>
       {!canInvite ? (
         <p className="mt-3 text-sm text-muted">
-          Invites are disabled for your role, current account state, or current
-          preview plan.
+          {copyForLanguage(
+            language,
+            "Invites are disabled for your role, current account state, or current pilot plan.",
+            "Las invitaciones están desactivadas para tu rol, el estado actual de la cuenta o el plan piloto actual."
+          )}
         </p>
       ) : null}
       {message ? (
@@ -100,15 +131,18 @@ export function TeamInviteForm({
           <p>{message}</p>
           {previewUrl ? (
             <p className="mt-2">
-              Preview invite link:{" "}
+              {copyForLanguage(language, "Preview invite link:", "Enlace de invitación de vista previa:")}{" "}
               <a className="font-semibold text-ink underline" href={previewUrl}>
-                accept invitation
+                {copyForLanguage(language, "accept invitation", "aceptar invitación")}
               </a>
             </p>
           ) : !emailDelivery ? (
             <p className="mt-2">
-              Invitation delivery is unavailable in this environment. Configure
-              Resend or enable preview auth links before relying on invites here.
+              {copyForLanguage(
+                language,
+                "Invitation delivery is unavailable in this environment. Use preview links or a configured email environment before relying on invites.",
+                "La entrega de invitaciones no está disponible en este entorno. Usa enlaces de vista previa o un entorno con correo configurado antes de depender de las invitaciones."
+              )}
             </p>
           ) : null}
         </div>

@@ -1,14 +1,25 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { captureAnalyticsEvent } from "@/lib/analytics";
-import { registerUser } from "@/lib/auth";
+import { getRequestAppUrl, registerUser } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { signupSchema } from "@/lib/foundation";
+import { setLanguageCookie } from "@/lib/language-server";
 
 export async function POST(request: Request) {
   try {
-    const payload = signupSchema.parse(await request.json());
-    const result = await registerUser(payload);
+    const appUrl = getRequestAppUrl(request);
+    const body = (await request.json()) as Record<string, unknown>;
+    const payload = signupSchema
+      .extend({
+        redirectTo: z.string().optional()
+      })
+      .parse(body);
+    const result = await registerUser({
+      ...payload,
+      appUrl
+    });
 
     await captureAnalyticsEvent({
       event: "signup_completed",
@@ -18,15 +29,19 @@ export async function POST(request: Request) {
         email_delivery: result.emailDelivery,
         delivery_mode: result.deliveryMode,
         has_preview_verification_link: Boolean(result.verificationPreviewUrl),
-        global_role: result.user.globalRole
+        global_role: result.user.globalRole,
+        language: result.user.preferredLanguage
       }
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       ok: true,
       verificationPreviewUrl: result.verificationPreviewUrl,
-      emailDelivery: result.emailDelivery
+      emailDelivery: result.emailDelivery,
+      deliveryMode: result.deliveryMode
     });
+    setLanguageCookie(response, result.user.preferredLanguage ?? "en");
+    return response;
   } catch (error) {
     return NextResponse.json(
       {

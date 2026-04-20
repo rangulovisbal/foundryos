@@ -85,9 +85,9 @@ const wizardSteps: StepDefinition[] = [
   },
   {
     key: "output-language",
-    label: "Output language",
+    label: "Primary language",
     description:
-      "Choose the language for generated outputs. The app UI stays in English.",
+      "Choose the primary workspace language. Generated outputs follow this setting and the app experience is moving toward the same language.",
     fields: ["outputLanguage"]
   },
   {
@@ -242,7 +242,7 @@ function reviewGroups(draft: ProfileDraft) {
           compactList(draft.currentTools).join(", ") || "Not provided yet."
         ] as [string, string],
         [
-          "Output language",
+          "Primary language",
           draft.outputLanguage === "es" ? "Spanish output" : "English output"
         ] as [string, string]
       ]
@@ -437,7 +437,7 @@ function renderStepFields({
     case "output-language":
       return (
         <div className="space-y-4">
-          <Field label="Generated output language">
+          <Field label="Primary workspace language">
             <select
               className={inputClass}
               disabled={!canEdit || loading}

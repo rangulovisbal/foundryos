@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "@/app/globals.css";
+import { getHtmlLanguage } from "@/lib/language";
+import { getCookieLanguage } from "@/lib/language-server";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,17 +16,19 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const language = await getCookieLanguage();
+
   return (
-    <html lang="en">
+    <html lang={getHtmlLanguage(language)}>
       <body>
-        <SiteHeader />
+        <SiteHeader language={language} />
         <main>{children}</main>
-        <SiteFooter />
+        <SiteFooter language={language} />
       </body>
     </html>
   );

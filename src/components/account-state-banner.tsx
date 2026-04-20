@@ -1,11 +1,17 @@
-import { getAccountStateMeta, type WorkspaceAccountState } from "@/lib/foundation";
+import {
+  getAccountStateMeta,
+  type OutputLanguage,
+  type WorkspaceAccountState
+} from "@/lib/foundation";
 
 export function AccountStateBanner({
-  accountState
+  accountState,
+  language = "en"
 }: {
   accountState: WorkspaceAccountState;
+  language?: OutputLanguage;
 }) {
-  const meta = getAccountStateMeta(accountState);
+  const meta = getAccountStateMeta(accountState, language);
 
   const toneClass =
     meta.tone === "coral"

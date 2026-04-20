@@ -123,7 +123,8 @@ export default async function SopsPage() {
               {
                 label: "Output language",
                 value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail: "System UI stays in English. Generated SOP content follows the workspace setting."
+                detail:
+                  "The workspace language drives generated SOP content and the core app experience."
               }
             ]}
           />

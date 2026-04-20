@@ -6,13 +6,17 @@ import { useState } from "react";
 import {
   formatSupportIssueType,
   supportIssueTypeOptions,
+  type OutputLanguage,
   type SupportIssueType
 } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
 
 export function SupportRequestForm({
-  canSubmit
+  canSubmit,
+  language
 }: {
   canSubmit: boolean;
+  language: OutputLanguage;
 }) {
   const router = useRouter();
   const [issueType, setIssueType] = useState<SupportIssueType>("product_question");
@@ -42,12 +46,23 @@ export function SupportRequestForm({
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Support request failed.");
+        throw new Error(
+          payload.error ??
+            copyForLanguage(
+              language,
+              "Support request failed.",
+              "No se pudo enviar la solicitud de soporte."
+            )
+        );
       }
 
       setFeedbackTone("success");
       setFeedback(
-        "Support request submitted. This preview uses manual founder/internal-admin follow-up."
+        copyForLanguage(
+          language,
+          "Support request submitted. This pilot still uses manual founder or internal-admin follow-up.",
+          "Solicitud de soporte enviada. Este piloto todavía usa seguimiento manual del fundador o del admin interno."
+        )
       );
       setMessage("");
       setIssueType("product_question");
@@ -55,7 +70,13 @@ export function SupportRequestForm({
     } catch (error) {
       setFeedbackTone("error");
       setFeedback(
-        error instanceof Error ? error.message : "Support request failed."
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(
+              language,
+              "Support request failed.",
+              "No se pudo enviar la solicitud de soporte."
+            )
       );
     } finally {
       setLoading(false);
@@ -65,7 +86,7 @@ export function SupportRequestForm({
   return (
     <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
-        Contact support
+        {copyForLanguage(language, "Contact support", "Contactar soporte")}
       </p>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
         <select
@@ -76,7 +97,7 @@ export function SupportRequestForm({
         >
           {supportIssueTypeOptions.map((option) => (
             <option key={option} value={option}>
-              {formatSupportIssueType(option)}
+              {formatSupportIssueType(option, language)}
             </option>
           ))}
         </select>
@@ -84,7 +105,11 @@ export function SupportRequestForm({
           className="min-h-[180px] w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none"
           disabled={!canSubmit || loading}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="Describe the issue, the route or module involved, what you expected, and what actually happened."
+          placeholder={copyForLanguage(
+            language,
+            "Describe the issue, the route or module involved, what you expected, and what actually happened.",
+            "Describe el problema, la ruta o módulo implicado, qué esperabas y qué ocurrió realmente."
+          )}
           value={message}
         />
         <button
@@ -92,7 +117,9 @@ export function SupportRequestForm({
           disabled={!canSubmit || loading}
           type="submit"
         >
-          {loading ? "Submitting..." : "Submit support request"}
+          {loading
+            ? copyForLanguage(language, "Submitting...", "Enviando...")
+            : copyForLanguage(language, "Submit support request", "Enviar solicitud de soporte")}
         </button>
       </form>
       {feedback ? (

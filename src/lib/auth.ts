@@ -35,6 +35,7 @@ import { isConfigurationError } from "@/lib/errors";
 import {
   type AdminAuditLogRecord,
   type AppUser,
+  type OutputLanguage,
   type WorkspaceContext,
   type WorkspaceRecord,
   getInternalAdminEmails,
@@ -48,6 +49,7 @@ import {
   canManageWorkspace,
   getPlanDefinition
 } from "@/lib/foundation";
+import { copyForLanguage, DEFAULT_LANGUAGE, normalizeLanguage } from "@/lib/language";
 import { sendTransactionalEmail } from "@/lib/email";
 import { createRawToken, hashPassword, hashToken, verifyPassword } from "@/lib/security";
 
@@ -57,6 +59,7 @@ const SESSION_COOKIE_NAME =
     : "foundry_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 30;
 const INTERNAL_ADMIN_BOOTSTRAP_EMAIL = "internal-admin@preview.foundryos.local";
+export type AuthDeliveryMode = "email" | "preview_link" | "unavailable";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -66,7 +69,7 @@ function createExpiry(hours: number) {
   return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
 }
 
-function sanitizeRedirectPath(value: string | null | undefined) {
+export function sanitizeRedirectPath(value: string | null | undefined) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return "/app";
   }
@@ -74,39 +77,145 @@ function sanitizeRedirectPath(value: string | null | undefined) {
   return value;
 }
 
-function buildAbsoluteUrl(path: string) {
-  return `${env.appUrl}${path}`;
+function appendSearchParams(
+  path: string,
+  params: Record<string, string | null | undefined>
+) {
+  const url = new URL(path, env.appUrl);
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  return `${url.pathname}${url.search}`;
+}
+
+function resolveAppUrl(appUrl?: string | null) {
+  if (!appUrl) {
+    return env.appUrl;
+  }
+
+  try {
+    return new URL(appUrl).origin;
+  } catch {
+    return env.appUrl;
+  }
+}
+
+export function getRequestAppUrl(request: Request) {
+  const origin = request.headers.get("origin");
+
+  if (origin) {
+    return resolveAppUrl(origin);
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? request.headers.get("host");
+
+  if (host) {
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const protocol = forwardedProto ?? new URL(request.url).protocol.replace(/:$/, "");
+    return `${protocol}://${host}`;
+  }
+
+  return resolveAppUrl(new URL(request.url).origin);
+}
+
+function buildAbsoluteUrl(path: string, appUrl?: string | null) {
+  return `${resolveAppUrl(appUrl)}${path}`;
+}
+
+export function getAuthDeliveryMode(): AuthDeliveryMode {
+  if (env.hasResend) {
+    return "email";
+  }
+
+  if (env.allowAuthPreviewLinks) {
+    return "preview_link";
+  }
+
+  return "unavailable";
 }
 
 async function sendPreviewAwareEmail({
+  appUrl,
   to,
   subject,
   text,
   previewPath
 }: {
+  appUrl?: string | null;
   to: string;
   subject: string;
   text: string;
   previewPath: string;
 }) {
-  const previewUrl = buildAbsoluteUrl(previewPath);
-  const delivery = await sendTransactionalEmail({ to, subject, text });
+  const deliveryMode = getAuthDeliveryMode();
+  const previewUrl = buildAbsoluteUrl(previewPath, appUrl);
 
-  if (delivery.delivered) {
-    return { ...delivery, previewUrl: null, deliveryMode: "email" as const };
+  if (deliveryMode === "email") {
+    const delivery = await sendTransactionalEmail({ to, subject, text });
+
+    if (delivery.delivered) {
+      return { ...delivery, previewUrl: null, deliveryMode: "email" as const };
+    }
   }
 
-  if (env.allowAuthPreviewLinks) {
-    return { ...delivery, previewUrl, deliveryMode: "preview_link" as const };
+  if (deliveryMode === "preview_link") {
+    return {
+      delivered: false,
+      reason: "preview-link-enabled" as const,
+      previewUrl,
+      deliveryMode: "preview_link" as const
+    };
   }
 
-  return { ...delivery, previewUrl: null, deliveryMode: "unavailable" as const };
+  return {
+    delivered: false,
+    reason: "auth-delivery-unavailable" as const,
+    previewUrl: null,
+    deliveryMode: "unavailable" as const
+  };
 }
 
 function resolveGlobalRole(email: string): AppUser["globalRole"] {
   return getInternalAdminEmails().includes(normalizeEmail(email))
     ? "internal_admin"
     : "user";
+}
+
+export async function resolvePrimaryLanguageForUser(
+  user: AppUser
+): Promise<OutputLanguage> {
+  if (user.preferredLanguage) {
+    return user.preferredLanguage;
+  }
+
+  const memberships = await listUserWorkspaceMemberships(user.id);
+  const language = memberships[0]?.workspace.outputLanguage ?? DEFAULT_LANGUAGE;
+
+  if (user.preferredLanguage !== language) {
+    await updateUser(user.id, {
+      preferredLanguage: language
+    });
+  }
+
+  return language;
+}
+
+export async function getPostAuthRedirectPath(
+  userId: string,
+  requestedPath?: string | null
+) {
+  const memberships = await listUserWorkspaceMemberships(userId);
+  if (memberships.length === 0) {
+    return "/app/setup";
+  }
+
+  const sanitizedPath = sanitizeRedirectPath(requestedPath);
+  return sanitizedPath === "/app" ? "/app/dashboard" : sanitizedPath;
 }
 
 export function setSessionCookie(response: NextResponse, rawToken: string, expiresAt: string) {
@@ -174,7 +283,9 @@ export async function requireAuthenticatedUser(redirectTo?: string) {
   const session = await getCurrentUserSession();
 
   if (!session) {
-    redirect(`/login?redirectTo=${encodeURIComponent(redirectTo ?? "/app")}`);
+    redirect(
+      `/login?redirectTo=${encodeURIComponent(sanitizeRedirectPath(redirectTo ?? "/app"))}`
+    );
   }
 
   return session;
@@ -238,15 +349,25 @@ export async function requireInternalAdmin() {
 }
 
 export async function registerUser(input: {
+  appUrl?: string | null;
   fullName: string;
   email: string;
   password: string;
+  language: OutputLanguage;
+  redirectTo?: string | null;
 }) {
+  const language = normalizeLanguage(input.language);
   const email = normalizeEmail(input.email);
   const existing = await findUserByEmail(email);
 
   if (existing) {
-    throw new Error("An account already exists for this email.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "An account already exists for this email.",
+        "Ya existe una cuenta con este correo."
+      )
+    );
   }
 
   const now = new Date().toISOString();
@@ -256,6 +377,7 @@ export async function registerUser(input: {
     fullName: input.fullName.trim(),
     passwordHash: hashPassword(input.password),
     emailVerifiedAt: null,
+    preferredLanguage: language,
     globalRole: resolveGlobalRole(email),
     createdAt: now,
     updatedAt: now
@@ -273,16 +395,32 @@ export async function registerUser(input: {
     createdAt: now
   });
 
-  const verificationPath = `/api/auth/verify-email?token=${rawToken}`;
+  const verificationPath = appendSearchParams("/api/auth/verify-email", {
+    token: rawToken,
+    redirectTo: sanitizeRedirectPath(input.redirectTo)
+  });
   const delivery = await sendPreviewAwareEmail({
+    appUrl: input.appUrl,
     to: user.email,
-    subject: "Verify your FoundryOS account",
+    subject: copyForLanguage(
+      language,
+      "Verify your FoundryOS account",
+      "Verifica tu cuenta de FoundryOS"
+    ),
     text:
-      `Hi ${user.fullName},\n\n` +
-      `Verify your account to access the internal MVP preview:\n${buildAbsoluteUrl(
-        verificationPath
-      )}\n\n` +
-      "If you did not request this account, you can ignore this email.",
+      copyForLanguage(language, `Hi ${user.fullName},`, `Hola ${user.fullName},`) +
+      "\n\n" +
+      copyForLanguage(
+        language,
+        "Verify your account to access FoundryOS:",
+        "Verifica tu cuenta para acceder a FoundryOS:"
+      ) +
+      `\n${buildAbsoluteUrl(verificationPath, input.appUrl)}\n\n` +
+      copyForLanguage(
+        language,
+        "If you did not request this account, you can ignore this email.",
+        "Si no solicitaste esta cuenta, puedes ignorar este correo."
+      ),
     previewPath: verificationPath
   });
 
@@ -301,22 +439,33 @@ export async function verifyEmailAndCreateSession(rawToken: string, response: Ne
     throw new Error("This verification link is invalid or expired.");
   }
 
-  await updateUser(verification.userId, {
+  const updatedUser = await updateUser(verification.userId, {
     emailVerifiedAt: new Date().toISOString()
   });
 
   await startSessionForUser(verification.userId, response);
+
+  return updatedUser ?? (await findUserById(verification.userId));
 }
 
 export async function authenticateUser(input: {
+  appUrl?: string | null;
   email: string;
   password: string;
+  redirectTo?: string | null;
 }) {
   const email = normalizeEmail(input.email);
   let user = await findUserByEmail(email);
+  const language = user?.preferredLanguage ?? DEFAULT_LANGUAGE;
 
   if (!user || !verifyPassword(input.password, user.passwordHash)) {
-    throw new Error("Invalid email or password.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "Invalid email or password.",
+        "Correo o contraseña no válidos."
+      )
+    );
   }
 
   if (resolveGlobalRole(email) === "internal_admin" && user.globalRole !== "internal_admin") {
@@ -336,16 +485,32 @@ export async function authenticateUser(input: {
       createdAt: new Date().toISOString()
     });
 
-    const verificationPath = `/api/auth/verify-email?token=${rawToken}`;
+    const verificationPath = appendSearchParams("/api/auth/verify-email", {
+      token: rawToken,
+      redirectTo: sanitizeRedirectPath(input.redirectTo)
+    });
     const delivery = await sendPreviewAwareEmail({
+      appUrl: input.appUrl,
       to: user.email,
-      subject: "Verify your FoundryOS account",
+      subject: copyForLanguage(
+        language,
+        "Verify your FoundryOS account",
+        "Verifica tu cuenta de FoundryOS"
+      ),
       text:
-        `Hi ${user.fullName},\n\n` +
-        `Verify your account to access the internal MVP preview:\n${buildAbsoluteUrl(
-          verificationPath
-        )}\n\n` +
-        "If you did not request this account, you can ignore this email.",
+        copyForLanguage(language, `Hi ${user.fullName},`, `Hola ${user.fullName},`) +
+        "\n\n" +
+        copyForLanguage(
+          language,
+          "Verify your account to access FoundryOS:",
+          "Verifica tu cuenta para acceder a FoundryOS:"
+        ) +
+        `\n${buildAbsoluteUrl(verificationPath, input.appUrl)}\n\n` +
+        copyForLanguage(
+          language,
+          "If you did not request this account, you can ignore this email.",
+          "Si no solicitaste esta cuenta, puedes ignorar este correo."
+        ),
       previewPath: verificationPath
     });
 
@@ -367,14 +532,16 @@ export async function authenticateUser(input: {
   };
 }
 
-export async function requestPasswordReset(email: string) {
+export async function requestPasswordReset(email: string, appUrl?: string | null) {
   const user = await findUserByEmail(normalizeEmail(email));
+  const deliveryMode = getAuthDeliveryMode();
 
   if (!user) {
     return {
       requested: true,
       previewUrl: null,
-      emailDelivery: true
+      emailDelivery: deliveryMode === "email",
+      deliveryMode
     };
   }
 
@@ -388,29 +555,124 @@ export async function requestPasswordReset(email: string) {
     createdAt: new Date().toISOString()
   });
 
-  const resetPath = `/reset-password?token=${rawToken}`;
+  const language = user.preferredLanguage ?? DEFAULT_LANGUAGE;
+  const resetPath = appendSearchParams("/reset-password", {
+    token: rawToken
+  });
   const delivery = await sendPreviewAwareEmail({
+    appUrl,
     to: user.email,
-    subject: "Reset your FoundryOS password",
+    subject: copyForLanguage(
+      language,
+      "Reset your FoundryOS password",
+      "Restablece tu contraseña de FoundryOS"
+    ),
     text:
-      `Hi ${user.fullName},\n\n` +
-      `Use the link below to reset your password:\n${buildAbsoluteUrl(resetPath)}\n\n` +
-      "If you did not request a reset, you can ignore this email.",
+      copyForLanguage(language, `Hi ${user.fullName},`, `Hola ${user.fullName},`) +
+      "\n\n" +
+      copyForLanguage(
+        language,
+        "Use the link below to reset your password:",
+        "Usa el siguiente enlace para restablecer tu contraseña:"
+      ) +
+      `\n${buildAbsoluteUrl(resetPath, appUrl)}\n\n` +
+      copyForLanguage(
+        language,
+        "If you did not request a reset, you can ignore this email.",
+        "Si no solicitaste este cambio, puedes ignorar este correo."
+      ),
     previewPath: resetPath
   });
 
   return {
     requested: true,
     previewUrl: delivery.previewUrl,
-    emailDelivery: delivery.delivered
+    emailDelivery: delivery.delivered,
+    deliveryMode: delivery.deliveryMode
   };
 }
 
-export async function resetPasswordFromToken(token: string, password: string) {
+export async function resendVerificationEmail(input: {
+  appUrl?: string | null;
+  email: string;
+  redirectTo?: string | null;
+  language?: OutputLanguage;
+}) {
+  const email = normalizeEmail(input.email);
+  const user = await findUserByEmail(email);
+  const language = normalizeLanguage(input.language ?? user?.preferredLanguage ?? DEFAULT_LANGUAGE);
+
+  if (!user || user.emailVerifiedAt) {
+    return {
+      requested: true,
+      previewUrl: null,
+      emailDelivery: getAuthDeliveryMode() === "email",
+      deliveryMode: getAuthDeliveryMode()
+    };
+  }
+
+  const rawToken = createRawToken();
+  await createEmailVerification({
+    id: crypto.randomUUID(),
+    userId: user.id,
+    email: user.email,
+    tokenHash: hashToken(rawToken),
+    expiresAt: createExpiry(24),
+    createdAt: new Date().toISOString()
+  });
+
+  const verificationPath = appendSearchParams("/api/auth/verify-email", {
+    token: rawToken,
+    redirectTo: sanitizeRedirectPath(input.redirectTo)
+  });
+  const delivery = await sendPreviewAwareEmail({
+    appUrl: input.appUrl,
+    to: user.email,
+    subject: copyForLanguage(
+      language,
+      "Verify your FoundryOS account",
+      "Verifica tu cuenta de FoundryOS"
+    ),
+    text:
+      copyForLanguage(language, `Hi ${user.fullName},`, `Hola ${user.fullName},`) +
+      "\n\n" +
+      copyForLanguage(
+        language,
+        "Verify your account to access FoundryOS:",
+        "Verifica tu cuenta para acceder a FoundryOS:"
+      ) +
+      `\n${buildAbsoluteUrl(verificationPath, input.appUrl)}\n\n` +
+      copyForLanguage(
+        language,
+        "If you did not request this account, you can ignore this email.",
+        "Si no solicitaste esta cuenta, puedes ignorar este correo."
+      ),
+    previewPath: verificationPath
+  });
+
+  return {
+    requested: true,
+    previewUrl: delivery.previewUrl,
+    emailDelivery: delivery.delivered,
+    deliveryMode: delivery.deliveryMode
+  };
+}
+
+export async function resetPasswordFromToken(
+  token: string,
+  password: string,
+  language: OutputLanguage = DEFAULT_LANGUAGE
+) {
   const reset = await consumePasswordReset(hashToken(token));
 
   if (!reset) {
-    throw new Error("This reset link is invalid or expired.");
+    throw new Error(
+      copyForLanguage(
+        language,
+        "This reset link is invalid or expired.",
+        "Este enlace para restablecer la contraseña no es válido o ha caducado."
+      )
+    );
   }
 
   await updateUser(reset.userId, {
@@ -437,16 +699,24 @@ export async function createWorkspaceForUser(input: {
   user: AppUser;
   name: string;
   plan?: WorkspacePlan;
+  language: OutputLanguage;
 }) {
   const existing = await listUserWorkspaceMemberships(input.user.id);
 
   if (existing.length > 0) {
-    throw new Error("This preview currently supports one workspace per user.");
+    throw new Error(
+      copyForLanguage(
+        input.language,
+        "This preview currently supports one workspace per user.",
+        "Esta versión piloto solo admite un espacio por usuario."
+      )
+    );
   }
 
   const parsed = workspaceCreationSchema.parse({
     name: input.name,
-    plan: input.plan ?? "growth-os"
+    plan: input.plan ?? "growth-os",
+    language: input.language
   });
 
   const now = new Date().toISOString();
@@ -458,7 +728,7 @@ export async function createWorkspaceForUser(input: {
     ownerUserId: input.user.id,
     plan: parsed.plan,
     accountState: "trial",
-    outputLanguage: "en",
+    outputLanguage: parsed.language,
     createdAt: now,
     updatedAt: now
   };
@@ -480,10 +750,15 @@ export async function createWorkspaceForUser(input: {
     usage
   });
 
+  await updateUser(input.user.id, {
+    preferredLanguage: parsed.language
+  });
+
   return workspace;
 }
 
 export async function inviteUserToWorkspace(input: {
+  appUrl?: string | null;
   workspaceId: string;
   actor: WorkspaceContext;
   email: string;
@@ -520,11 +795,23 @@ export async function inviteUserToWorkspace(input: {
 
   const invitePath = `/invite/${rawToken}`;
   const delivery = await sendPreviewAwareEmail({
+    appUrl: input.appUrl,
     to: normalizedEmail,
-    subject: `${input.actor.workspace.name} invited you to FoundryOS`,
+    subject: copyForLanguage(
+      input.actor.workspace.outputLanguage,
+      `${input.actor.workspace.name} invited you to FoundryOS`,
+      `${input.actor.workspace.name} te invitó a FoundryOS`
+    ),
     text:
-      `${input.actor.user.fullName} invited you to join ${input.actor.workspace.name} ` +
-      `as ${input.role}.\n\nAccept the invite:\n${buildAbsoluteUrl(invitePath)}`,
+      copyForLanguage(
+        input.actor.workspace.outputLanguage,
+        `${input.actor.user.fullName} invited you to join ${input.actor.workspace.name} as ${input.role}.`,
+        `${input.actor.user.fullName} te invitó a unirte a ${input.actor.workspace.name} como ${input.role}.`
+      ) + `\n\n${copyForLanguage(
+        input.actor.workspace.outputLanguage,
+        "Accept the invite:",
+        "Acepta la invitación:"
+      )}\n${buildAbsoluteUrl(invitePath, input.appUrl)}`,
     previewPath: invitePath
   });
 
@@ -596,6 +883,7 @@ export async function bootstrapInternalAdminFromToken(token: string, response: N
       fullName: "Preview Internal Admin",
       passwordHash: hashPassword(createRawToken(18)),
       emailVerifiedAt: now,
+      preferredLanguage: DEFAULT_LANGUAGE,
       globalRole: "internal_admin",
       createdAt: now,
       updatedAt: now
@@ -604,7 +892,8 @@ export async function bootstrapInternalAdminFromToken(token: string, response: N
   } else if (user.globalRole !== "internal_admin") {
     user = (await updateUser(user.id, {
       globalRole: "internal_admin",
-      emailVerifiedAt: user.emailVerifiedAt ?? now
+      emailVerifiedAt: user.emailVerifiedAt ?? now,
+      preferredLanguage: user.preferredLanguage ?? DEFAULT_LANGUAGE
     })) as AppUser;
   }
 

@@ -4,6 +4,7 @@ import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createWorkspaceForUser, getCurrentUserSession } from "@/lib/auth";
 import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceCreationSchema } from "@/lib/foundation";
+import { setLanguageCookie } from "@/lib/language-server";
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +18,8 @@ export async function POST(request: Request) {
     const workspace = await createWorkspaceForUser({
       user: current.user,
       name: payload.name,
-      plan: payload.plan
+      plan: payload.plan,
+      language: payload.language
     });
 
     await captureAnalyticsEvent({
@@ -32,7 +34,9 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json({ ok: true, workspace });
+    const response = NextResponse.json({ ok: true, workspace });
+    setLanguageCookie(response, workspace.outputLanguage);
+    return response;
   } catch (error) {
     return NextResponse.json(
       {

@@ -166,7 +166,8 @@ export default async function AssetsPage() {
               {
                 label: "Output language",
                 value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail: "System UI stays in English. Generated asset content follows the workspace setting."
+                detail:
+                  "The workspace language drives generated asset content and the core app experience."
               }
             ]}
           />

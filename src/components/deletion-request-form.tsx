@@ -3,18 +3,21 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { DeletionRequestType } from "@/lib/foundation";
+import type { DeletionRequestType, OutputLanguage } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
 
 export function DeletionRequestForm({
   canSubmit,
   confirmationPhrase,
   description,
+  language,
   requestType,
   title
 }: {
   canSubmit: boolean;
   confirmationPhrase: string;
   description: string;
+  language: OutputLanguage;
   requestType: DeletionRequestType;
   title: string;
 }) {
@@ -50,12 +53,23 @@ export function DeletionRequestForm({
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Deletion request failed.");
+        throw new Error(
+          payload.error ??
+            copyForLanguage(
+              language,
+              "Deletion request failed.",
+              "No se pudo enviar la solicitud de eliminación."
+            )
+        );
       }
 
       setFeedbackTone("success");
       setFeedback(
-        "Deletion request submitted for manual review. No deletion is executed automatically in this MVP."
+        copyForLanguage(
+          language,
+          "Deletion request submitted for manual review. No deletion is executed automatically in this MVP.",
+          "La solicitud de eliminación se ha enviado para revisión manual. En este MVP no se ejecuta ninguna eliminación de forma automática."
+        )
       );
       setReason("");
       setConfirmationText("");
@@ -63,7 +77,13 @@ export function DeletionRequestForm({
     } catch (error) {
       setFeedbackTone("error");
       setFeedback(
-        error instanceof Error ? error.message : "Deletion request failed."
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(
+              language,
+              "Deletion request failed.",
+              "No se pudo enviar la solicitud de eliminación."
+            )
       );
     } finally {
       setLoading(false);
@@ -81,11 +101,17 @@ export function DeletionRequestForm({
           className="min-h-[120px] w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none"
           disabled={!canSubmit || loading}
           onChange={(event) => setReason(event.target.value)}
-          placeholder="Add context for the review team. This is optional but useful."
+          placeholder={copyForLanguage(
+            language,
+            "Add context for the review team. This is optional but useful.",
+            "Añade contexto para el equipo de revisión. Es opcional, pero útil."
+          )}
           value={reason}
         />
         <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
-          Type <strong className="text-ink">{confirmationPhrase}</strong> to confirm this request.
+          {copyForLanguage(language, "Type", "Escribe")}{" "}
+          <strong className="text-ink">{confirmationPhrase}</strong>{" "}
+          {copyForLanguage(language, "to confirm this request.", "para confirmar esta solicitud.")}
         </div>
         <input
           className="w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none"
@@ -99,7 +125,9 @@ export function DeletionRequestForm({
           disabled={!canSubmit || loading}
           type="submit"
         >
-          {loading ? "Submitting..." : "Submit request"}
+          {loading
+            ? copyForLanguage(language, "Submitting...", "Enviando...")
+            : copyForLanguage(language, "Submit request", "Enviar solicitud")}
         </button>
       </form>
       {feedback ? (

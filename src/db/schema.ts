@@ -62,6 +62,7 @@ export const appUsers = pgTable(
     fullName: varchar("full_name", { length: 160 }).notNull(),
     passwordHash: text("password_hash").notNull(),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    preferredLanguage: varchar("preferred_language", { length: 8 }),
     globalRole: varchar("global_role", { length: 32 }).notNull().default("user"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()

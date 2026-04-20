@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   getBusinessProfile,
+  updateUser,
   updateWorkspace,
   upsertBusinessProfile
 } from "@/db/foundation";
@@ -13,6 +14,7 @@ import {
   canAccessWorkspace,
   canEditBusinessProfile
 } from "@/lib/foundation";
+import { setLanguageCookie } from "@/lib/language-server";
 
 export async function GET() {
   try {
@@ -65,6 +67,9 @@ export async function POST(request: Request) {
     await updateWorkspace(context.workspace.id, {
       outputLanguage: payload.outputLanguage
     });
+    await updateUser(context.user.id, {
+      preferredLanguage: payload.outputLanguage
+    });
     const savedProfile = await upsertBusinessProfile(context.workspace.id, payload);
 
     if (!savedProfile) {
@@ -88,7 +93,9 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json({ ok: true, profile: savedProfile });
+    const response = NextResponse.json({ ok: true, profile: savedProfile });
+    setLanguageCookie(response, payload.outputLanguage);
+    return response;
   } catch (error) {
     return NextResponse.json(
       {

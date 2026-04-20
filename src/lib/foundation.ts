@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { copyForLanguage } from "@/lib/language";
+
 export const workspacePlanOptions = [
   "snapshot",
   "growth-os",
@@ -134,6 +136,7 @@ export type AppUser = {
   fullName: string;
   passwordHash: string;
   emailVerifiedAt: string | null;
+  preferredLanguage: OutputLanguage | null;
   globalRole: UserGlobalRole;
   createdAt: string;
   updatedAt: string;
@@ -572,6 +575,7 @@ export type WorkspaceContext = {
 export const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required."),
   email: z.string().email("Enter a valid email."),
+  language: z.enum(outputLanguageOptions).default("en"),
   password: z
     .string()
     .min(10, "Use at least 10 characters.")
@@ -596,7 +600,8 @@ export const resetPasswordSchema = z.object({
 
 export const workspaceCreationSchema = z.object({
   name: z.string().min(2, "Workspace name is required."),
-  plan: z.enum(workspacePlanOptions).default("growth-os")
+  plan: z.enum(workspacePlanOptions).default("growth-os"),
+  language: z.enum(outputLanguageOptions).default("en")
 });
 
 export const inviteMemberSchema = z.object({
@@ -814,6 +819,28 @@ export function getPlanDefinition(plan: WorkspacePlan) {
   return planDefinitions[plan];
 }
 
+export function formatPlanDescription(
+  plan: WorkspacePlan,
+  language: OutputLanguage = "en"
+) {
+  switch (plan) {
+    case "snapshot":
+      return copyForLanguage(
+        language,
+        "Paid diagnostic and 30-day operating plan.",
+        "Diagnóstico de pago y plan operativo de 30 días."
+      );
+    case "growth-os":
+      return copyForLanguage(
+        language,
+        "Recurring operating layer for lean teams.",
+        "Capa operativa recurrente para equipos pequeños."
+      );
+    default:
+      return getPlanDefinition(plan).description;
+  }
+}
+
 export function seedUsageCounters(workspaceId: string, plan: WorkspacePlan) {
   const limits = getPlanDefinition(plan).usageLimits;
   const now = new Date();
@@ -942,112 +969,218 @@ export function canRequestWorkspaceDeletion(role: WorkspaceRole) {
   return ["owner", "admin"].includes(role);
 }
 
-export function getDeletionConfirmationPhrase(requestType: DeletionRequestType) {
-  return requestType === "account_deletion"
-    ? "DELETE MY ACCOUNT"
-    : "DELETE WORKSPACE";
+export function getDeletionConfirmationPhrase(
+  requestType: DeletionRequestType,
+  language: OutputLanguage = "en"
+) {
+  if (requestType === "account_deletion") {
+    return copyForLanguage(language, "DELETE MY ACCOUNT", "ELIMINAR MI CUENTA");
+  }
+
+  return copyForLanguage(language, "DELETE WORKSPACE", "ELIMINAR ESPACIO");
 }
 
-export function formatSupportIssueType(issueType: SupportIssueType) {
+export function formatSupportIssueType(
+  issueType: SupportIssueType,
+  language: OutputLanguage = "en"
+) {
   switch (issueType) {
     case "product_question":
-      return "Product question";
+      return copyForLanguage(language, "Product question", "Pregunta del producto");
     case "account_access":
-      return "Account access";
+      return copyForLanguage(language, "Account access", "Acceso a la cuenta");
     case "diagnostics":
-      return "Diagnostics";
+      return copyForLanguage(language, "Diagnostics", "Diagnóstico");
     case "planning":
-      return "Planning";
+      return copyForLanguage(language, "Planning", "Planificación");
     case "assets":
-      return "Assets";
+      return copyForLanguage(language, "Assets", "Activos");
     case "sops":
       return "SOPs";
     case "billing_state":
-      return "Billing status";
+      return copyForLanguage(language, "Billing status", "Estado de facturación");
     case "bug_report":
-      return "Bug report";
+      return copyForLanguage(language, "Bug report", "Error del producto");
     case "workspace_admin":
-      return "Workspace admin";
+      return copyForLanguage(language, "Workspace admin", "Administración del espacio");
     case "other":
-      return "Other";
+      return copyForLanguage(language, "Other", "Otro");
   }
 }
 
-export function formatSupportRequestStatus(status: SupportRequestStatus) {
-  return status.replaceAll("_", " ");
+export function formatSupportRequestStatus(
+  status: SupportRequestStatus,
+  language: OutputLanguage = "en"
+) {
+  switch (status) {
+    case "submitted":
+      return copyForLanguage(language, "submitted", "enviada");
+    case "triaged":
+      return copyForLanguage(language, "triaged", "revisada");
+    case "in_progress":
+      return copyForLanguage(language, "in progress", "en progreso");
+    case "resolved":
+      return copyForLanguage(language, "resolved", "resuelta");
+    case "closed":
+      return copyForLanguage(language, "closed", "cerrada");
+  }
 }
 
-export function formatDeletionRequestType(requestType: DeletionRequestType) {
+export function formatDeletionRequestType(
+  requestType: DeletionRequestType,
+  language: OutputLanguage = "en"
+) {
   return requestType === "account_deletion"
-    ? "Account deletion"
-    : "Workspace deletion";
+    ? copyForLanguage(language, "Account deletion", "Eliminación de cuenta")
+    : copyForLanguage(language, "Workspace deletion", "Eliminación del espacio");
 }
 
-export function formatDeletionRequestStatus(status: DeletionRequestStatus) {
-  return status.replaceAll("_", " ");
+export function formatDeletionRequestStatus(
+  status: DeletionRequestStatus,
+  language: OutputLanguage = "en"
+) {
+  switch (status) {
+    case "submitted":
+      return copyForLanguage(language, "submitted", "enviada");
+    case "under_review":
+      return copyForLanguage(language, "under review", "en revisión");
+    case "approved":
+      return copyForLanguage(language, "approved", "aprobada");
+    case "rejected":
+      return copyForLanguage(language, "rejected", "rechazada");
+    case "completed":
+      return copyForLanguage(language, "completed", "completada");
+  }
 }
 
-export function getAccountStateMeta(accountState: WorkspaceAccountState) {
+export function getAccountStateMeta(
+  accountState: WorkspaceAccountState,
+  language: OutputLanguage = "en"
+) {
   switch (accountState) {
     case "trial":
       return {
         tone: "teal",
-        title: "Preview trial workspace",
-        body:
-          "This workspace is running in preview mode. Billing and automated provisioning are not live yet."
+        title: copyForLanguage(language, "Preview trial workspace", "Espacio en prueba"),
+        body: copyForLanguage(
+          language,
+          "This workspace is running in preview mode. Billing and automated provisioning are not live yet.",
+          "Este espacio funciona en modo piloto. La facturación y el aprovisionamiento automático todavía no están activos."
+        )
       };
     case "active":
       return {
         tone: "teal",
-        title: "Active workspace",
-        body: "This workspace has full product access for its current preview plan."
+        title: copyForLanguage(language, "Active workspace", "Espacio activo"),
+        body: copyForLanguage(
+          language,
+          "This workspace has full product access for its current preview plan.",
+          "Este espacio tiene acceso completo al producto dentro de su plan piloto actual."
+        )
       };
     case "past_due":
       return {
         tone: "gold",
-        title: "Past due preview state",
-        body:
-          "Access remains available for review, but write actions and member changes should be treated as limited until billing is reconciled."
+        title: copyForLanguage(language, "Past due preview state", "Estado piloto con pago pendiente"),
+        body: copyForLanguage(
+          language,
+          "Access remains available for review, but write actions and member changes should be treated as limited until billing is reconciled.",
+          "El acceso sigue disponible para revisión, pero las acciones de escritura y los cambios de miembros deben considerarse limitados hasta regularizar la facturación."
+        )
       };
     case "canceled":
       return {
         tone: "gold",
-        title: "Canceled workspace",
-        body:
-          "This workspace is in a read-only cancellation state. Reactivation and live billing are still manual in the MVP."
+        title: copyForLanguage(language, "Canceled workspace", "Espacio cancelado"),
+        body: copyForLanguage(
+          language,
+          "This workspace is in a read-only cancellation state. Reactivation and live billing are still manual in the MVP.",
+          "Este espacio está en modo de solo lectura por cancelación. La reactivación y la facturación en vivo siguen siendo manuales en el MVP."
+        )
       };
     case "suspended":
       return {
         tone: "coral",
-        title: "Suspended workspace",
-        body:
-          "This workspace is locked for operational review. Core product actions are disabled until an internal admin reactivates it."
+        title: copyForLanguage(language, "Suspended workspace", "Espacio suspendido"),
+        body: copyForLanguage(
+          language,
+          "This workspace is locked for operational review. Core product actions are disabled until an internal admin reactivates it.",
+          "Este espacio está bloqueado para revisión operativa. Las acciones principales del producto están desactivadas hasta que un administrador interno lo reactive."
+        )
       };
     case "archived":
       return {
         tone: "muted",
-        title: "Archived workspace",
-        body:
-          "This workspace has been archived for retention and review. Editing actions are disabled in this state."
+        title: copyForLanguage(language, "Archived workspace", "Espacio archivado"),
+        body: copyForLanguage(
+          language,
+          "This workspace has been archived for retention and review. Editing actions are disabled in this state.",
+          "Este espacio ha sido archivado para retención y revisión. Las acciones de edición están desactivadas en este estado."
+        )
       };
     case "lead":
       return {
         tone: "gold",
-        title: "Lead state",
-        body:
-          "This workspace has not been provisioned for app access yet. Complete setup before using the product."
+        title: copyForLanguage(language, "Lead state", "Estado inicial"),
+        body: copyForLanguage(
+          language,
+          "This workspace has not been provisioned for app access yet. Complete setup before using the product.",
+          "Este espacio todavía no ha sido aprovisionado para acceder a la app. Completa la configuración antes de usar el producto."
+        )
       };
     default:
       return {
         tone: "teal",
-        title: "Workspace ready",
-        body: "The workspace foundation is provisioned and ready for internal preview use."
+        title: copyForLanguage(language, "Workspace ready", "Espacio listo"),
+        body: copyForLanguage(
+          language,
+          "The workspace foundation is provisioned and ready for internal preview use.",
+          "La base del espacio está aprovisionada y lista para el uso piloto interno."
+        )
       };
   }
 }
 
-export function formatRoleLabel(role: WorkspaceRole | UserGlobalRole) {
-  return role.replaceAll("_", " ");
+export function formatAccountStateLabel(
+  accountState: WorkspaceAccountState,
+  language: OutputLanguage = "en"
+) {
+  switch (accountState) {
+    case "trial":
+      return copyForLanguage(language, "trial", "prueba");
+    case "active":
+      return copyForLanguage(language, "active", "activo");
+    case "past_due":
+      return copyForLanguage(language, "past due", "pago pendiente");
+    case "canceled":
+      return copyForLanguage(language, "canceled", "cancelado");
+    case "suspended":
+      return copyForLanguage(language, "suspended", "suspendido");
+    case "archived":
+      return copyForLanguage(language, "archived", "archivado");
+    case "lead":
+      return copyForLanguage(language, "lead", "inicial");
+  }
+}
+
+export function formatRoleLabel(
+  role: WorkspaceRole | UserGlobalRole,
+  language: OutputLanguage = "en"
+) {
+  switch (role) {
+    case "owner":
+      return copyForLanguage(language, "owner", "propietario");
+    case "admin":
+      return "admin";
+    case "member":
+      return copyForLanguage(language, "member", "miembro");
+    case "viewer":
+      return copyForLanguage(language, "viewer", "lector");
+    case "internal_admin":
+      return copyForLanguage(language, "internal admin", "administrador interno");
+    case "user":
+      return copyForLanguage(language, "user", "usuario");
+  }
 }
 
 export function getInternalAdminEmails() {

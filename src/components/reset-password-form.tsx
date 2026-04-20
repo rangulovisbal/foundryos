@@ -4,7 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ResetPasswordForm({ token }: { token: string }) {
+import type { OutputLanguage } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
+
+export function ResetPasswordForm({
+  canSubmit,
+  language,
+  token
+}: {
+  canSubmit: boolean;
+  language: OutputLanguage;
+  token: string;
+}) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -12,6 +23,18 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!canSubmit) {
+      setMessage(
+        copyForLanguage(
+          language,
+          "Password reset is unavailable in this environment until database-backed auth is configured.",
+          "El restablecimiento de contraseña no está disponible en este entorno hasta que se configure la autenticación con base de datos."
+        )
+      );
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
@@ -27,15 +50,36 @@ export function ResetPasswordForm({ token }: { token: string }) {
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Reset failed.");
+        throw new Error(
+          payload.error ??
+            copyForLanguage(
+              language,
+              "Password reset failed.",
+              "No se pudo restablecer la contraseña."
+            )
+        );
       }
 
-      setMessage("Password updated. Redirecting to login...");
+      setMessage(
+        copyForLanguage(
+          language,
+          "Password updated. Redirecting to login...",
+          "Contraseña actualizada. Redirigiendo al acceso..."
+        )
+      );
       setTimeout(() => {
-        router.push("/login");
+        router.push("/login?reset=1");
       }, 900);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Reset failed.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : copyForLanguage(
+              language,
+              "Password reset failed.",
+              "No se pudo restablecer la contraseña."
+            )
+      );
     } finally {
       setLoading(false);
     }
@@ -45,21 +89,27 @@ export function ResetPasswordForm({ token }: { token: string }) {
     <div className="space-y-5">
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <label className="space-y-2 text-sm font-medium">
-          <span>New password</span>
+          <span>{copyForLanguage(language, "New password", "Nueva contraseña")}</span>
           <input
             className="w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none"
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Minimum 10 characters"
+            placeholder={copyForLanguage(
+              language,
+              "Minimum 10 characters",
+              "Mínimo 10 caracteres"
+            )}
             type="password"
             value={password}
           />
         </label>
         <button
           className="rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand disabled:opacity-60"
-          disabled={loading}
+          disabled={!canSubmit || loading}
           type="submit"
         >
-          {loading ? "Saving..." : "Update password"}
+          {loading
+            ? copyForLanguage(language, "Saving...", "Guardando...")
+            : copyForLanguage(language, "Update password", "Actualizar contraseña")}
         </button>
       </form>
 
@@ -71,7 +121,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
       <p className="text-sm text-muted">
         <Link className="font-semibold text-ink underline" href="/login">
-          Return to login
+          {copyForLanguage(language, "Return to login", "Volver al acceso")}
         </Link>
       </p>
     </div>

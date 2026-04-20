@@ -1,12 +1,15 @@
 import Link from "next/link";
 
+import type { OutputLanguage } from "@/lib/foundation";
+import { copyForLanguage } from "@/lib/language";
+
 const links = [
-  { href: "/pricing", label: "Pricing" },
-  { href: "/security", label: "Security" },
-  { href: "/dashboard", label: "Sample output" }
+  { href: "/pricing", key: "pricing" },
+  { href: "/security", key: "security" },
+  { href: "/dashboard", key: "sample-output" }
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ language }: { language: OutputLanguage }) {
   return (
     <header className="page-shell">
       <div className="surface flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-7">
@@ -19,7 +22,11 @@ export function SiteHeader() {
               FoundryOS
             </p>
             <p className="text-sm text-muted">
-              Growth + operations for lean teams
+              {copyForLanguage(
+                language,
+                "Growth + operations for lean teams",
+                "Crecimiento + operaciones para equipos pequeños"
+              )}
             </p>
           </div>
         </Link>
@@ -32,7 +39,11 @@ export function SiteHeader() {
                 className="rounded-full px-3 py-2 transition hover:bg-white/90 hover:text-ink"
                 href={link.href}
               >
-                {link.label}
+                {link.key === "pricing"
+                  ? copyForLanguage(language, "Pricing", "Precios")
+                  : link.key === "security"
+                    ? copyForLanguage(language, "Security", "Seguridad")
+                    : copyForLanguage(language, "Sample output", "Salida de ejemplo")}
               </Link>
             ))}
           </nav>
@@ -42,13 +53,13 @@ export function SiteHeader() {
               className="rounded-full border border-[color:var(--border)] bg-white/80 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-white"
               href="/login"
             >
-              Log in
+              {copyForLanguage(language, "Log in", "Iniciar sesión")}
             </Link>
             <Link
               className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-sand transition hover:opacity-90"
               href="/signup"
             >
-              Start preview
+              {copyForLanguage(language, "Start preview", "Empezar prueba")}
             </Link>
           </div>
         </div>
