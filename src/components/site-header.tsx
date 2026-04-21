@@ -50,13 +50,13 @@ export function SiteHeader({ language }: { language: OutputLanguage }) {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              className="rounded-full border border-[color:var(--border)] bg-white/80 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-white"
+              className="rounded-full border border-[color:var(--border)] bg-white/85 px-4 py-2 text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:bg-white"
               href="/login"
             >
               {copyForLanguage(language, "Log in", "Iniciar sesión")}
             </Link>
             <Link
-              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-sand transition hover:opacity-90"
+              className="rounded-full bg-[#051A24] px-4 py-2 text-sm font-semibold text-[#FBFAF7] shadow-[0_1px_2px_rgba(5,26,36,0.08),0_8px_20px_-8px_rgba(5,26,36,0.25),inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-0.5 hover:bg-[#0D212C]"
               href="/signup"
             >
               {copyForLanguage(language, "Start preview", "Empezar prueba")}

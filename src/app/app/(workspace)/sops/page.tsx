@@ -74,67 +74,100 @@ export default async function SopsPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-5 md:p-7">
-        <span className="eyebrow">SOPs</span>
-        <div className="mt-4">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Turn business context into structured operating procedures.
-          </h2>
-          <p className="mt-4 body-lg">
-            SOPs use the saved profile and diagnostic findings to generate five
-            structured procedures: lead handling, reporting cadence, campaign
-            setup, content workflow, and internal approval. They are preview
-            operating drafts and are not connected to live integrations or
-            billing.
-          </p>
+      <section className="foundry-dark-panel p-5 text-[#E0EBF0] md:p-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+              SOPs
+            </span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
+              Turn context into{" "}
+              <span className="font-serif-display text-[#F4F2EC]">repeatable operating steps.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
+              SOPs use the saved profile and diagnostic findings to draft lead handling,
+              reporting, campaign setup, content workflow, and internal approval procedures.
+              They are preview operating drafts, not live integrations.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {latestArtifacts.length > 0 ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#sop-set">
+                  View latest SOPs
+                </Link>
+              ) : null}
+              <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
+                Source diagnostic
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
+              Latest SOP set
+            </p>
+            <p className="mt-4 text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
+              {latestArtifacts.length > 0 ? latestArtifacts.length : "--"}
+            </p>
+            <p className="mt-4 text-sm leading-6 text-white/68">
+              {latestArtifacts.length > 0
+                ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
+                : "Generate after the profile and diagnostics exist."}
+            </p>
+            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                Generate
+              </p>
+              <div className="mt-4">
+                <PlanningGenerateButton
+                  canGenerate={canGenerate}
+                  disabledReason={disabledReason}
+                  endpoint="/api/app/sops/generate"
+                  idleLabel="Generate SOPs"
+                  loadingLabel="Generating SOPs..."
+                  successLabel="SOPs generated and saved."
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="mt-6">
-          <PlanningGenerateButton
-            canGenerate={canGenerate}
-            disabledReason={disabledReason}
-            endpoint="/api/app/sops/generate"
-            idleLabel="Generate SOPs"
-            loadingLabel="Generating SOPs..."
-            successLabel="SOPs generated and saved."
-          />
-        </div>
-        <div className="mt-6 space-y-4">
-          <PageSummaryGrid
-            items={[
-              {
-                label: "Latest SOP set",
-                value:
-                  latestArtifacts.length > 0 ? `${latestArtifacts.length} saved` : "Missing",
-                detail:
-                  latestArtifacts.length > 0
-                    ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
-                    : "Generate after the profile and diagnostics exist."
-              },
-              {
-                label: "Latest status",
-                value: history[0]?.job.status ?? "none",
-                detail: "The newest SOP generation state for this workspace."
-              },
-              {
-                label: "Procedure types",
-                value: latestArtifacts.length > 0 ? String(latestArtifacts.length) : "0",
-                detail: "Lead handling, reporting, campaign setup, content, and approvals."
-              },
-              {
-                label: "Output language",
-                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail:
-                  "The workspace language drives generated SOP content and the core app experience."
-              }
-            ]}
-          />
-          <PageSectionLinks
-            links={[
-              ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest SOPs" }] : []),
-              { href: "#sop-history", label: "History" }
-            ]}
-          />
-        </div>
+      </section>
+
+      <section className="space-y-4">
+        <PageSummaryGrid
+          items={[
+            {
+              label: "Latest SOP set",
+              value:
+                latestArtifacts.length > 0 ? `${latestArtifacts.length} saved` : "Missing",
+              detail:
+                latestArtifacts.length > 0
+                  ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
+                  : "Generate after the profile and diagnostics exist."
+            },
+            {
+              label: "Latest status",
+              value: history[0]?.job.status ?? "none",
+              detail: "The newest SOP generation state for this workspace."
+            },
+            {
+              label: "Procedure types",
+              value: latestArtifacts.length > 0 ? String(latestArtifacts.length) : "0",
+              detail: "Lead handling, reporting, campaign setup, content, and approvals."
+            },
+            {
+              label: "Output language",
+              value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+              detail:
+                "The workspace language drives generated SOP content and the core app experience."
+            }
+          ]}
+        />
+        <PageSectionLinks
+          links={[
+            ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest SOPs" }] : []),
+            { href: "#sop-history", label: "History" }
+          ]}
+        />
       </section>
 
       {!profile || !latestDiagnostic ? (
@@ -230,7 +263,7 @@ function LatestSopsSection({ artifacts }: { artifacts: SopArtifactRecord[] }) {
 
 function SopCard({ artifact }: { artifact: SopArtifactRecord }) {
   return (
-    <article className="rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6">
+    <article className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6 shadow-[0_18px_45px_-32px_rgba(5,26,36,0.65)]">
       <div className="flex flex-wrap gap-2">
         <span className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
           {artifact.sopType.replaceAll("_", " ")}

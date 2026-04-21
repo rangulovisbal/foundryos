@@ -46,6 +46,10 @@ body:has(.product-app-root) main {
   min-height: 100vh;
 }
 
+body:has(.auth-app-root) .site-chrome {
+  display: none;
+}
+
 @layer components {
   .page-shell {
     @apply mx-auto w-full max-w-7xl px-6 py-8 md:px-10;

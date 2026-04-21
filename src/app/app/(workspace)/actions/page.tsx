@@ -83,83 +83,105 @@ export default async function ActionsPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-5 md:p-7">
-        <span className="eyebrow">Actions and 30-day plan</span>
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-              Convert diagnostics into executable operating work.
-            </h2>
-            <p className="mt-4 body-lg">
-              The action layer stores owner suggestions, priorities, reasoning,
-              and a 30-day plan without claiming live delivery or billing
+      <section className="foundry-dark-panel p-5 text-[#E0EBF0] md:p-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+              Actions and 30-day plan
+            </span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
+              Turn the read into{" "}
+              <span className="font-serif-display text-[#F4F2EC]">executable work.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
+              The action layer stores priorities, owner suggestions, reasoning, weekly
+              sequencing, and success signals without claiming live delivery or billing
               automation.
             </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {latestActionPlan ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#action-list">
+                  View actions
+                </Link>
+              ) : null}
+              {latestThirtyDayPlan ? (
+                <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="#thirty-day-plan">
+                  View 30-day plan
+                </Link>
+              ) : null}
+            </div>
           </div>
-          <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
-            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+
+          <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
               Latest plan
             </p>
-            <p className="mt-3 text-3xl font-semibold">
+            <p className="mt-4 text-5xl font-semibold leading-none tracking-[-0.06em] text-white">
               {latestThirtyDayPlan ? "Saved" : "Missing"}
             </p>
-            <p className="mt-2 text-sm text-muted">
+            <p className="mt-4 text-sm leading-6 text-white/68">
               {latestThirtyDayPlan
                 ? new Date(latestThirtyDayPlan.createdAt).toLocaleString()
                 : "Generate after diagnostics."}
             </p>
+            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                Generate
+              </p>
+              <div className="mt-4">
+                <PlanningGenerateButton
+                  canGenerate={canGenerate}
+                  disabledReason={disabledReason}
+                  endpoint="/api/app/actions/generate"
+                  idleLabel="Generate actions"
+                  loadingLabel="Generating plan..."
+                  successLabel="Actions and 30-day plan generated and saved."
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="mt-6">
-          <PlanningGenerateButton
-            canGenerate={canGenerate}
-            disabledReason={disabledReason}
-            endpoint="/api/app/actions/generate"
-            idleLabel="Generate actions"
-            loadingLabel="Generating plan..."
-            successLabel="Actions and 30-day plan generated and saved."
-          />
-        </div>
-        <div className="mt-6 space-y-4">
-          <PageSummaryGrid
-            items={[
-              {
-                label: "Action cards",
-                value: String(latestActionPlan?.actions.length ?? 0),
-                detail: latestActionPlan
-                  ? "Saved action list from the latest planning run."
-                  : "No persisted action list yet."
-              },
-              {
-                label: "30-day plan",
-                value: latestThirtyDayPlan ? "Saved" : "Missing",
-                detail: latestThirtyDayPlan
-                  ? latestThirtyDayPlan.monthObjective
-                  : "Generate after diagnostics."
-              },
-              {
-                label: "Quick wins",
-                value: String(latestThirtyDayPlan?.quickWins.length ?? 0),
-                detail: "Fast execution items surfaced from the latest plan."
-              },
-              {
-                label: "Output language",
-                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail:
-                  "The workspace language drives generated planning content and the core app experience."
-              }
-            ]}
-          />
-          <PageSectionLinks
-            links={[
-              ...(latestActionPlan ? [{ href: "#action-list", label: "Action list" }] : []),
-              ...(latestThirtyDayPlan
-                ? [{ href: "#thirty-day-plan", label: "30-day plan" }]
-                : []),
-              { href: "#action-history", label: "History" }
-            ]}
-          />
-        </div>
+      </section>
+
+      <section className="space-y-4">
+        <PageSummaryGrid
+          items={[
+            {
+              label: "Action cards",
+              value: String(latestActionPlan?.actions.length ?? 0),
+              detail: latestActionPlan
+                ? "Saved action list from the latest planning run."
+                : "No persisted action list yet."
+            },
+            {
+              label: "30-day plan",
+              value: latestThirtyDayPlan ? "Saved" : "Missing",
+              detail: latestThirtyDayPlan
+                ? latestThirtyDayPlan.monthObjective
+                : "Generate after diagnostics."
+            },
+            {
+              label: "Quick wins",
+              value: String(latestThirtyDayPlan?.quickWins.length ?? 0),
+              detail: "Fast execution items surfaced from the latest plan."
+            },
+            {
+              label: "Output language",
+              value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+              detail:
+                "The workspace language drives generated planning content and the core app experience."
+            }
+          ]}
+        />
+        <PageSectionLinks
+          links={[
+            ...(latestActionPlan ? [{ href: "#action-list", label: "Action list" }] : []),
+            ...(latestThirtyDayPlan
+              ? [{ href: "#thirty-day-plan", label: "30-day plan" }]
+              : []),
+            { href: "#action-history", label: "History" }
+          ]}
+        />
       </section>
 
       {!profile || !latestDiagnostic ? (
@@ -241,19 +263,19 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
         Saved {new Date(actionPlan.createdAt).toLocaleString()}
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-        <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+        <article className="metric-card">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
             Total actions
           </p>
           <p className="mt-3 text-2xl font-semibold">{actionPlan.actions.length}</p>
         </article>
-        <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+        <article className="metric-card">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
             High priority
           </p>
           <p className="mt-3 text-2xl font-semibold">{highPriority}</p>
         </article>
-        <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+        <article className="metric-card">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
             In progress
           </p>
@@ -271,7 +293,7 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
 
 function ActionCard({ action }: { action: PlanActionItem }) {
   return (
-    <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
+    <article className="metric-card">
       <div className="flex flex-wrap gap-2">
         <span className="pill bg-white text-ink">
           {action.priority} priority
@@ -308,19 +330,19 @@ function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
           Saved {new Date(plan.createdAt).toLocaleString()}
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Top priorities
             </p>
             <p className="mt-3 text-2xl font-semibold">{plan.topPriorities.length}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Quick wins
             </p>
             <p className="mt-3 text-2xl font-semibold">{plan.quickWins.length}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Metrics to watch
             </p>
@@ -352,7 +374,7 @@ function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
 
 function WeekCard({ week }: { week: ThirtyDayPlanWeek }) {
   return (
-    <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
+    <article className="metric-card">
       <p className="text-sm uppercase tracking-[0.18em] text-muted">{week.title}</p>
       <h3 className="mt-3 text-xl font-semibold">{week.objective}</h3>
       <p className="mt-4 text-sm text-muted">
@@ -374,7 +396,7 @@ function WeekCard({ week }: { week: ThirtyDayPlanWeek }) {
 
 function ListCard({ title, values }: { title: string; values: string[] }) {
   return (
-    <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
+    <article className="metric-card">
       <p className="text-sm uppercase tracking-[0.18em] text-muted">{title}</p>
       <ul className="mt-4 space-y-3 text-sm leading-7 text-muted">
         {values.map((value) => (

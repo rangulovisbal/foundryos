@@ -78,84 +78,107 @@ export default async function RoadmapPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-5 md:p-7">
-        <span className="eyebrow">Roadmap</span>
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-              Turn the latest diagnostic into a staged operating roadmap.
-            </h2>
-            <p className="mt-4 body-lg">
-              Roadmap items are persisted and grouped into now, next, and later
-              recommendations with effort, impact, dependencies, and reasoning.
+      <section className="foundry-dark-panel p-5 text-[#E0EBF0] md:p-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+              Roadmap
+            </span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
+              Stage the work before it becomes{" "}
+              <span className="font-serif-display text-[#F4F2EC]">operating noise.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
+              Roadmap items stay grounded in the latest diagnostic and remain grouped by now,
+              next, and later with visible effort, impact, dependencies, and reasoning.
             </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
+                Source diagnostic
+              </Link>
+              {latestRoadmap ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#roadmap-result">
+                  View latest roadmap
+                </Link>
+              ) : null}
+            </div>
           </div>
-          <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
-            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+
+          <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
               Source diagnostic
             </p>
-            <p className="mt-3 text-3xl font-semibold">
+            <div className="mt-4 flex items-end gap-3">
+              <span className="text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
+                {latestDiagnostic ? latestDiagnostic.overallMaturityScore : "--"}
+              </span>
+              <span className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-white/55">
+                /100
+              </span>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-white/68">
               {latestDiagnostic
-                ? `${latestDiagnostic.overallMaturityScore}/100`
-                : "Missing"}
+                ? `Confidence: ${latestDiagnostic.confidence}.`
+                : "Run diagnostics first before generating a staged roadmap."}
             </p>
-            <p className="mt-2 text-sm text-muted">
-              {latestDiagnostic
-                ? `Confidence: ${latestDiagnostic.confidence}`
-                : "Run diagnostics first."}
-            </p>
+            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                Generate
+              </p>
+              <div className="mt-4">
+                <PlanningGenerateButton
+                  canGenerate={canGenerate}
+                  disabledReason={disabledReason}
+                  endpoint="/api/app/roadmap/generate"
+                  idleLabel="Generate roadmap"
+                  loadingLabel="Generating roadmap..."
+                  successLabel="Roadmap generated and saved."
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="mt-6">
-          <PlanningGenerateButton
-            canGenerate={canGenerate}
-            disabledReason={disabledReason}
-            endpoint="/api/app/roadmap/generate"
-            idleLabel="Generate roadmap"
-            loadingLabel="Generating roadmap..."
-            successLabel="Roadmap generated and saved."
-          />
-        </div>
-        <div className="mt-6 space-y-4">
-          <PageSummaryGrid
-            items={[
-              {
-                label: "Latest roadmap",
-                value: latestRoadmap ? `${latestRoadmap.items.length} items` : "Missing",
-                detail: latestRoadmap
-                  ? latestRoadmap.summary
-                  : "Generate after diagnostics are complete."
-              },
-              {
-                label: "Now / next / later",
-                value: latestRoadmap
-                  ? `${latestRoadmap.items.filter((item) => item.phase === "now").length} / ${latestRoadmap.items.filter((item) => item.phase === "next").length} / ${latestRoadmap.items.filter((item) => item.phase === "later").length}`
-                  : "0 / 0 / 0",
-                detail: "Stage distribution from the latest roadmap."
-              },
-              {
-                label: "Latest status",
-                value: history[0]?.job.status ?? "none",
-                detail: "The newest roadmap job state for this workspace."
-              },
-              {
-                label: "Output language",
-                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail:
-                  "The workspace language drives generated roadmap content and the core app experience."
-              }
-            ]}
-          />
-          <PageSectionLinks
-            links={[
-              ...(latestRoadmap ? [{ href: "#roadmap-result", label: "Latest roadmap" }] : []),
-              ...(latestRoadmap ? [{ href: "#roadmap-now", label: "Now" }] : []),
-              ...(latestRoadmap ? [{ href: "#roadmap-next", label: "Next" }] : []),
-              ...(latestRoadmap ? [{ href: "#roadmap-later", label: "Later" }] : []),
-              { href: "#roadmap-history", label: "History" }
-            ]}
-          />
-        </div>
+      </section>
+
+      <section className="space-y-4">
+        <PageSummaryGrid
+          items={[
+            {
+              label: "Latest roadmap",
+              value: latestRoadmap ? `${latestRoadmap.items.length} items` : "Missing",
+              detail: latestRoadmap
+                ? latestRoadmap.summary
+                : "Generate after diagnostics are complete."
+            },
+            {
+              label: "Now / next / later",
+              value: latestRoadmap
+                ? `${latestRoadmap.items.filter((item) => item.phase === "now").length} / ${latestRoadmap.items.filter((item) => item.phase === "next").length} / ${latestRoadmap.items.filter((item) => item.phase === "later").length}`
+                : "0 / 0 / 0",
+              detail: "Stage distribution from the latest roadmap."
+            },
+            {
+              label: "Latest status",
+              value: history[0]?.job.status ?? "none",
+              detail: "The newest roadmap job state for this workspace."
+            },
+            {
+              label: "Output language",
+              value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+              detail:
+                "The workspace language drives generated roadmap content and the core app experience."
+            }
+          ]}
+        />
+        <PageSectionLinks
+          links={[
+            ...(latestRoadmap ? [{ href: "#roadmap-result", label: "Latest roadmap" }] : []),
+            ...(latestRoadmap ? [{ href: "#roadmap-now", label: "Now" }] : []),
+            ...(latestRoadmap ? [{ href: "#roadmap-next", label: "Next" }] : []),
+            ...(latestRoadmap ? [{ href: "#roadmap-later", label: "Later" }] : []),
+            { href: "#roadmap-history", label: "History" }
+          ]}
+        />
       </section>
 
       {!profile || !latestDiagnostic ? (
@@ -235,25 +258,25 @@ function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
           Saved {new Date(roadmap.createdAt).toLocaleString()}
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Total items
             </p>
             <p className="mt-3 text-2xl font-semibold">{roadmap.items.length}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Now
             </p>
             <p className="mt-3 text-2xl font-semibold">{phaseCounts.now}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Next
             </p>
             <p className="mt-3 text-2xl font-semibold">{phaseCounts.next}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Later
             </p>

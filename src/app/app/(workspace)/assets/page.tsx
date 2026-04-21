@@ -104,82 +104,100 @@ export default async function AssetsPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-5 md:p-7">
-        <span className="eyebrow">Assets</span>
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-              Turn planning outputs into saved business artifacts.
-            </h2>
-            <p className="mt-4 body-lg">
-              Assets use the latest profile, diagnostic, roadmap, action list,
-              and 30-day plan. They remain structured preview artifacts and are
-              not connected to live billing or automated fulfillment.
+      <section className="foundry-dark-panel p-5 text-[#E0EBF0] md:p-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+              Assets
+            </span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
+              Package the plan into{" "}
+              <span className="font-serif-display text-[#F4F2EC]">usable artifacts.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
+              Assets use the saved profile, diagnostic, roadmap, action list, and 30-day plan.
+              They remain structured preview artifacts, not automated fulfillment or live billing.
             </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {latestAssets.length > 0 ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#asset-set">
+                  View latest assets
+                </Link>
+              ) : null}
+              <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/actions">
+                Source plan
+              </Link>
+            </div>
           </div>
-          <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
-            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+
+          <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
               Asset runs
             </p>
-            <p className="mt-3 text-3xl font-semibold">
+            <p className="mt-4 text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
               {assetCounter ? `${assetCounter.usedCount}/${assetCounter.limitCount}` : "n/a"}
             </p>
-            <p className="mt-2 text-sm text-muted">
-              Usage is tracked as generation runs while export workflows remain
-              preview-only.
+            <p className="mt-4 text-sm leading-6 text-white/68">
+              Usage is tracked as generation runs while export workflows remain preview-only.
             </p>
+            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                Generate
+              </p>
+              <div className="mt-4">
+                <PlanningGenerateButton
+                  canGenerate={canGenerate}
+                  disabledReason={disabledReason}
+                  endpoint="/api/app/assets/generate"
+                  idleLabel="Generate assets"
+                  loadingLabel="Generating assets..."
+                  successLabel="Assets generated and saved."
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="mt-6">
-          <PlanningGenerateButton
-            canGenerate={canGenerate}
-            disabledReason={disabledReason}
-            endpoint="/api/app/assets/generate"
-            idleLabel="Generate assets"
-            loadingLabel="Generating assets..."
-            successLabel="Assets generated and saved."
-          />
-        </div>
-        <div className="mt-6 space-y-4">
-          <PageSummaryGrid
-            items={[
-              {
-                label: "Latest asset set",
-                value: latestAssets.length > 0 ? `${latestAssets.length} saved` : "Missing",
-                detail:
-                  latestAssets.length > 0
-                    ? `Latest run saved ${new Date(latestAssets[0].createdAt).toLocaleString()}.`
-                    : "Generate after profile, diagnostics, roadmap, and actions exist."
-              },
-              {
-                label: "Asset runs",
-                value: assetCounter
-                  ? `${assetCounter.usedCount}/${assetCounter.limitCount}`
-                  : "n/a",
-                detail: "Usage is still measured by generation runs in preview mode."
-              },
-              {
-                label: "Latest status",
-                value: history[0]?.job.status ?? "none",
-                detail: "The newest asset job state across this workspace."
-              },
-              {
-                label: "Output language",
-                value: formatOutputLanguageLabel(context.workspace.outputLanguage),
-                detail:
-                  "The workspace language drives generated asset content and the core app experience."
-              }
-            ]}
-          />
-          <PageSectionLinks
-            links={[
-              ...(latestAssets.length > 0
-                ? [{ href: "#asset-set", label: "Latest assets" }]
-                : []),
-              { href: "#asset-history", label: "History" }
-            ]}
-          />
-        </div>
+      </section>
+
+      <section className="space-y-4">
+        <PageSummaryGrid
+          items={[
+            {
+              label: "Latest asset set",
+              value: latestAssets.length > 0 ? `${latestAssets.length} saved` : "Missing",
+              detail:
+                latestAssets.length > 0
+                  ? `Latest run saved ${new Date(latestAssets[0].createdAt).toLocaleString()}.`
+                  : "Generate after profile, diagnostics, roadmap, and actions exist."
+            },
+            {
+              label: "Asset runs",
+              value: assetCounter
+                ? `${assetCounter.usedCount}/${assetCounter.limitCount}`
+                : "n/a",
+              detail: "Usage is still measured by generation runs in preview mode."
+            },
+            {
+              label: "Latest status",
+              value: history[0]?.job.status ?? "none",
+              detail: "The newest asset job state across this workspace."
+            },
+            {
+              label: "Output language",
+              value: formatOutputLanguageLabel(context.workspace.outputLanguage),
+              detail:
+                "The workspace language drives generated asset content and the core app experience."
+            }
+          ]}
+        />
+        <PageSectionLinks
+          links={[
+            ...(latestAssets.length > 0
+              ? [{ href: "#asset-set", label: "Latest assets" }]
+              : []),
+            { href: "#asset-history", label: "History" }
+          ]}
+        />
       </section>
 
       {!profile ||
@@ -285,19 +303,19 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
           Last generated {new Date(assets[0].createdAt).toLocaleString()}
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Asset types
             </p>
             <p className="mt-3 text-2xl font-semibold">{assetTypes.length}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Saved artifacts
             </p>
             <p className="mt-3 text-2xl font-semibold">{assets.length}</p>
           </article>
-          <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
+          <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Source-backed
             </p>
@@ -324,7 +342,7 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
 
 function AssetCard({ asset }: { asset: BusinessAssetRecord }) {
   return (
-    <article className="rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6">
+    <article className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6 shadow-[0_18px_45px_-32px_rgba(5,26,36,0.65)]">
       <div className="flex flex-wrap gap-2">
         <span className="pill bg-white text-ink">
           {formatAssetType(asset.assetType)}
