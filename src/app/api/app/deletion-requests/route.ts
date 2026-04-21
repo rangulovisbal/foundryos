@@ -24,7 +24,10 @@ export async function POST(request: Request) {
     }
 
     const payload = deletionRequestSchema.parse(await request.json());
-    const expectedPhrase = getDeletionConfirmationPhrase(payload.requestType);
+    const expectedPhrase = getDeletionConfirmationPhrase(
+      payload.requestType,
+      context.workspace.outputLanguage
+    );
 
     if (payload.confirmationText !== expectedPhrase) {
       return NextResponse.json(

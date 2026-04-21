@@ -104,11 +104,11 @@ export default async function AssetsPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-5 md:p-7">
         <span className="eyebrow">Assets</span>
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em]">
+            <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
               Turn planning outputs into saved business artifacts.
             </h2>
             <p className="mt-4 body-lg">
@@ -199,9 +199,9 @@ export default async function AssetsPage() {
       {latestAssets.length > 0 ? (
         <LatestAssetsSection assets={latestAssets} />
       ) : (
-        <section className="surface p-6 md:p-8">
+        <section className="surface p-5 md:p-7">
           <span className="eyebrow">No assets yet</span>
-          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
             Generate the first asset set after planning is complete.
           </h2>
           <p className="mt-4 body-lg">
@@ -230,9 +230,9 @@ function PrerequisitePanel({
   hasThirtyDayPlan: boolean;
 }) {
   return (
-    <section className="surface p-6 md:p-8">
+    <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+      <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
         Assets need saved profile, diagnostics, roadmap, and planning inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
@@ -276,15 +276,15 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
 
   return (
     <section className="space-y-6" id="asset-set">
-      <div className="surface p-6 md:p-8">
+      <div className="surface p-5 md:p-7">
         <span className="eyebrow">Latest asset set</span>
-        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {assets.length} structured assets are saved.
         </h2>
         <p className="mt-4 text-sm text-muted">
           Last generated {new Date(assets[0].createdAt).toLocaleString()}
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
           <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Asset types
@@ -313,7 +313,7 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid min-w-0 gap-4 2xl:grid-cols-2">
         {assets.map((asset) => (
           <AssetCard asset={asset} key={asset.id} />
         ))}

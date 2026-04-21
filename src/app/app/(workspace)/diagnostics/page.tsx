@@ -327,7 +327,7 @@ export default async function DiagnosticsPage() {
         />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-5 md:p-7">
         <FoundryPageHeader
           eyebrow={copyForLanguage(language, "Diagnostics", "Diagnóstico")}
           description={copyForLanguage(
@@ -342,7 +342,7 @@ export default async function DiagnosticsPage() {
           )}
         />
 
-        <div className="mt-6 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="mt-6 grid min-w-0 gap-4 2xl:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6">
             {latestResult ? (
               <div className="flex flex-col gap-6 md:flex-row md:items-center">
@@ -555,7 +555,7 @@ function LatestResult({
 
   return (
     <section className="space-y-6" id="latest-diagnostic">
-      <div className="grid gap-4 xl:grid-cols-4">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
         <FoundryMetricCard
           detail={maturityNarrative(result, language)}
           icon={Activity}
@@ -828,7 +828,7 @@ function DiagnosticCardGroup({
 }) {
   return (
     <FoundrySectionCard title={title}>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {items.map((item, index) => (
           <article
             key={`${title}-${item.title}-${index}`}

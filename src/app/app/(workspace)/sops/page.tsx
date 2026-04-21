@@ -74,10 +74,10 @@ export default async function SopsPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-5 md:p-7">
         <span className="eyebrow">SOPs</span>
         <div className="mt-4">
-          <h2 className="text-3xl font-semibold tracking-[-0.04em]">
+          <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
             Turn business context into structured operating procedures.
           </h2>
           <p className="mt-4 body-lg">
@@ -144,9 +144,9 @@ export default async function SopsPage() {
       {latestArtifacts.length > 0 ? (
         <LatestSopsSection artifacts={latestArtifacts} />
       ) : (
-        <section className="surface p-6 md:p-8">
+        <section className="surface p-5 md:p-7">
           <span className="eyebrow">No SOPs yet</span>
-          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
             Generate the first SOP set after the profile and diagnostics are complete.
           </h2>
           <p className="mt-4 body-lg">
@@ -169,9 +169,9 @@ function PrerequisitePanel({
   hasDiagnostic: boolean;
 }) {
   return (
-    <section className="surface p-6 md:p-8">
+    <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+      <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
         SOPs need a saved business profile and diagnostic result.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
@@ -209,9 +209,9 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
 function LatestSopsSection({ artifacts }: { artifacts: SopArtifactRecord[] }) {
   return (
     <section className="space-y-6" id="sop-set">
-      <div className="surface p-6 md:p-8">
+      <div className="surface p-5 md:p-7">
         <span className="eyebrow">Latest SOP set</span>
-        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {artifacts.length} operating procedures are saved.
         </h2>
         <p className="mt-4 text-sm text-muted">
@@ -219,7 +219,7 @@ function LatestSopsSection({ artifacts }: { artifacts: SopArtifactRecord[] }) {
         </p>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid min-w-0 gap-4 2xl:grid-cols-2">
         {artifacts.map((artifact) => (
           <SopCard artifact={artifact} key={artifact.id} />
         ))}

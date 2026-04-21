@@ -40,13 +40,15 @@ export function FoundryPageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div>
+    <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0">
         {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
-        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">{title}</h2>
-        {description ? <p className="mt-4 body-lg">{description}</p> : null}
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
+          {title}
+        </h2>
+        {description ? <p className="mt-4 max-w-3xl body-lg">{description}</p> : null}
       </div>
-      {actions ? <div className="flex items-center gap-3">{actions}</div> : null}
+      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-3">{actions}</div> : null}
     </div>
   );
 }
@@ -93,9 +95,9 @@ export function FoundryMetricCard({
   children?: React.ReactNode;
 }) {
   return (
-    <article className="metric-card flex h-full flex-col gap-3">
+    <article className="metric-card flex h-full min-w-0 flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm uppercase tracking-[0.18em] text-muted">{label}</p>
+        <p className="min-w-0 text-sm uppercase tracking-[0.18em] text-muted">{label}</p>
         <div
           className={clsx(
             "rounded-2xl border p-2.5",
@@ -110,7 +112,7 @@ export function FoundryMetricCard({
         </div>
       </div>
       <div className="flex items-end gap-2">
-        <p className="text-3xl font-semibold tracking-[-0.04em]">{value}</p>
+        <p className="min-w-0 text-3xl font-semibold tracking-[-0.04em]">{value}</p>
         {change ? (
           <span
             className={clsx(
@@ -146,16 +148,16 @@ export function FoundrySectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className={clsx("surface p-6 md:p-8", className)}>
+    <section className={clsx("surface min-w-0 p-5 md:p-7", className)}>
       {title || actions ? (
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
+        <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
             {title ? (
               <h3 className="text-xl font-semibold tracking-[-0.03em]">{title}</h3>
             ) : null}
             {description ? <p className="mt-2 text-sm leading-6 text-muted">{description}</p> : null}
           </div>
-          {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+          {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
         </div>
       ) : null}
       <div className={title || actions ? "mt-5" : ""}>{children}</div>

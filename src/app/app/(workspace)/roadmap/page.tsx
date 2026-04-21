@@ -78,11 +78,11 @@ export default async function RoadmapPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-5 md:p-7">
         <span className="eyebrow">Roadmap</span>
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em]">
+            <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
               Turn the latest diagnostic into a staged operating roadmap.
             </h2>
             <p className="mt-4 body-lg">
@@ -165,9 +165,9 @@ export default async function RoadmapPage() {
       {latestRoadmap ? (
         <RoadmapResult roadmap={latestRoadmap} />
       ) : (
-        <section className="surface p-6 md:p-8">
+        <section className="surface p-5 md:p-7">
           <span className="eyebrow">No roadmap yet</span>
-          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
             Generate the first roadmap after diagnostics are complete.
           </h2>
           <p className="mt-4 body-lg">
@@ -190,9 +190,9 @@ function PrerequisitePanel({
   hasProfile: boolean;
 }) {
   return (
-    <section className="surface p-6 md:p-8">
+    <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+      <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
         Roadmap generation needs saved inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
@@ -226,15 +226,15 @@ function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
 
   return (
     <section className="space-y-6" id="roadmap-result">
-      <div className="surface p-6 md:p-8">
+      <div className="surface p-5 md:p-7">
         <span className="eyebrow">Latest roadmap</span>
-        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {roadmap.summary}
         </h2>
         <p className="mt-4 text-sm text-muted">
           Saved {new Date(roadmap.createdAt).toLocaleString()}
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
           <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Total items
@@ -285,11 +285,11 @@ function RoadmapPhaseGroup({
     phase === "now" ? "roadmap-now" : phase === "next" ? "roadmap-next" : "roadmap-later";
 
   return (
-    <section className="surface p-6 md:p-8" id={sectionId}>
-      <div className="grid gap-6 xl:grid-cols-[220px_1fr]">
+    <section className="surface p-5 md:p-7" id={sectionId}>
+      <div className="grid min-w-0 gap-5 2xl:grid-cols-[220px_minmax(0,1fr)]">
         <div>
           <p className="text-sm uppercase tracking-[0.18em] text-muted">{label}</p>
-          <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
+          <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
             {phase === "now"
               ? "Start here"
               : phase === "next"

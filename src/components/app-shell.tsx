@@ -1,26 +1,17 @@
-import Link from "next/link";
-
 import { AccountStateBanner } from "@/components/account-state-banner";
+import {
+  WorkspaceShellFrame,
+  type WorkspaceShellNavItem,
+  type WorkspaceShellMetaItem
+} from "@/components/workspace-shell-frame";
 import type { WorkspaceContext } from "@/lib/foundation";
 import {
   formatAccountStateLabel,
+  formatPlanDescription,
   formatRoleLabel,
   getPlanDefinition
 } from "@/lib/foundation";
 import { copyForLanguage, formatLanguageLongLabel } from "@/lib/language";
-
-const navItems = [
-  { href: "/app/dashboard", key: "dashboard" },
-  { href: "/app/profile", key: "profile" },
-  { href: "/app/diagnostics", key: "diagnostics" },
-  { href: "/app/roadmap", key: "roadmap" },
-  { href: "/app/actions", key: "actions" },
-  { href: "/app/assets", key: "assets" },
-  { href: "/app/sops", key: "sops" },
-  { href: "/app/support", key: "support" },
-  { href: "/app/team", key: "team" },
-  { href: "/app/billing", key: "billing" }
-];
 
 export function AppShell({
   context,
@@ -32,121 +23,69 @@ export function AppShell({
   const plan = getPlanDefinition(context.workspace.plan);
   const isInternalAdmin = context.user.globalRole === "internal_admin";
   const language = context.workspace.outputLanguage;
+  const navItems: WorkspaceShellNavItem[] = [
+    { href: "/app/dashboard", icon: "dashboard", label: copyForLanguage(language, "Dashboard", "Panel") },
+    { href: "/app/profile", icon: "profile", label: copyForLanguage(language, "Profile", "Perfil") },
+    { href: "/app/diagnostics", icon: "diagnostics", label: copyForLanguage(language, "Diagnostics", "Diagnóstico") },
+    { href: "/app/roadmap", icon: "roadmap", label: copyForLanguage(language, "Roadmap", "Hoja de ruta") },
+    { href: "/app/actions", icon: "actions", label: copyForLanguage(language, "Actions", "Acciones") },
+    { href: "/app/assets", icon: "assets", label: copyForLanguage(language, "Assets", "Activos") },
+    { href: "/app/sops", icon: "sops", label: "SOPs" },
+    { href: "/app/support", icon: "support", label: copyForLanguage(language, "Support", "Soporte") },
+    { href: "/app/team", icon: "team", label: copyForLanguage(language, "Team", "Equipo") },
+    { href: "/app/billing", icon: "billing", label: copyForLanguage(language, "Billing", "Facturación") }
+  ];
+  const metaItems: WorkspaceShellMetaItem[] = [
+    {
+      icon: "plan",
+      label: copyForLanguage(language, "Plan", "Plan"),
+      value: plan.label,
+      detail: formatPlanDescription(context.workspace.plan, language)
+    },
+    {
+      icon: "role",
+      label: copyForLanguage(language, "Role", "Rol"),
+      value: formatRoleLabel(context.membership.role, language)
+    },
+    {
+      icon: "state",
+      label: copyForLanguage(language, "State", "Estado"),
+      value: formatAccountStateLabel(context.workspace.accountState, language)
+    },
+    {
+      icon: "language",
+      label: copyForLanguage(language, "Language", "Idioma"),
+      value: formatLanguageLongLabel(context.workspace.outputLanguage),
+      detail: copyForLanguage(
+        language,
+        "Experience and outputs follow this language.",
+        "La experiencia y los resultados usan este idioma."
+      )
+    }
+  ];
 
   return (
-    <div className="page-shell space-y-6 pt-0">
-      <section className="surface px-6 py-5 md:px-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <span className="eyebrow">
-              {copyForLanguage(language, "Authenticated preview", "Vista autenticada")}
-            </span>
-            <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-              {context.workspace.name}
-            </h1>
-            <p className="mt-3 body-lg">
-              {copyForLanguage(
-                language,
-                "Pilot workspace for diagnostics, planning, assets, support, and role-aware operations.",
-                "Espacio piloto para diagnóstico, planificación, activos, soporte y operaciones con control por rol."
-              )}
-            </p>
-          </div>
-
-          <div className="grid gap-3 text-sm text-muted sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3">
-              <p className="font-semibold text-ink">
-                {copyForLanguage(language, "Plan", "Plan")}
-              </p>
-              <p className="mt-1">{plan.label}</p>
-            </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3">
-              <p className="font-semibold text-ink">
-                {copyForLanguage(language, "Workspace role", "Rol en el espacio")}
-              </p>
-              <p className="mt-1 capitalize">
-                {formatRoleLabel(context.membership.role, language)}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3">
-              <p className="font-semibold text-ink">
-                {copyForLanguage(language, "Account state", "Estado de la cuenta")}
-              </p>
-              <p className="mt-1 capitalize">{formatAccountStateLabel(context.workspace.accountState, language)}</p>
-            </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3">
-              <p className="font-semibold text-ink">
-                {copyForLanguage(language, "Primary language", "Idioma principal")}
-              </p>
-              <p className="mt-1">{formatLanguageLongLabel(context.workspace.outputLanguage)}</p>
-              <p className="mt-1 text-xs text-muted">
-                {copyForLanguage(
-                  language,
-                  "The workspace experience and generated outputs follow this language.",
-                  "La experiencia del espacio y los resultados generados siguen este idioma."
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+    <WorkspaceShellFrame
+      adminLabel={isInternalAdmin ? copyForLanguage(language, "Admin", "Admin") : undefined}
+      collapseLabel={copyForLanguage(language, "Collapse sidebar", "Contraer barra lateral")}
+      expandLabel={copyForLanguage(language, "Expand sidebar", "Expandir barra lateral")}
+      logoutLabel={copyForLanguage(language, "Log out", "Cerrar sesión")}
+      metaItems={metaItems}
+      mobileMenuLabel={copyForLanguage(language, "Open workspace navigation", "Abrir navegación del espacio")}
+      navItems={navItems}
+      workspaceDescription={copyForLanguage(
+        language,
+        "Pilot workspace for diagnostics, planning, assets, support, and role-aware operations.",
+        "Espacio piloto para diagnóstico, planificación, activos, soporte y operaciones con control por rol."
+      )}
+      workspaceEyebrow={copyForLanguage(language, "Workspace", "Espacio")}
+      workspaceName={context.workspace.name}
+    >
       <AccountStateBanner
         accountState={context.workspace.accountState}
         language={language}
       />
-
-      <div className="grid gap-6 xl:grid-cols-[220px_1fr]">
-        <aside className="surface p-4">
-          <nav className="grid gap-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-muted transition hover:bg-white/90 hover:text-ink"
-                href={item.href}
-              >
-                {item.key === "dashboard"
-                  ? copyForLanguage(language, "Dashboard", "Panel")
-                  : item.key === "profile"
-                    ? copyForLanguage(language, "Profile", "Perfil")
-                    : item.key === "diagnostics"
-                      ? copyForLanguage(language, "Diagnostics", "Diagnóstico")
-                      : item.key === "roadmap"
-                        ? copyForLanguage(language, "Roadmap", "Hoja de ruta")
-                        : item.key === "actions"
-                          ? copyForLanguage(language, "Actions", "Acciones")
-                          : item.key === "assets"
-                            ? copyForLanguage(language, "Assets", "Activos")
-                            : item.key === "sops"
-                              ? "SOPs"
-                              : item.key === "support"
-                                ? copyForLanguage(language, "Support", "Soporte")
-                                : item.key === "team"
-                                  ? copyForLanguage(language, "Team", "Equipo")
-                                  : copyForLanguage(language, "Billing", "Facturación")}
-              </Link>
-            ))}
-            {isInternalAdmin ? (
-              <Link
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-muted transition hover:bg-white/90 hover:text-ink"
-                href="/admin"
-              >
-                {copyForLanguage(language, "Admin", "Admin")}
-              </Link>
-            ) : null}
-            <form action="/api/auth/logout" method="post">
-              <button
-                className="mt-2 w-full rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-left text-sm font-semibold text-muted transition hover:text-ink"
-                type="submit"
-              >
-                {copyForLanguage(language, "Log out", "Cerrar sesión")}
-              </button>
-            </form>
-          </nav>
-        </aside>
-
-        <div className="space-y-6">{children}</div>
-      </div>
-    </div>
+      <div className="min-w-0 space-y-5">{children}</div>
+    </WorkspaceShellFrame>
   );
 }

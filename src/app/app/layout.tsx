@@ -13,11 +13,11 @@ export default async function ProductLayout({
 
   try {
     await requireAuthenticatedUser("/app");
-    return children;
+    return <div className="product-app-root">{children}</div>;
   } catch (error) {
     if (isConfigurationError(error)) {
       return (
-        <div className="page-shell pt-0">
+        <div className="product-app-root page-shell pt-0">
           <ConfigurationRequiredPanel
             body={copyForLanguage(
               language,

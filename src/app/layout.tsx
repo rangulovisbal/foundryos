@@ -26,9 +26,13 @@ export default async function RootLayout({
   return (
     <html lang={getHtmlLanguage(language)}>
       <body>
-        <SiteHeader language={language} />
+        <div className="site-chrome">
+          <SiteHeader language={language} />
+        </div>
         <main>{children}</main>
-        <SiteFooter language={language} />
+        <div className="site-chrome">
+          <SiteFooter language={language} />
+        </div>
       </body>
     </html>
   );

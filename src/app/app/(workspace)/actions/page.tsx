@@ -83,11 +83,11 @@ export default async function ActionsPage() {
         <LockedStatePanel accountState={context.workspace.accountState} />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-5 md:p-7">
         <span className="eyebrow">Actions and 30-day plan</span>
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em]">
+            <h2 className="text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
               Convert diagnostics into executable operating work.
             </h2>
             <p className="mt-4 body-lg">
@@ -169,9 +169,9 @@ export default async function ActionsPage() {
       {latestActionPlan ? (
         <ActionPlanSection actionPlan={latestActionPlan} />
       ) : (
-        <section className="surface p-6 md:p-8">
+        <section className="surface p-5 md:p-7">
           <span className="eyebrow">No actions yet</span>
-          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
             Generate actions after diagnostics are complete.
           </h2>
           <p className="mt-4 body-lg">
@@ -198,9 +198,9 @@ function PrerequisitePanel({
   hasProfile: boolean;
 }) {
   return (
-    <section className="surface p-6 md:p-8">
+    <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+      <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
         Actions need profile and diagnostic inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
@@ -232,15 +232,15 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
   ).length;
 
   return (
-    <section className="surface p-6 md:p-8" id="action-list">
+    <section className="surface p-5 md:p-7" id="action-list">
       <span className="eyebrow">Action list</span>
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+      <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
         Prioritized actions from the latest planning run.
       </h2>
       <p className="mt-4 text-sm text-muted">
         Saved {new Date(actionPlan.createdAt).toLocaleString()}
       </p>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
         <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
             Total actions
@@ -299,15 +299,15 @@ function ActionCard({ action }: { action: PlanActionItem }) {
 function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
   return (
     <section className="space-y-6" id="thirty-day-plan">
-      <div className="surface p-6 md:p-8">
+      <div className="surface p-5 md:p-7">
         <span className="eyebrow">30-day plan</span>
-        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {plan.monthObjective}
         </h2>
         <p className="mt-4 text-sm text-muted">
           Saved {new Date(plan.createdAt).toLocaleString()}
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
           <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Top priorities

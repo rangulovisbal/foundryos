@@ -37,6 +37,14 @@ a {
   text-decoration: none;
 }
 
+body:has(.product-app-root) .site-chrome {
+  display: none;
+}
+
+body:has(.product-app-root) main {
+  min-height: 100vh;
+}
+
 @layer components {
   .page-shell {
     @apply mx-auto w-full max-w-7xl px-6 py-8 md:px-10;
@@ -44,12 +52,12 @@ a {
 
   .surface {
     background: var(--panel);
-    @apply rounded-[28px] border border-[color:var(--border)] shadow-soft backdrop-blur;
+    @apply min-w-0 rounded-[28px] border border-[color:var(--border)] shadow-soft backdrop-blur;
   }
 
   .surface-strong {
     background: var(--panel-strong);
-    @apply rounded-[28px] border border-[color:var(--border)] shadow-soft;
+    @apply min-w-0 rounded-[28px] border border-[color:var(--border)] shadow-soft;
   }
 
   .eyebrow {
@@ -70,7 +78,7 @@ a {
   }
 
   .metric-card {
-    @apply rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5;
+    @apply min-w-0 rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5;
   }
 
   .pill {

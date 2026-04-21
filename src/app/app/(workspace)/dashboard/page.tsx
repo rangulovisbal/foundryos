@@ -306,7 +306,7 @@ export default async function WorkspaceDashboardPage() {
         />
       ) : null}
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-5 md:p-7">
         <FoundryPageHeader
           actions={
             <Link
@@ -330,7 +330,7 @@ export default async function WorkspaceDashboardPage() {
           )}
         />
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
           <FoundryMetricCard
             change={
               latestDiagnostic
@@ -384,7 +384,7 @@ export default async function WorkspaceDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <section className="grid min-w-0 gap-5 2xl:grid-cols-[1.05fr_0.95fr]">
         <FoundrySectionCard
           actions={
             <Link
@@ -538,7 +538,7 @@ export default async function WorkspaceDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <section className="grid min-w-0 gap-5 2xl:grid-cols-[1.05fr_0.95fr]">
         <FoundrySectionCard
           description={copyForLanguage(
             language,
@@ -671,7 +671,7 @@ export default async function WorkspaceDashboardPage() {
         </FoundrySectionCard>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
         <ModuleCard
           detail={
             profile
