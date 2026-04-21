@@ -86,6 +86,20 @@ export async function POST(request: Request) {
         account_state: context.workspace.accountState,
         output_language: payload.outputLanguage,
         has_website: Boolean(savedProfile.website && savedProfile.website.length > 0),
+        has_positioning_statement: Boolean(
+          savedProfile.positioningStatement &&
+            savedProfile.positioningStatement.length > 0
+        ),
+        channel_urls_count: savedProfile.channelUrls.length,
+        has_conversion_action: Boolean(
+          savedProfile.conversionAction && savedProfile.conversionAction.length > 0
+        ),
+        has_pricing_model: Boolean(
+          savedProfile.pricingModel && savedProfile.pricingModel.length > 0
+        ),
+        has_sales_process: Boolean(
+          savedProfile.salesProcess && savedProfile.salesProcess.length > 0
+        ),
         current_channels_count: savedProfile.currentChannels.length,
         current_tools_count: savedProfile.currentTools.length,
         primary_goals_count: savedProfile.primaryGoals.length,

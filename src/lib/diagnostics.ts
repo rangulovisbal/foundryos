@@ -37,18 +37,26 @@ type Issue = {
 };
 
 type EvidenceKey =
+  | "founder_inputs"
+  | "visible_positioning"
   | "offer_audience"
   | "channel_mix"
+  | "conversion_model"
   | "operating_tools"
   | "goals_bottlenecks"
   | "stage_budget"
-  | "operating_maturity";
+  | "operating_maturity"
+  | "missing_evidence"
+  | "contradictory_evidence";
 
 type ContradictionKey =
   | "low_budget_high_complexity"
   | "data_goal_no_tools"
   | "reporting_claim_conflict"
-  | "mature_stage_weak_foundation";
+  | "mature_stage_weak_foundation"
+  | "visible_positioning_audience_conflict"
+  | "conversion_without_acquisition_evidence"
+  | "pricing_offer_conflict";
 
 type Contradiction = {
   key: ContradictionKey;
@@ -69,8 +77,12 @@ type SignalMap = {
   completeness: number;
   specificity: number;
   evidenceQuality: number;
+  visibleEvidenceScore: number;
   consistency: number;
   insufficientSignal: boolean;
+  hasVisiblePositioningEvidence: boolean;
+  hasConversionEvidence: boolean;
+  hasAcquisitionEvidence: boolean;
   hasCadence: boolean;
   hasDataVisibility: boolean;
   hasDefinedFunnel: boolean;
@@ -104,39 +116,56 @@ const labels: Record<
 
 const evidenceLabels: Record<OutputLanguage, Record<EvidenceKey, string>> = {
   en: {
+    founder_inputs: "founder-stated inputs",
+    visible_positioning: "website, positioning, and channel evidence entered by you",
     offer_audience: "your offer and audience",
     channel_mix: "your current channel mix",
+    conversion_model: "your CTA, pricing, acquisition, and sales-process evidence",
     operating_tools: "your current tools and reporting setup",
     goals_bottlenecks: "your stated goals and bottlenecks",
     stage_budget: "your stage, team, and budget context",
-    operating_maturity: "your current operating maturity"
+    operating_maturity: "your current operating maturity",
+    missing_evidence: "missing or unclear business evidence",
+    contradictory_evidence: "contradictions between declared state and supporting evidence"
   },
   es: {
+    founder_inputs: "entradas declaradas por el fundador",
+    visible_positioning: "evidencia de web, posicionamiento y canales introducida por ti",
     offer_audience: "tu oferta y audiencia",
     channel_mix: "tu mezcla actual de canales",
+    conversion_model: "tu evidencia de CTA, precio, adquisición y proceso comercial",
     operating_tools: "tus herramientas y visibilidad de reporting",
     goals_bottlenecks: "tus objetivos y cuellos de botella declarados",
     stage_budget: "tu contexto de etapa, equipo y presupuesto",
-    operating_maturity: "tu madurez operativa actual"
+    operating_maturity: "tu madurez operativa actual",
+    missing_evidence: "evidencia de negocio faltante o poco clara",
+    contradictory_evidence: "contradicciones entre estado declarado y evidencia de soporte"
   }
 };
 
 const issueEvidenceMap: Record<IssueKey, EvidenceKey[]> = {
-  unclear_positioning: ["offer_audience"],
-  no_niche_clarity: ["offer_audience"],
-  undefined_funnel: ["channel_mix", "goals_bottlenecks"],
+  unclear_positioning: ["founder_inputs", "visible_positioning", "offer_audience"],
+  no_niche_clarity: ["founder_inputs", "offer_audience", "visible_positioning"],
+  undefined_funnel: ["channel_mix", "conversion_model", "goals_bottlenecks"],
   weak_reporting: ["operating_tools", "goals_bottlenecks"],
   poor_lead_quality: ["goals_bottlenecks", "channel_mix"],
-  unclear_offer: ["offer_audience"],
+  unclear_offer: ["offer_audience", "conversion_model"],
   no_operating_cadence: ["operating_maturity", "goals_bottlenecks"],
   manual_operations: ["operating_maturity", "goals_bottlenecks"],
   low_evidence: [
+    "missing_evidence",
     "offer_audience",
+    "visible_positioning",
     "channel_mix",
+    "conversion_model",
+    "operating_tools"
+  ],
+  contradictory_scale: [
+    "contradictory_evidence",
+    "stage_budget",
     "operating_tools",
     "goals_bottlenecks"
-  ],
-  contradictory_scale: ["stage_budget", "operating_tools", "goals_bottlenecks"]
+  ]
 };
 
 const issueCopy: Record<
@@ -275,16 +304,16 @@ const issueCopy: Record<
     en: {
       title: "Evidence depth is low",
       detail:
-        "The profile has too little structured context to support a high-confidence diagnostic.",
+        "The profile has too little structured business evidence, visible positioning, conversion context, or operating proof to support a high-confidence diagnostic.",
       risk:
-        "Recommendations may sound plausible but remain too generic to guide planning."
+        "Recommendations may sound plausible but remain provisional until the business evidence is validated."
     },
     es: {
       title: "La profundidad de evidencia es baja",
       detail:
-        "El perfil tiene poco contexto estructurado para sostener un diagnostico de alta confianza.",
+        "El perfil tiene poca evidencia estructurada de negocio, posicionamiento visible, contexto de conversion o prueba operativa para sostener un diagnostico de alta confianza.",
       risk:
-        "Las recomendaciones pueden sonar plausibles pero seguir demasiado genericas para guiar la planificacion."
+        "Las recomendaciones pueden sonar plausibles pero seguir provisionales hasta validar la evidencia del negocio."
     }
   },
   contradictory_scale: {
@@ -338,14 +367,22 @@ function factorStatus(score: number) {
 function allText(profile: BusinessProfileRecord) {
   return [
     profile.companyName,
+    profile.website,
+    profile.positioningStatement,
     profile.industry,
     profile.businessModel,
     profile.teamSize,
     profile.geography,
     profile.primaryOffer,
     profile.targetAudience,
+    profile.conversionAction,
+    profile.pricingModel,
+    profile.acquisitionMethod,
+    profile.salesProcess,
+    profile.evidenceNotes,
     profile.budgetBand,
     profile.lifecycleStage,
+    ...profile.channelUrls,
     ...profile.currentChannels,
     ...profile.currentTools,
     ...profile.primaryGoals,
@@ -364,16 +401,23 @@ function profileCompleteness(profile: BusinessProfileRecord) {
   const textFields = [
     profile.companyName,
     profile.website,
+    profile.positioningStatement,
     profile.industry,
     profile.businessModel,
     profile.teamSize,
     profile.geography,
     profile.primaryOffer,
     profile.targetAudience,
+    profile.conversionAction,
+    profile.pricingModel,
+    profile.acquisitionMethod,
+    profile.salesProcess,
+    profile.evidenceNotes,
     profile.budgetBand,
     profile.lifecycleStage
   ];
   const listFields = [
+    profile.channelUrls,
     profile.currentChannels,
     profile.currentTools,
     profile.primaryGoals,
@@ -388,6 +432,9 @@ function profileCompleteness(profile: BusinessProfileRecord) {
 function profileSpecificity(profile: BusinessProfileRecord) {
   const offerLength = profile.primaryOffer?.trim().length ?? 0;
   const audienceLength = profile.targetAudience?.trim().length ?? 0;
+  const positioningLength = profile.positioningStatement?.trim().length ?? 0;
+  const conversionLength = profile.conversionAction?.trim().length ?? 0;
+  const salesProcessLength = profile.salesProcess?.trim().length ?? 0;
   const audience = normalize(profile.targetAudience);
   const genericAudience = hasPattern(
     audience,
@@ -408,6 +455,21 @@ function profileSpecificity(profile: BusinessProfileRecord) {
   if (profile.currentChannels.length >= 3) score += 16;
   else if (profile.currentChannels.length >= 2) score += 12;
   else if (profile.currentChannels.length >= 1) score += 6;
+
+  if (positioningLength >= 70) score += 10;
+  else if (positioningLength >= 35) score += 6;
+  else if (positioningLength > 0) score += 3;
+
+  if (conversionLength >= 25) score += 6;
+  else if (conversionLength > 0) score += 3;
+
+  if (salesProcessLength >= 45) score += 8;
+  else if (salesProcessLength > 0) score += 4;
+
+  if (filled(profile.pricingModel)) score += 5;
+
+  if (profile.channelUrls.length >= 2) score += 5;
+  else if (profile.channelUrls.length >= 1) score += 3;
 
   if (profile.currentTools.length >= 3) score += 14;
   else if (profile.currentTools.length >= 2) score += 10;
@@ -451,10 +513,19 @@ function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
 function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
   const offer = normalize(profile.primaryOffer);
   const audience = normalize(profile.targetAudience);
+  const positioning = normalize(profile.positioningStatement);
+  const conversionAction = normalize(profile.conversionAction);
+  const pricingModel = normalize(profile.pricingModel);
+  const acquisitionMethod = normalize(profile.acquisitionMethod);
+  const salesProcess = normalize(profile.salesProcess);
+  const evidenceNotes = normalize(profile.evidenceNotes);
   const tools = profile.currentTools.join(" ").toLowerCase();
   const channels = profile.currentChannels.join(" ").toLowerCase();
+  const channelUrls = profile.channelUrls.join(" ").toLowerCase();
   const goals = profile.primaryGoals.join(" ").toLowerCase();
   const bottlenecks = profile.biggestBottlenecks.join(" ").toLowerCase();
+  const commercialEvidence = `${conversionAction} ${pricingModel} ${acquisitionMethod} ${salesProcess}`;
+  const visibleEvidence = `${positioning} ${channelUrls} ${normalize(profile.website)} ${evidenceNotes}`;
   const businessType = detectBusinessType(profile);
   const completeness = profileCompleteness(profile);
   const specificity = profileSpecificity(profile);
@@ -464,7 +535,7 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
   );
   const explicitWeakReporting = hasPattern(
     `${goals} ${bottlenecks}`,
-    /low .*report|weak .*report|no reporting|missing report|no weekly report|visibility|no hay reporting|sin reporting|sin visibilidad|baja visibilidad/
+    /low .*report|weak .*report|no reporting|missing report|no weekly report|weak .*visibility|poor .*visibility|missing .*visibility|no .*visibility|no hay reporting|sin reporting|sin visibilidad|baja visibilidad|poca visibilidad|visibilidad debil/
   );
   const explicitNoCadence = hasPattern(
     `${goals} ${bottlenecks}`,
@@ -474,31 +545,55 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
   const hasNicheClarity =
     audience.length >= 42 &&
     !hasPattern(audience, /\b(everyone|any business|all companies|small businesses|startups|customers|clients|todos|cualquier empresa|empresas|clientes)\b/);
+  const hasVisiblePositioningEvidence =
+    filled(profile.website) ||
+    filled(profile.positioningStatement) ||
+    profile.channelUrls.length > 0;
+  const hasConversionEvidence =
+    filled(profile.conversionAction) &&
+    (filled(profile.pricingModel) || filled(profile.salesProcess));
+  const hasAcquisitionEvidence =
+    profile.currentChannels.length > 0 ||
+    profile.channelUrls.length > 0 ||
+    filled(profile.acquisitionMethod);
+  const visibleEvidenceScore = clamp(
+    (filled(profile.website) ? 12 : 0) +
+      (profile.channelUrls.length >= 2 ? 14 : profile.channelUrls.length === 1 ? 8 : 0) +
+      (positioning.length >= 70 ? 18 : positioning.length >= 35 ? 12 : positioning.length > 0 ? 5 : 0) +
+      (conversionAction.length >= 20 ? 12 : conversionAction.length > 0 ? 5 : 0) +
+      (pricingModel.length >= 8 ? 10 : pricingModel.length > 0 ? 4 : 0) +
+      (acquisitionMethod.length >= 35 ? 12 : acquisitionMethod.length > 0 ? 5 : 0) +
+      (salesProcess.length >= 45 ? 14 : salesProcess.length > 0 ? 6 : 0) +
+      (evidenceNotes.length >= 60 ? 8 : evidenceNotes.length > 0 ? 3 : 0),
+    0,
+    100
+  );
   const hasOfferStructure =
-    offer.length >= 55 &&
+    (offer.length >= 55 || positioning.length >= 60) &&
     hasPattern(
-      `${offer} ${normalize(profile.businessModel)}`,
+      `${offer} ${positioning} ${pricingModel} ${normalize(profile.businessModel)}`,
       /subscription|monthly|retainer|package|plan|course|cohort|audit|implementation|license|per seat|project|fixed|suscripcion|mensual|paquete|plan|curso|implementacion|licencia|proyecto/
     );
   const hasPositioningClarity =
     hasNicheClarity &&
     hasOfferStructure &&
-    filled(profile.industry);
+    (filled(profile.industry) || hasVisiblePositioningEvidence);
   const hasDefinedFunnel =
     !explicitUndefinedFunnel &&
-    profile.currentChannels.length >= 2 &&
+    hasAcquisitionEvidence &&
+    (profile.currentChannels.length >= 2 || filled(profile.acquisitionMethod)) &&
     hasPattern(
-      `${channels} ${tools} ${goals}`,
+      `${channels} ${channelUrls} ${tools} ${goals} ${commercialEvidence}`,
       /seo|paid|ads|content|email|referral|linkedin|outbound|inbound|webinar|sales|crm|hubspot|pipeline|conversion|demo|lead|trafico|referidos|ventas|embudo|conversion/
     );
   const hasDataVisibility =
     hasPattern(
       tools,
       /analytics|dashboard|crm|hubspot|salesforce|posthog|ga4|looker|metabase|mixpanel|segment|report|reporting|analitica|datos|dashboard|panel|crm/
-    ) && hasPattern(`${goals} ${bottlenecks} ${tools}`, /metric|kpi|conversion|pipeline|report|quality|qualified|cohort|retention|mrr|cac|datos|metrica|conversion|calidad|retencion/);
+    ) && hasPattern(`${goals} ${bottlenecks} ${tools} ${commercialEvidence} ${evidenceNotes}`, /metric|kpi|conversion|pipeline|report|quality|qualified|cohort|retention|mrr|cac|datos|metrica|conversion|calidad|retencion/);
   const hasReliableDataVisibility = hasDataVisibility && !explicitWeakReporting;
   const hasLeadQualityConcern = hasPattern(
-    `${goals} ${bottlenecks}`,
+    `${goals} ${bottlenecks} ${salesProcess} ${evidenceNotes}`,
     /lead quality|qualified lead|poor lead|bad lead|low conversion|wrong customer|poor fit|noisy demand|discount dependent|discount reliance|wrong program|program fit|enrollment quality|funnel not segmented|unsegmented funnel|calidad de lead|lead malo|baja conversion|mal cliente|prospectos incorrectos|dependencia de descuento|calidad de enrolamiento|programa incorrecto|embudo sin segmentar/
   ) || (
     businessType === "academy" &&
@@ -508,11 +603,11 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     )
   );
   const hasCadence = !explicitNoCadence && hasPattern(
-    `${goals} ${bottlenecks} ${tools}`,
+    `${goals} ${bottlenecks} ${tools} ${salesProcess} ${evidenceNotes}`,
     /weekly|cadence|review|standup|operating rhythm|dashboard review|reporting rhythm|owner|ownership|sprint|semanal|cadencia|revision|ritmo|responsable/
   );
   const manualOps = hasPattern(
-    `${bottlenecks} ${goals}`,
+    `${bottlenecks} ${goals} ${salesProcess}`,
     /manual|handoff|spreadsheet|founder dependent|ops chaos|onboarding|delivery|repetitive|manual|hoja de calculo|fundador|caos|entrega|repetitivo/
   );
   const contradictions: Contradiction[] = [];
@@ -572,6 +667,45 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     );
   }
 
+  if (
+    hasNicheClarity &&
+    hasPattern(
+      visibleEvidence,
+      /\b(everyone|any business|all companies|all teams|all founders|for everyone|todos|cualquier empresa|todas las empresas|para todos)\b/
+    )
+  ) {
+    addContradiction(
+      "visible_positioning_audience_conflict",
+      "Visible positioning is broader than the declared target audience",
+      "The stated audience is relatively specific, but the visible positioning evidence still reads broad. The diagnostic treats positioning conclusions as provisional until the homepage or channel message is checked.",
+      ["visible_positioning", "offer_audience", "contradictory_evidence"]
+    );
+  }
+
+  if (
+    filled(profile.conversionAction) &&
+    !hasAcquisitionEvidence
+  ) {
+    addContradiction(
+      "conversion_without_acquisition_evidence",
+      "A conversion action is named without supporting acquisition evidence",
+      "The profile names a CTA or conversion action, but does not show channels, channel URLs, or an acquisition method that can drive that conversion.",
+      ["conversion_model", "channel_mix", "contradictory_evidence"]
+    );
+  }
+
+  if (
+    hasPattern(pricingModel, /custom|proposal|enterprise|bespoke|contact|personalizado|propuesta|enterprise/) &&
+    hasPattern(offer, /self serve|fixed|standard|one package|buy now|autoservicio|fijo|estandar|comprar ahora/)
+  ) {
+    addContradiction(
+      "pricing_offer_conflict",
+      "Pricing model and offer packaging point in different directions",
+      "The offer sounds standardized or self-serve, while pricing evidence sounds custom or proposal-led. That limits confidence in conversion and sales-process recommendations.",
+      ["offer_audience", "conversion_model", "contradictory_evidence"]
+    );
+  }
+
   const issues: Issue[] = [];
   const addIssue = (
     key: IssueKey,
@@ -616,6 +750,9 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
       (specificity >= 75 ? 25 : specificity >= 55 ? 18 : specificity >= 40 ? 10 : 4) +
       (profile.primaryGoals.length > 0 && profile.biggestBottlenecks.length > 0 ? 15 : 8) +
       (profile.currentChannels.length > 0 && profile.currentTools.length > 0 ? 15 : 8) +
+      (visibleEvidenceScore >= 75 ? 20 : visibleEvidenceScore >= 50 ? 14 : visibleEvidenceScore >= 25 ? 8 : 0) +
+      (hasConversionEvidence ? 8 : 0) +
+      (hasAcquisitionEvidence ? 6 : 0) +
       (hasDefinedFunnel ? 10 : 0) +
       (hasReliableDataVisibility ? 10 : 0) +
       (hasCadence ? 10 : 0) -
@@ -629,6 +766,7 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     completeness < 55 ||
     specificity < 45 ||
     evidenceQuality < 45 ||
+    visibleEvidenceScore < 35 ||
     !filled(profile.primaryOffer) ||
     !filled(profile.targetAudience) ||
     (profile.primaryGoals.length === 0 && profile.biggestBottlenecks.length === 0);
@@ -654,8 +792,12 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     completeness,
     specificity,
     evidenceQuality,
+    visibleEvidenceScore,
     consistency,
     insufficientSignal,
+    hasVisiblePositioningEvidence,
+    hasConversionEvidence,
+    hasAcquisitionEvidence,
     hasCadence,
     hasDataVisibility: hasReliableDataVisibility,
     hasDefinedFunnel,
@@ -686,7 +828,9 @@ function scoreCategories(
   language: OutputLanguage,
   signals: SignalMap
 ): DiagnosticCategoryScore[] {
-  const channelDepth = Math.min(profile.currentChannels.length, 3) * 3;
+  const channelDepth =
+    Math.min(profile.currentChannels.length, 3) * 3 +
+    Math.min(profile.channelUrls.length, 2) * 2;
   const toolDepth = Math.min(profile.currentTools.length, 4) * 2;
   const goalDepth = Math.min(profile.primaryGoals.length, 3) * 3;
 
@@ -758,7 +902,7 @@ function scoreCategories(
               : "the offer is described with real structure",
           points: signals.hasOfferStructure ? 8 : 0,
           tone: "positive",
-          basedOn: evidenceList(language, ["offer_audience"])
+          basedOn: evidenceList(language, ["offer_audience", "conversion_model"])
         },
         {
           label:
@@ -767,7 +911,16 @@ function scoreCategories(
               : "the audience is specific enough to reason about",
           points: signals.hasNicheClarity ? 8 : 0,
           tone: "positive",
-          basedOn: evidenceList(language, ["offer_audience"])
+          basedOn: evidenceList(language, ["offer_audience", "visible_positioning"])
+        },
+        {
+          label:
+            language === "es"
+              ? "hay evidencia visible de posicionamiento"
+              : "visible positioning evidence is present",
+          points: signals.hasVisiblePositioningEvidence ? 6 : 0,
+          tone: "positive",
+          basedOn: evidenceList(language, ["visible_positioning"])
         },
         {
           label:
@@ -793,7 +946,7 @@ function scoreCategories(
               : "the current channel mix is named",
           points: channelDepth,
           tone: "positive",
-          basedOn: evidenceList(language, ["channel_mix"])
+          basedOn: evidenceList(language, ["channel_mix", "visible_positioning"])
         },
         {
           label:
@@ -802,7 +955,16 @@ function scoreCategories(
               : "there is a recognizable funnel path",
           points: signals.hasDefinedFunnel ? 8 : 0,
           tone: "positive",
-          basedOn: evidenceList(language, ["channel_mix", "goals_bottlenecks"])
+          basedOn: evidenceList(language, ["channel_mix", "conversion_model"])
+        },
+        {
+          label:
+            language === "es"
+              ? "el metodo de adquisicion esta descrito"
+              : "the acquisition method is described",
+          points: signals.hasAcquisitionEvidence ? 5 : 0,
+          tone: "positive",
+          basedOn: evidenceList(language, ["channel_mix", "conversion_model"])
         },
         {
           label:
@@ -811,7 +973,7 @@ function scoreCategories(
               : "lead quality is not the main warning signal",
           points: signals.hasDefinedFunnel && !signals.hasLeadQualityConcern ? 4 : 0,
           tone: "positive",
-          basedOn: evidenceList(language, ["goals_bottlenecks", "channel_mix"])
+          basedOn: evidenceList(language, ["goals_bottlenecks", "channel_mix", "conversion_model"])
         }
       ]
     }),
@@ -854,7 +1016,7 @@ function scoreCategories(
               : "there is useful reporting or CRM evidence",
           points: signals.hasDataVisibility ? 18 : 0,
           tone: "positive",
-          basedOn: evidenceList(language, ["operating_tools", "goals_bottlenecks"])
+          basedOn: evidenceList(language, ["operating_tools", "goals_bottlenecks", "conversion_model"])
         },
         {
           label:
@@ -934,6 +1096,21 @@ function localizeContradiction(
         title: "La etapa declarada es mas madura que la base operativa",
         detail:
           "El perfil dice estar creciendo o establecido pero aun faltan senales claras de embudo, datos o cadencia."
+      },
+      visible_positioning_audience_conflict: {
+        title: "El posicionamiento visible es mas amplio que la audiencia declarada",
+        detail:
+          "La audiencia declarada es relativamente especifica, pero la evidencia visible de posicionamiento sigue sonando amplia. El diagnostico trata las conclusiones de posicionamiento como provisionales hasta revisar homepage o mensajes de canal."
+      },
+      conversion_without_acquisition_evidence: {
+        title: "Hay una accion de conversion sin evidencia de adquisicion suficiente",
+        detail:
+          "El perfil nombra un CTA o accion de conversion, pero no muestra canales, URLs o metodo de adquisicion que puedan alimentar esa conversion."
+      },
+      pricing_offer_conflict: {
+        title: "El modelo de precio y el empaquetado de oferta apuntan en direcciones distintas",
+        detail:
+          "La oferta suena estandarizada o autoservicio, mientras la evidencia de precio parece personalizada o basada en propuesta. Eso limita la confianza en recomendaciones de conversion y proceso comercial."
       }
     };
 
@@ -941,6 +1118,62 @@ function localizeContradiction(
   }
 
   return { title: contradiction.title, detail: contradiction.detail };
+}
+
+function evidenceQualityState(
+  score: number,
+  signals: Pick<SignalMap, "contradictions">
+) {
+  if (signals.contradictions.length > 0) return "contradictory" as const;
+  if (score >= 70) return "clear" as const;
+  if (score >= 35) return "weak" as const;
+  return "missing" as const;
+}
+
+function validationNeeds(
+  profile: BusinessProfileRecord,
+  language: OutputLanguage,
+  signals: SignalMap
+) {
+  const needs: string[] = [];
+
+  if (!signals.hasVisiblePositioningEvidence || !filled(profile.positioningStatement)) {
+    needs.push(
+      language === "es"
+        ? "Validar homepage, posicionamiento y mensaje visible antes de tratar el gap de oferta como verdad fuerte."
+        : "Validate the homepage, positioning, and visible message before treating the offer gap as firm truth."
+    );
+  }
+
+  if (!signals.hasConversionEvidence) {
+    needs.push(
+      language === "es"
+        ? "Confirmar CTA, precio o modelo de ticket y proceso comercial antes de hacer recomendaciones fuertes de conversion."
+        : "Confirm the CTA, price or ticket model, and sales process before making strong conversion recommendations."
+    );
+  }
+
+  if (!signals.hasAcquisitionEvidence || !signals.hasDefinedFunnel) {
+    needs.push(
+      language === "es"
+        ? "Confirmar metodo de adquisicion, canal principal y evento de conversion antes de escalar recomendaciones de canal."
+        : "Confirm acquisition method, primary channel, and conversion event before scaling channel recommendations."
+    );
+  }
+
+  if (!signals.hasDataVisibility) {
+    needs.push(
+      language === "es"
+        ? "Verificar datos de pipeline, reporting o CRM antes de convertir la lectura en plan de medicion firme."
+        : "Verify pipeline, reporting, or CRM data before turning the read into a firm measurement plan."
+    );
+  }
+
+  if (signals.contradictions.length > 0) {
+    needs.push(localizeContradiction(signals.contradictions[0], language).detail);
+  }
+
+  return dedupe(needs).slice(0, 4);
 }
 
 function confidenceFactorCards(
@@ -1043,7 +1276,17 @@ function confidenceFactorCards(
                   ? "There is enough evidence to orient the output, but not to overstate it."
                   : "The current evidence does not support strong conclusions.",
     basedOn: factor.basedOn,
-    signalQuality: factorStatus(factor.score)
+    signalQuality: factorStatus(factor.score),
+    evidenceQuality:
+      factor.key === "consistency" && signals.contradictions.length > 0
+        ? "contradictory"
+        : factor.key === "evidence_quality"
+          ? evidenceQualityState(factor.score, signals)
+          : factorStatus(factor.score) === "strong"
+            ? "clear"
+            : factorStatus(factor.score) === "mixed"
+              ? "weak"
+              : "missing"
   }));
 }
 
@@ -1388,6 +1631,7 @@ function buildActions(
   signals: SignalMap
 ): DiagnosticNextAction[] {
   const firstIssue = signals.issues[0];
+  const needs = validationNeeds(profile, language, signals);
   const typeOwner =
     signals.businessType === "services"
       ? "Founder / Delivery lead"
@@ -1423,6 +1667,16 @@ function buildActions(
         owner: "Owner o admin",
         timeframe: "Hoy",
         basedOn: evidenceList(language, signals.contradictions[0].evidenceKeys)
+      });
+    }
+
+    if (needs.length > 0) {
+      actions.push({
+        title: "Validar la evidencia que falta",
+        detail: needs[0],
+        owner: "Owner o admin",
+        timeframe: "Hoy",
+        basedOn: evidenceList(language, ["missing_evidence", "visible_positioning", "conversion_model"])
       });
     }
 
@@ -1489,6 +1743,16 @@ function buildActions(
     });
   }
 
+  if (needs.length > 0) {
+    actions.push({
+      title: "Validate the missing evidence",
+      detail: needs[0],
+      owner: "Owner or admin",
+      timeframe: "Today",
+      basedOn: evidenceList(language, ["missing_evidence", "visible_positioning", "conversion_model"])
+    });
+  }
+
   actions.push(
     {
       title: "Close the primary positioning hypothesis",
@@ -1530,6 +1794,29 @@ function buildEvidence(
   signals: SignalMap
 ): DiagnosticEvidenceCard[] {
   const cards: DiagnosticEvidenceCard[] = [];
+  const needs = validationNeeds(profile, language, signals);
+  const visibleQuality = evidenceQualityState(signals.visibleEvidenceScore, signals);
+  const conversionQuality = signals.contradictions.some((item) =>
+    ["conversion_without_acquisition_evidence", "pricing_offer_conflict"].includes(item.key)
+  )
+    ? "contradictory"
+    : signals.hasConversionEvidence
+      ? "clear"
+      : filled(profile.conversionAction) ||
+          filled(profile.pricingModel) ||
+          filled(profile.acquisitionMethod) ||
+          filled(profile.salesProcess)
+        ? "weak"
+        : "missing";
+  const channelQuality = signals.contradictions.some(
+    (item) => item.key === "conversion_without_acquisition_evidence"
+  )
+    ? "contradictory"
+    : signals.hasDefinedFunnel
+      ? "clear"
+      : signals.hasAcquisitionEvidence
+        ? "weak"
+        : "missing";
 
   if (language === "es") {
     cards.push(
@@ -1537,28 +1824,47 @@ function buildEvidence(
         title: "Oferta y audiencia",
         observation:
           filled(profile.primaryOffer) && filled(profile.targetAudience)
-            ? `Oferta declarada y audiencia declarada. Especificidad ${signals.specificity}/100.`
+            ? `Oferta declarada, audiencia declarada y posicionamiento visible ${profile.positioningStatement ? "capturado" : "pendiente"}. Especificidad ${signals.specificity}/100.`
             : "Falta detalle claro de oferta o audiencia.",
         implication:
           signals.hasPositioningClarity
             ? "Esta base permite una lectura mas enfocada del posicionamiento."
             : "Cuando oferta o audiencia siguen amplias, el diagnostico debe bajar la certeza.",
-        basedOn: evidenceList(language, ["offer_audience"]),
+        basedOn: evidenceList(language, ["founder_inputs", "offer_audience", "visible_positioning"]),
         signalQuality:
-          signals.hasPositioningClarity && signals.specificity >= 70 ? "strong" : signals.specificity >= 50 ? "mixed" : "weak"
+          signals.hasPositioningClarity && signals.specificity >= 70 ? "strong" : signals.specificity >= 50 ? "mixed" : "weak",
+        evidenceQuality: visibleQuality,
+        needsValidation: needs.filter((need) => need.toLowerCase().includes("homepage") || need.toLowerCase().includes("posicionamiento"))
       },
       {
         title: "Canales y ruta de embudo",
         observation:
           profile.currentChannels.length > 0
-            ? `Canales actuales: ${profile.currentChannels.join(", ")}.`
+            ? `Canales actuales: ${profile.currentChannels.join(", ")}. URLs aportadas: ${profile.channelUrls.length}. Metodo de adquisicion ${profile.acquisitionMethod ? "capturado" : "pendiente"}.`
             : "No se declararon canales actuales.",
         implication:
           signals.hasDefinedFunnel
             ? "El sistema puede conectar estos canales a una ruta de conversion reconocible."
             : "Sin una ruta de conversion clara, el resultado solo puede orientar sobre el embudo.",
-        basedOn: evidenceList(language, ["channel_mix", "goals_bottlenecks"]),
-        signalQuality: signals.hasDefinedFunnel ? "strong" : profile.currentChannels.length > 0 ? "mixed" : "weak"
+        basedOn: evidenceList(language, ["channel_mix", "visible_positioning", "conversion_model", "goals_bottlenecks"]),
+        signalQuality: signals.hasDefinedFunnel ? "strong" : profile.currentChannels.length > 0 || profile.channelUrls.length > 0 ? "mixed" : "weak",
+        evidenceQuality: channelQuality,
+        needsValidation: needs.filter((need) => need.toLowerCase().includes("adquisicion") || need.toLowerCase().includes("canal"))
+      },
+      {
+        title: "Conversion, precio y proceso comercial",
+        observation:
+          signals.hasConversionEvidence
+            ? `CTA, precio o ticket y proceso comercial estan capturados. Evidencia visible ${signals.visibleEvidenceScore}/100.`
+            : `CTA ${profile.conversionAction ? "capturado" : "pendiente"}, precio ${profile.pricingModel ? "capturado" : "pendiente"} y proceso comercial ${profile.salesProcess ? "capturado" : "pendiente"}.`,
+        implication:
+          signals.hasConversionEvidence
+            ? "El diagnostico puede hacer recomendaciones de conversion con mas base."
+            : "Las recomendaciones de conversion y ventas siguen siendo provisionales hasta completar esta evidencia.",
+        basedOn: evidenceList(language, ["conversion_model", "visible_positioning", "missing_evidence"]),
+        signalQuality: signals.hasConversionEvidence ? "strong" : conversionQuality === "missing" ? "weak" : "mixed",
+        evidenceQuality: conversionQuality,
+        needsValidation: needs.filter((need) => need.toLowerCase().includes("cta") || need.toLowerCase().includes("precio") || need.toLowerCase().includes("conversion"))
       },
       {
         title: "Herramientas y madurez operativa",
@@ -1570,13 +1876,15 @@ function buildEvidence(
           signals.hasDataVisibility
             ? "Hay base para una lectura mas confiable de reporting y seguimiento."
             : "La visibilidad de datos o la cadencia siguen demasiado debiles para afirmar de mas.",
-        basedOn: evidenceList(language, ["operating_tools", "operating_maturity"]),
+        basedOn: evidenceList(language, ["operating_tools", "operating_maturity", "conversion_model"]),
         signalQuality:
-          signals.hasDataVisibility && signals.hasCadence ? "strong" : profile.currentTools.length > 0 || signals.hasCadence ? "mixed" : "weak"
+          signals.hasDataVisibility && signals.hasCadence ? "strong" : profile.currentTools.length > 0 || signals.hasCadence ? "mixed" : "weak",
+        evidenceQuality: signals.hasDataVisibility && signals.hasCadence ? "clear" : profile.currentTools.length > 0 || signals.hasCadence ? "weak" : "missing",
+        needsValidation: needs.filter((need) => need.toLowerCase().includes("datos") || need.toLowerCase().includes("crm") || need.toLowerCase().includes("reporting"))
       },
       {
         title: "Objetivos, cuellos de botella y confianza",
-        observation: `Objetivos: ${profile.primaryGoals.length}. Cuellos de botella: ${profile.biggestBottlenecks.length}. Completitud ${signals.completeness}/100, consistencia ${signals.consistency}/100, calidad de evidencia ${signals.evidenceQuality}/100.`,
+        observation: `Objetivos: ${profile.primaryGoals.length}. Cuellos de botella: ${profile.biggestBottlenecks.length}. Completitud ${signals.completeness}/100, consistencia ${signals.consistency}/100, calidad de evidencia ${signals.evidenceQuality}/100, evidencia visible ${signals.visibleEvidenceScore}/100.`,
         implication: signals.insufficientSignal
           ? "La salida debe tratarse como direccional hasta completar mas senales."
           : signals.contradictions.length > 0
@@ -1589,8 +1897,24 @@ function buildEvidence(
           "operating_tools"
         ]),
         signalQuality: factorStatus(Math.round((signals.evidenceQuality + signals.consistency) / 2))
+        ,
+        evidenceQuality: evidenceQualityState(signals.evidenceQuality, signals),
+        needsValidation: needs
       }
     );
+
+    if (needs.length > 0) {
+      cards.push({
+        title: "Lo que todavia necesita validacion",
+        observation: needs.join(" "),
+        implication:
+          "Estas validaciones separan una hipotesis util de una conclusion fuerte para pilotos reales.",
+        basedOn: evidenceList(language, ["missing_evidence", "contradictory_evidence"]),
+        signalQuality: "weak",
+        evidenceQuality: signals.contradictions.length > 0 ? "contradictory" : "weak",
+        needsValidation: needs
+      });
+    }
 
     if (signals.contradictions.length > 0) {
       const contradiction = localizeContradiction(signals.contradictions[0], language);
@@ -1615,28 +1939,47 @@ function buildEvidence(
       title: "Offer and audience",
       observation:
         filled(profile.primaryOffer) && filled(profile.targetAudience)
-          ? `Offer and target audience are both stated. Specificity is ${signals.specificity}/100.`
+          ? `Offer, target audience, and visible positioning are ${profile.positioningStatement ? "captured" : "partly captured"}. Specificity is ${signals.specificity}/100.`
           : "Offer or audience detail is still missing.",
       implication:
         signals.hasPositioningClarity
           ? "This gives the diagnostic a more focused positioning base."
           : "When the offer or audience remains broad, the output should reduce certainty instead of sounding authoritative.",
-      basedOn: evidenceList(language, ["offer_audience"]),
+      basedOn: evidenceList(language, ["founder_inputs", "offer_audience", "visible_positioning"]),
       signalQuality:
-        signals.hasPositioningClarity && signals.specificity >= 70 ? "strong" : signals.specificity >= 50 ? "mixed" : "weak"
+        signals.hasPositioningClarity && signals.specificity >= 70 ? "strong" : signals.specificity >= 50 ? "mixed" : "weak",
+      evidenceQuality: visibleQuality,
+      needsValidation: needs.filter((need) => need.toLowerCase().includes("homepage") || need.toLowerCase().includes("positioning"))
     },
     {
       title: "Channel mix and funnel path",
       observation:
         profile.currentChannels.length > 0
-          ? `Current channels: ${profile.currentChannels.join(", ")}.`
+          ? `Current channels: ${profile.currentChannels.join(", ")}. URLs provided: ${profile.channelUrls.length}. Acquisition method is ${profile.acquisitionMethod ? "captured" : "pending"}.`
           : "No current channels are listed.",
       implication:
         signals.hasDefinedFunnel
           ? "The system can connect these channels to a recognizable conversion path."
           : "Without a clear conversion path, the output can only be directional about funnel issues.",
-      basedOn: evidenceList(language, ["channel_mix", "goals_bottlenecks"]),
-      signalQuality: signals.hasDefinedFunnel ? "strong" : profile.currentChannels.length > 0 ? "mixed" : "weak"
+      basedOn: evidenceList(language, ["channel_mix", "visible_positioning", "conversion_model", "goals_bottlenecks"]),
+      signalQuality: signals.hasDefinedFunnel ? "strong" : profile.currentChannels.length > 0 || profile.channelUrls.length > 0 ? "mixed" : "weak",
+      evidenceQuality: channelQuality,
+      needsValidation: needs.filter((need) => need.toLowerCase().includes("acquisition") || need.toLowerCase().includes("channel"))
+    },
+    {
+      title: "Conversion, pricing, and sales process",
+      observation:
+        signals.hasConversionEvidence
+          ? `CTA, price or ticket model, and sales process are captured. Visible evidence is ${signals.visibleEvidenceScore}/100.`
+          : `CTA is ${profile.conversionAction ? "captured" : "pending"}, pricing is ${profile.pricingModel ? "captured" : "pending"}, and sales process is ${profile.salesProcess ? "captured" : "pending"}.`,
+      implication:
+        signals.hasConversionEvidence
+          ? "The diagnostic can make conversion recommendations from a stronger base."
+          : "Conversion and sales recommendations remain provisional until this evidence is filled in.",
+      basedOn: evidenceList(language, ["conversion_model", "visible_positioning", "missing_evidence"]),
+      signalQuality: signals.hasConversionEvidence ? "strong" : conversionQuality === "missing" ? "weak" : "mixed",
+      evidenceQuality: conversionQuality,
+      needsValidation: needs.filter((need) => need.toLowerCase().includes("cta") || need.toLowerCase().includes("price") || need.toLowerCase().includes("conversion"))
     },
     {
       title: "Tools and operating maturity",
@@ -1648,13 +1991,15 @@ function buildEvidence(
         signals.hasDataVisibility
           ? "There is enough reporting structure to support a stronger measurement read."
           : "Data visibility or operating cadence is still too weak to justify strong certainty.",
-      basedOn: evidenceList(language, ["operating_tools", "operating_maturity"]),
+      basedOn: evidenceList(language, ["operating_tools", "operating_maturity", "conversion_model"]),
       signalQuality:
-        signals.hasDataVisibility && signals.hasCadence ? "strong" : profile.currentTools.length > 0 || signals.hasCadence ? "mixed" : "weak"
+        signals.hasDataVisibility && signals.hasCadence ? "strong" : profile.currentTools.length > 0 || signals.hasCadence ? "mixed" : "weak",
+      evidenceQuality: signals.hasDataVisibility && signals.hasCadence ? "clear" : profile.currentTools.length > 0 || signals.hasCadence ? "weak" : "missing",
+      needsValidation: needs.filter((need) => need.toLowerCase().includes("data") || need.toLowerCase().includes("crm") || need.toLowerCase().includes("reporting"))
     },
     {
       title: "Goals, bottlenecks, and confidence basis",
-      observation: `Goals: ${profile.primaryGoals.length}. Bottlenecks: ${profile.biggestBottlenecks.length}. Completeness ${signals.completeness}/100, consistency ${signals.consistency}/100, evidence quality ${signals.evidenceQuality}/100.`,
+      observation: `Goals: ${profile.primaryGoals.length}. Bottlenecks: ${profile.biggestBottlenecks.length}. Completeness ${signals.completeness}/100, consistency ${signals.consistency}/100, evidence quality ${signals.evidenceQuality}/100, visible evidence ${signals.visibleEvidenceScore}/100.`,
       implication: signals.insufficientSignal
         ? "This output should be treated as directional until more signal is captured."
         : signals.contradictions.length > 0
@@ -1666,9 +2011,24 @@ function buildEvidence(
         "offer_audience",
         "operating_tools"
       ]),
-      signalQuality: factorStatus(Math.round((signals.evidenceQuality + signals.consistency) / 2))
+      signalQuality: factorStatus(Math.round((signals.evidenceQuality + signals.consistency) / 2)),
+      evidenceQuality: evidenceQualityState(signals.evidenceQuality, signals),
+      needsValidation: needs
     }
   );
+
+  if (needs.length > 0) {
+    cards.push({
+      title: "What still needs validation",
+      observation: needs.join(" "),
+      implication:
+        "These validations separate a useful hypothesis from a strong conclusion for real pilot use.",
+      basedOn: evidenceList(language, ["missing_evidence", "contradictory_evidence"]),
+      signalQuality: "weak",
+      evidenceQuality: signals.contradictions.length > 0 ? "contradictory" : "weak",
+      needsValidation: needs
+    });
+  }
 
   if (signals.contradictions.length > 0) {
     const contradiction = localizeContradiction(signals.contradictions[0], language);
@@ -1702,10 +2062,12 @@ function resolveConfidence(signals: SignalMap): DiagnosticResultRecord["confiden
     signals.consistency >= 85 &&
     signals.specificity >= 75 &&
     signals.evidenceQuality >= 78 &&
+    signals.visibleEvidenceScore >= 65 &&
     signals.hasPositioningClarity &&
     signals.hasDefinedFunnel &&
     signals.hasDataVisibility &&
     signals.hasCadence &&
+    signals.hasConversionEvidence &&
     signals.contradictions.length === 0 &&
     highSeverityCount === 0
   ) {
@@ -1718,6 +2080,7 @@ function resolveConfidence(signals: SignalMap): DiagnosticResultRecord["confiden
     signals.consistency >= 50 &&
     signals.specificity >= 50 &&
     signals.evidenceQuality >= 50 &&
+    signals.visibleEvidenceScore >= 35 &&
     signals.contradictions.length <= 1 &&
     highSeverityCount <= 2 &&
     (signals.hasDataVisibility || signals.hasDefinedFunnel || signals.hasCadence)
@@ -1802,8 +2165,8 @@ function buildSummary({
     if (signals.insufficientSignal) {
       return (
         `${company} obtiene ${overallMaturityScore}/100 con confianza ${localizedConfidence(confidence, language)}. ` +
-        "El perfil actual no aporta suficiente senal para una conclusion firme. " +
-        "Completa la oferta, la audiencia, los canales, las herramientas y los principales cuellos de botella antes de tratar este resultado como base de roadmap."
+        `El perfil actual no aporta suficiente evidencia para una conclusion firme; la evidencia visible puntua ${signals.visibleEvidenceScore}/100. ` +
+        "Completa oferta, audiencia, posicionamiento visible, CTA, canales, herramientas y cuellos de botella antes de tratar este resultado como base de roadmap."
       );
     }
 
@@ -1812,7 +2175,7 @@ function buildSummary({
       return (
         `${company} obtiene ${overallMaturityScore}/100 con confianza ${localizedConfidence(confidence, language)}. ` +
         `La principal ambiguedad es: ${contradiction.title}. ` +
-        "El resultado sigue siendo util para orientar, pero no debe leerse como una verdad cerrada hasta resolver esa contradiccion."
+        "El resultado sigue siendo util para orientar, pero no debe leerse como una verdad cerrada hasta resolver esa contradiccion y validar la evidencia visible."
       );
     }
 
@@ -1828,8 +2191,8 @@ function buildSummary({
   if (signals.insufficientSignal) {
     return (
       `${company} scores ${overallMaturityScore}/100 with ${confidence} confidence. ` +
-      "The current profile does not provide enough signal for a firm diagnostic. " +
-      "Complete the offer, audience, channels, tools, and main bottlenecks before treating this as roadmap-ready truth."
+      `The current profile does not provide enough evidence for a firm diagnostic; visible evidence scores ${signals.visibleEvidenceScore}/100. ` +
+      "Complete the offer, audience, visible positioning, CTA, channels, tools, and main bottlenecks before treating this as roadmap-ready truth."
     );
   }
 
@@ -1838,7 +2201,7 @@ function buildSummary({
     return (
       `${company} scores ${overallMaturityScore}/100 with ${confidence} confidence. ` +
       `The main ambiguity is: ${contradiction.title}. ` +
-      "The output is still useful for direction, but it should not be read as settled truth until that contradiction is resolved."
+      "The output is still useful for direction, but it should not be read as settled truth until that contradiction and the visible evidence are validated."
     );
   }
 

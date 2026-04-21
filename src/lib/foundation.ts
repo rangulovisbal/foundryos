@@ -217,16 +217,23 @@ export type BusinessProfileRecord = {
   workspaceId: string;
   companyName: string | null;
   website: string | null;
+  positioningStatement: string | null;
+  channelUrls: string[];
   industry: string | null;
   businessModel: string | null;
   teamSize: string | null;
   geography: string | null;
   primaryOffer: string | null;
   targetAudience: string | null;
+  conversionAction: string | null;
+  pricingModel: string | null;
+  acquisitionMethod: string | null;
+  salesProcess: string | null;
   currentChannels: string[];
   currentTools: string[];
   primaryGoals: string[];
   biggestBottlenecks: string[];
+  evidenceNotes: string | null;
   budgetBand: string | null;
   lifecycleStage: string | null;
   createdAt: string;
@@ -275,6 +282,8 @@ export type DiagnosticEvidenceCard = {
   implication: string;
   basedOn?: string[];
   signalQuality?: "strong" | "mixed" | "weak";
+  evidenceQuality?: "clear" | "weak" | "missing" | "contradictory";
+  needsValidation?: string[];
 };
 
 export type DiagnosticJobRecord = {
@@ -636,6 +645,22 @@ const profileListSchema = z
   .optional()
   .default([]);
 
+const profileUrlListSchema = z
+  .array(
+    z
+      .string()
+      .trim()
+      .min(1)
+      .max(255)
+      .refine(
+        (value) => /^https?:\/\/[^.\s]+\.[^\s]+$/i.test(value),
+        "Use full URLs starting with http:// or https://."
+      )
+  )
+  .max(8)
+  .optional()
+  .default([]);
+
 export const businessProfileSchema = z.object({
   outputLanguage: z.enum(outputLanguageOptions).default("en"),
   companyName: optionalProfileText(160),
@@ -643,16 +668,23 @@ export const businessProfileSchema = z.object({
     (value) => !value || /^https?:\/\/[^.\s]+\.[^\s]+$/i.test(value),
     "Use a full website URL starting with http:// or https://."
   ),
+  positioningStatement: optionalProfileText(500),
+  channelUrls: profileUrlListSchema,
   industry: optionalProfileText(120),
   businessModel: optionalProfileText(120),
   teamSize: optionalProfileText(64),
   geography: optionalProfileText(160),
   primaryOffer: optionalProfileText(1200),
   targetAudience: optionalProfileText(1200),
+  conversionAction: optionalProfileText(500),
+  pricingModel: optionalProfileText(500),
+  acquisitionMethod: optionalProfileText(700),
+  salesProcess: optionalProfileText(900),
   currentChannels: profileListSchema,
   currentTools: profileListSchema,
   primaryGoals: profileListSchema,
   biggestBottlenecks: profileListSchema,
+  evidenceNotes: optionalProfileText(1600),
   budgetBand: optionalProfileText(64),
   lifecycleStage: optionalProfileText(64)
 });

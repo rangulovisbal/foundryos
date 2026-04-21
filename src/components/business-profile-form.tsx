@@ -13,22 +13,30 @@ type ProfileDraft = {
   companyName: string;
   outputLanguage: OutputLanguage;
   website: string;
+  positioningStatement: string;
+  channelUrls: string;
   industry: string;
   businessModel: string;
   teamSize: string;
   geography: string;
   primaryOffer: string;
   targetAudience: string;
+  conversionAction: string;
+  pricingModel: string;
+  acquisitionMethod: string;
+  salesProcess: string;
   currentChannels: string;
   currentTools: string;
   primaryGoals: string;
   biggestBottlenecks: string;
+  evidenceNotes: string;
   budgetBand: string;
   lifecycleStage: string;
 };
 
 type ProfileStepKey =
   | "business-basics"
+  | "visible-evidence"
   | "current-state"
   | "offer-audience"
   | "bottlenecks"
@@ -57,6 +65,16 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
       fields: ["companyName", "website", "industry", "businessModel"]
     },
     {
+      key: "visible-evidence",
+      label: copyForLanguage(language, "Visible evidence", "Evidencia visible"),
+      description: copyForLanguage(
+        language,
+        "Add the visible positioning and channel evidence a reviewer would check first. This does not fetch or verify live data yet.",
+        "Añade la evidencia visible de posicionamiento y canales que un revisor miraría primero. Todavía no se consulta ni verifica información en vivo."
+      ),
+      fields: ["positioningStatement", "channelUrls", "conversionAction", "evidenceNotes"]
+    },
+    {
       key: "current-state",
       label: copyForLanguage(language, "Current state", "Estado actual"),
       description: copyForLanguage(
@@ -71,10 +89,10 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
       label: copyForLanguage(language, "Offer and audience", "Oferta y audiencia"),
       description: copyForLanguage(
         language,
-        "Describe what the company sells and who it is built for. The diagnostic depends heavily on this step.",
-        "Describe qué vende la empresa y para quién está pensada. El diagnóstico depende mucho de este paso."
+        "Describe what the company sells, who it is built for, and how the buyer sees the price or ticket model.",
+        "Describe qué vende la empresa, para quién está pensada y cómo ve el comprador el precio o modelo de ticket."
       ),
-      fields: ["primaryOffer", "targetAudience"]
+      fields: ["primaryOffer", "targetAudience", "pricingModel"]
     },
     {
       key: "bottlenecks",
@@ -105,10 +123,10 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
       ),
       description: copyForLanguage(
         language,
-        "Name the channels and systems already in use so the diagnostic can reason from what exists today.",
-        "Nombra los canales y sistemas que ya se usan para que el diagnóstico razone desde la realidad actual."
+        "Name the channels, acquisition motion, sales process, and systems already in use so the diagnostic can reason from what exists today.",
+        "Nombra los canales, método de adquisición, proceso comercial y sistemas que ya se usan para que el diagnóstico razone desde la realidad actual."
       ),
-      fields: ["currentChannels", "currentTools"]
+      fields: ["currentChannels", "acquisitionMethod", "salesProcess", "currentTools"]
     },
     {
       key: "output-language",
@@ -152,16 +170,23 @@ function buildInitialDraft(
     companyName: profile?.companyName ?? "",
     outputLanguage,
     website: profile?.website ?? "",
+    positioningStatement: profile?.positioningStatement ?? "",
+    channelUrls: listToText(profile?.channelUrls),
     industry: profile?.industry ?? "",
     businessModel: profile?.businessModel ?? "",
     teamSize: profile?.teamSize ?? "",
     geography: profile?.geography ?? "",
     primaryOffer: profile?.primaryOffer ?? "",
     targetAudience: profile?.targetAudience ?? "",
+    conversionAction: profile?.conversionAction ?? "",
+    pricingModel: profile?.pricingModel ?? "",
+    acquisitionMethod: profile?.acquisitionMethod ?? "",
+    salesProcess: profile?.salesProcess ?? "",
     currentChannels: listToText(profile?.currentChannels),
     currentTools: listToText(profile?.currentTools),
     primaryGoals: listToText(profile?.primaryGoals),
     biggestBottlenecks: listToText(profile?.biggestBottlenecks),
+    evidenceNotes: profile?.evidenceNotes ?? "",
     budgetBand: profile?.budgetBand ?? "",
     lifecycleStage: profile?.lifecycleStage ?? ""
   };
@@ -239,6 +264,27 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
       ]
     },
     {
+      title: copyForLanguage(language, "Visible evidence", "Evidencia visible"),
+      items: [
+        [
+          copyForLanguage(language, "One-line positioning", "Posicionamiento en una frase"),
+          compactValue(draft.positioningStatement, language)
+        ] as [string, string],
+        [
+          copyForLanguage(language, "Channel URLs", "URLs de canales"),
+          compactList(draft.channelUrls).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
+        ] as [string, string],
+        [
+          copyForLanguage(language, "Current CTA", "CTA actual"),
+          compactValue(draft.conversionAction, language)
+        ] as [string, string],
+        [
+          copyForLanguage(language, "Evidence notes", "Notas de evidencia"),
+          compactValue(draft.evidenceNotes, language)
+        ] as [string, string]
+      ]
+    },
+    {
       title: copyForLanguage(language, "Current state", "Estado actual"),
       items: [
         [copyForLanguage(language, "Team size", "Tamaño del equipo"), compactValue(draft.teamSize, language)] as [string, string],
@@ -251,7 +297,8 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
       title: copyForLanguage(language, "Offer and audience", "Oferta y audiencia"),
       items: [
         [copyForLanguage(language, "Primary offer", "Oferta principal"), compactValue(draft.primaryOffer, language)] as [string, string],
-        [copyForLanguage(language, "Target audience", "Audiencia objetivo"), compactValue(draft.targetAudience, language)] as [string, string]
+        [copyForLanguage(language, "Target audience", "Audiencia objetivo"), compactValue(draft.targetAudience, language)] as [string, string],
+        [copyForLanguage(language, "Pricing / ticket model", "Precio / modelo de ticket"), compactValue(draft.pricingModel, language)] as [string, string]
       ]
     },
     {
@@ -273,6 +320,14 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
         [
           copyForLanguage(language, "Current channels", "Canales actuales"),
           compactList(draft.currentChannels).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
+        ] as [string, string],
+        [
+          copyForLanguage(language, "Acquisition method", "Método de adquisición"),
+          compactValue(draft.acquisitionMethod, language)
+        ] as [string, string],
+        [
+          copyForLanguage(language, "Sales process", "Proceso comercial"),
+          compactValue(draft.salesProcess, language)
         ] as [string, string],
         [
           copyForLanguage(language, "Current tools", "Herramientas actuales"),
@@ -358,6 +413,68 @@ function renderStepFields({
           </Field>
         </div>
       );
+    case "visible-evidence":
+      return (
+        <div className="space-y-4">
+          <Field label={copyForLanguage(language, "Current one-line positioning", "Posicionamiento actual en una frase")}>
+            <input
+              className={inputClass}
+              disabled={!canEdit || loading}
+              onChange={(event) => updateField("positioningStatement", event.target.value)}
+              placeholder={copyForLanguage(
+                language,
+                "We help boutique agencies turn founder-led sales into repeatable pipeline.",
+                "Ayudamos a agencias boutique a convertir ventas lideradas por el fundador en pipeline repetible."
+              )}
+              value={draft.positioningStatement}
+            />
+          </Field>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Field label={copyForLanguage(language, "Main social / channel URLs", "URLs principales de canales")}>
+              <textarea
+                className={textareaClass}
+                disabled={!canEdit || loading}
+                onChange={(event) => updateField("channelUrls", event.target.value)}
+                placeholder="https://linkedin.com/company/example&#10;https://instagram.com/example"
+                value={draft.channelUrls}
+              />
+            </Field>
+            <Field label={copyForLanguage(language, "Current CTA or conversion action", "CTA o acción de conversión actual")}>
+              <textarea
+                className={textareaClass}
+                disabled={!canEdit || loading}
+                onChange={(event) => updateField("conversionAction", event.target.value)}
+                placeholder={copyForLanguage(
+                  language,
+                  "Book a demo, request proposal, join waitlist, buy now...",
+                  "Reservar demo, solicitar propuesta, unirse a lista de espera, comprar ahora..."
+                )}
+                value={draft.conversionAction}
+              />
+            </Field>
+          </div>
+          <Field label={copyForLanguage(language, "Optional evidence notes", "Notas opcionales de evidencia")}>
+            <textarea
+              className={textareaClass}
+              disabled={!canEdit || loading}
+              onChange={(event) => updateField("evidenceNotes", event.target.value)}
+              placeholder={copyForLanguage(
+                language,
+                "Paste context the system should consider: recent objections, homepage claim, sales notes, screenshots summarized in text, or known data gaps.",
+                "Pega contexto que el sistema debería considerar: objeciones recientes, promesa de la home, notas comerciales, capturas resumidas en texto o gaps de datos conocidos."
+              )}
+              value={draft.evidenceNotes}
+            />
+          </Field>
+          <p className="text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "These fields are user-entered evidence only. FoundryOS does not crawl or verify the URLs yet.",
+              "Estos campos son evidencia introducida por el usuario. FoundryOS todavía no rastrea ni verifica las URLs."
+            )}
+          </p>
+        </div>
+      );
     case "current-state":
       return (
         <div className="grid gap-4 md:grid-cols-2">
@@ -405,7 +522,8 @@ function renderStepFields({
       );
     case "offer-audience":
       return (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
           <Field label={copyForLanguage(language, "Primary offer", "Oferta principal")}>
             <textarea
               className={textareaClass}
@@ -430,6 +548,20 @@ function renderStepFields({
                 "Para quién está construido el negocio, qué intenta resolver y por qué compra."
               )}
               value={draft.targetAudience}
+            />
+          </Field>
+          </div>
+          <Field label={copyForLanguage(language, "Approximate pricing / ticket model", "Precio aproximado / modelo de ticket")}>
+            <input
+              className={inputClass}
+              disabled={!canEdit || loading}
+              onChange={(event) => updateField("pricingModel", event.target.value)}
+              placeholder={copyForLanguage(
+                language,
+                "$99/month, $5k project, 10% take rate, custom proposal...",
+                "99€/mes, proyecto de 5k, 10% comisión, propuesta personalizada..."
+              )}
+              value={draft.pricingModel}
             />
           </Field>
         </div>
@@ -486,7 +618,8 @@ function renderStepFields({
       );
     case "systems":
       return (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
           <Field label={copyForLanguage(language, "Current channels", "Canales actuales")}>
             <textarea
               className={textareaClass}
@@ -505,6 +638,35 @@ function renderStepFields({
               value={draft.currentTools}
             />
           </Field>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Field label={copyForLanguage(language, "Current acquisition method", "Método de adquisición actual")}>
+              <textarea
+                className={textareaClass}
+                disabled={!canEdit || loading}
+                onChange={(event) => updateField("acquisitionMethod", event.target.value)}
+                placeholder={copyForLanguage(
+                  language,
+                  "Mostly referrals, founder LinkedIn outbound, SEO trials, paid search...",
+                  "Principalmente referidos, outbound del fundador en LinkedIn, pruebas SEO, búsqueda pagada..."
+                )}
+                value={draft.acquisitionMethod}
+              />
+            </Field>
+            <Field label={copyForLanguage(language, "Current sales process", "Proceso comercial actual")}>
+              <textarea
+                className={textareaClass}
+                disabled={!canEdit || loading}
+                onChange={(event) => updateField("salesProcess", event.target.value)}
+                placeholder={copyForLanguage(
+                  language,
+                  "Lead form -> discovery call -> proposal -> close. Founder handles every step.",
+                  "Formulario -> llamada de diagnóstico -> propuesta -> cierre. El fundador gestiona todo."
+                )}
+                value={draft.salesProcess}
+              />
+            </Field>
+          </div>
         </div>
       );
     case "output-language":
@@ -542,8 +704,8 @@ function renderStepFields({
             <p className="mt-3 text-sm leading-7 text-muted">
               {copyForLanguage(
                 language,
-                "This step uses the exact same profile payload as before. The only change is the intake flow: review the captured context, then save it or save and run diagnostics from the reviewed input.",
-                "Este paso usa exactamente el mismo payload del perfil que antes. El único cambio es el flujo de captura: revisa el contexto recogido y luego guárdalo o guarda y ejecuta el diagnóstico desde esta versión revisada."
+                "Review the captured context and evidence, then save it or save and run diagnostics from this reviewed input. New evidence fields are optional, but weak or missing evidence lowers confidence.",
+                "Revisa el contexto y la evidencia capturada, luego guarda o guarda y ejecuta el diagnóstico desde esta versión revisada. Los nuevos campos de evidencia son opcionales, pero la evidencia débil o faltante baja la confianza."
               )}
             </p>
           </div>
@@ -618,16 +780,23 @@ export function BusinessProfileForm({
         outputLanguage: draft.outputLanguage,
         companyName: draft.companyName,
         website: draft.website,
+        positioningStatement: draft.positioningStatement,
+        channelUrls: textToList(draft.channelUrls),
         industry: draft.industry,
         businessModel: draft.businessModel,
         teamSize: draft.teamSize,
         geography: draft.geography,
         primaryOffer: draft.primaryOffer,
         targetAudience: draft.targetAudience,
+        conversionAction: draft.conversionAction,
+        pricingModel: draft.pricingModel,
+        acquisitionMethod: draft.acquisitionMethod,
+        salesProcess: draft.salesProcess,
         currentChannels: textToList(draft.currentChannels),
         currentTools: textToList(draft.currentTools),
         primaryGoals: textToList(draft.primaryGoals),
         biggestBottlenecks: textToList(draft.biggestBottlenecks),
+        evidenceNotes: draft.evidenceNotes,
         budgetBand: draft.budgetBand,
         lifecycleStage: draft.lifecycleStage
       })
@@ -744,8 +913,8 @@ export function BusinessProfileForm({
             <p className="mt-4 body-lg">
               {copyForLanguage(
                 language,
-                "The underlying profile model and save behavior stay the same. This flow is only here to improve signal quality and make the intake easier to complete well.",
-                "El modelo de perfil y el comportamiento de guardado siguen siendo los mismos. Este flujo existe solo para mejorar la calidad de la señal y hacer más fácil completar bien la captura."
+                "The save flow stays the same, but the profile now captures a small evidence layer so diagnostics can separate stated claims, visible signals, and what still needs validation.",
+                "El guardado sigue funcionando igual, pero el perfil ahora captura una pequeña capa de evidencia para que el diagnóstico separe declaraciones, señales visibles y lo que todavía necesita validación."
               )}
             </p>
           </div>

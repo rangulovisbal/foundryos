@@ -278,6 +278,39 @@ function findingTone(value: string): FoundryStatusTone {
   return "neutral";
 }
 
+function localizeEvidenceQuality(
+  quality: NonNullable<DiagnosticResultRecord["evidenceCards"][number]["evidenceQuality"]>,
+  language: OutputLanguage
+) {
+  const labels = {
+    clear: copyForLanguage(language, "Clear evidence", "Evidencia clara"),
+    weak: copyForLanguage(language, "Weak evidence", "Evidencia débil"),
+    missing: copyForLanguage(language, "Missing evidence", "Evidencia faltante"),
+    contradictory: copyForLanguage(
+      language,
+      "Contradictory evidence",
+      "Evidencia contradictoria"
+    )
+  };
+
+  return labels[quality];
+}
+
+function evidenceQualityTone(
+  quality: NonNullable<DiagnosticResultRecord["evidenceCards"][number]["evidenceQuality"]>
+): FoundryStatusTone {
+  if (quality === "clear") return "success";
+  if (quality === "contradictory") return "error";
+  if (quality === "weak") return "warning";
+  return "neutral";
+}
+
+function validationNeedsForResult(result: DiagnosticResultRecord) {
+  return Array.from(
+    new Set(result.evidenceCards.flatMap((item) => item.needsValidation ?? []))
+  ).slice(0, 5);
+}
+
 function localizeFindingSeverity(
   finding: DiagnosticFinding,
   language: OutputLanguage
@@ -552,6 +585,7 @@ function LatestResult({
 }) {
   const highlights = explanationHighlights(result, language);
   const ambiguities = ambiguityCards(result);
+  const validationNeeds = validationNeedsForResult(result);
 
   return (
     <section className="space-y-6" id="latest-diagnostic">
@@ -644,6 +678,35 @@ function LatestResult({
           </div>
         ) : null}
       </FoundrySectionCard>
+
+      {validationNeeds.length > 0 ? (
+        <FoundrySectionCard
+          description={copyForLanguage(
+            language,
+            "These items must be checked before treating the diagnostic as strong truth instead of directional guidance.",
+            "Estos puntos deben comprobarse antes de tratar el diagnóstico como una verdad fuerte en vez de una orientación."
+          )}
+          title={copyForLanguage(
+            language,
+            "What still needs validation",
+            "Qué falta validar"
+          )}
+        >
+          <div className="grid gap-3 md:grid-cols-2">
+            {validationNeeds.map((need, index) => (
+              <article
+                className="rounded-[22px] border border-gold/30 bg-gold/10 p-4"
+                key={`${need}-${index}`}
+              >
+                <FoundryStatusChip tone="warning">
+                  {copyForLanguage(language, "Needs validation", "Necesita validación")}
+                </FoundryStatusChip>
+                <p className="mt-3 text-sm leading-7 text-muted">{need}</p>
+              </article>
+            ))}
+          </div>
+        </FoundrySectionCard>
+      ) : null}
 
       <FoundrySectionCard
         description={copyForLanguage(
@@ -741,16 +804,20 @@ function LatestResult({
         items={result.evidenceCards.map((item) => ({
           title: item.title,
           body: `${item.observation} ${item.implication}`,
-          meta:
-            item.signalQuality === "strong"
+          meta: item.evidenceQuality
+            ? localizeEvidenceQuality(item.evidenceQuality, language)
+            : item.signalQuality === "strong"
               ? copyForLanguage(language, "Strong signal", "Señal fuerte")
               : item.signalQuality === "mixed"
                 ? copyForLanguage(language, "Mixed signal", "Señal mixta")
                 : item.signalQuality === "weak"
                   ? copyForLanguage(language, "Weak signal", "Señal débil")
                   : copyForLanguage(language, "Evidence", "Evidencia"),
-          metaTone: findingTone(item.signalQuality ?? "neutral"),
-          basis: item.basedOn
+          metaTone: item.evidenceQuality
+            ? evidenceQualityTone(item.evidenceQuality)
+            : findingTone(item.signalQuality ?? "neutral"),
+          basis: item.basedOn,
+          needsValidation: item.needsValidation
         }))}
       />
       <DiagnosticCardGroup
@@ -824,6 +891,7 @@ function DiagnosticCardGroup({
     meta: string;
     metaTone: FoundryStatusTone;
     basis?: string[];
+    needsValidation?: string[];
   }>;
 }) {
   return (
@@ -852,6 +920,18 @@ function DiagnosticCardGroup({
                 <p className="mt-3">
                   {copyForLanguage(language, "Based on", "Basado en")}: {item.basis.join(", ")}
                 </p>
+              </details>
+            ) : null}
+            {item.needsValidation && item.needsValidation.length > 0 ? (
+              <details className="mt-4 rounded-[20px] border border-gold/30 bg-gold/10 p-3 text-sm text-muted">
+                <summary className="cursor-pointer font-semibold text-ink">
+                  {copyForLanguage(language, "Needs validation", "Necesita validación")}
+                </summary>
+                <ul className="mt-3 space-y-2">
+                  {item.needsValidation.map((need) => (
+                    <li key={`${item.title}-${need}`}>{need}</li>
+                  ))}
+                </ul>
               </details>
             ) : null}
           </article>
