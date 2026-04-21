@@ -4,7 +4,6 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
-  Briefcase,
   CheckCircle2,
   ChevronDown,
   CircleDollarSign,
@@ -18,7 +17,6 @@ import {
 import { DiagnosticsRunButton } from "@/components/diagnostics-run-button";
 import {
   FoundryMetricCard,
-  FoundryPageHeader,
   FoundryProgressBar,
   FoundryScoreRing,
   FoundrySectionCard,
@@ -311,6 +309,17 @@ function validationNeedsForResult(result: DiagnosticResultRecord) {
   ).slice(0, 5);
 }
 
+function evidenceQualityCounts(result: DiagnosticResultRecord) {
+  return result.evidenceCards.reduce(
+    (counts, card) => {
+      const quality = card.evidenceQuality ?? "missing";
+      counts[quality] += 1;
+      return counts;
+    },
+    { clear: 0, weak: 0, missing: 0, contradictory: 0 }
+  );
+}
+
 function localizeFindingSeverity(
   finding: DiagnosticFinding,
   language: OutputLanguage
@@ -330,14 +339,6 @@ function localizeFindingSeverity(
       : "Low";
 }
 
-function overviewMessage(result: DiagnosticResultRecord, language: OutputLanguage) {
-  return copyForLanguage(
-    language,
-    `Your business scores ${result.overallMaturityScore}/100 across ${result.categoryScores.length} areas. Focus first on the categories below 75 to create the biggest operating lift.`,
-    `Tu negocio puntúa ${result.overallMaturityScore}/100 en ${result.categoryScores.length} áreas. Enfócate primero en las categorías por debajo de 75 para lograr la mayor mejora operativa.`
-  );
-}
-
 export default async function DiagnosticsPage() {
   const context = await requireWorkspaceContext("/app/diagnostics");
   const language = context.workspace.outputLanguage;
@@ -350,6 +351,7 @@ export default async function DiagnosticsPage() {
   const canRun = canRunDiagnostics(context) && Boolean(profile);
   const disabledReason = resolveDisabledReason(context, Boolean(profile), language);
   const buckets = latestResult ? scoreBuckets(latestResult) : null;
+  const qualityCounts = latestResult ? evidenceQualityCounts(latestResult) : null;
 
   return (
     <div className="space-y-6">
@@ -360,114 +362,159 @@ export default async function DiagnosticsPage() {
         />
       ) : null}
 
-      <section className="surface p-5 md:p-7">
-        <FoundryPageHeader
-          eyebrow={copyForLanguage(language, "Diagnostics", "Diagnóstico")}
-          description={copyForLanguage(
-            language,
-            "A structured, deterministic assessment of business health across the most important execution areas.",
-            "Una evaluación estructurada y determinista de la salud del negocio en las áreas de ejecución más importantes."
-          )}
-          title={copyForLanguage(
-            language,
-            "Diagnostics with visible evidence and honest confidence.",
-            "Diagnóstico con evidencia visible y confianza honesta."
-          )}
-        />
+      <section className="foundry-dark-panel p-5 text-[#E0EBF0] md:p-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_460px] xl:items-start">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+              {copyForLanguage(language, "Diagnostics", "Diagnóstico")}
+            </span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
+              {language === "es" ? (
+                <>
+                  Evidencia visible,{" "}
+                  <span className="font-serif-display text-[#F4F2EC]">
+                    confianza honesta.
+                  </span>
+                </>
+              ) : (
+                <>
+                  Visible evidence,{" "}
+                  <span className="font-serif-display text-[#F4F2EC]">
+                    honest confidence.
+                  </span>
+                </>
+              )}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
+              {copyForLanguage(
+                language,
+                "The diagnostic remains deterministic, but the presentation now separates score, evidence quality, uncertainty, and validation needs before anything feels like strong truth.",
+                "El diagnóstico sigue siendo determinista, pero la presentación separa puntuación, calidad de evidencia, incertidumbre y validaciones pendientes antes de tratar algo como verdad fuerte."
+              )}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.08] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
+                  {copyForLanguage(language, "Run usage", "Uso de ejecuciones")}
+                </p>
+                <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+                  {counter?.usedCount ?? 0}/{counter?.limitCount ?? 0}
+                </p>
+              </div>
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.08] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
+                  {copyForLanguage(language, "Output language", "Idioma de salida")}
+                </p>
+                <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+                  {formatOutputLanguageLabel(language)}
+                </p>
+              </div>
+            </div>
+          </div>
 
-        <div className="mt-6 grid min-w-0 gap-4 2xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6">
+          <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
             {latestResult ? (
-              <div className="flex flex-col gap-6 md:flex-row md:items-center">
-                <FoundryScoreRing
-                  label={copyForLanguage(language, "Health score", "Salud general")}
-                  score={latestResult.overallMaturityScore}
-                />
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-2xl font-semibold tracking-[-0.03em] text-ink">
+              <div className="space-y-5">
+                <div className="flex items-center gap-5">
+                  <div className="rounded-[28px] border border-white/10 bg-white/90 p-3 text-ink">
+                    <FoundryScoreRing
+                      label={copyForLanguage(language, "Score", "Puntuación")}
+                      score={latestResult.overallMaturityScore}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
+                      {copyForLanguage(language, "Latest diagnostic", "Último diagnóstico")}
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+                      {localizeConfidence(latestResult.confidence, language)}{" "}
+                      {copyForLanguage(language, "confidence", "de confianza")}
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      {formatDateTimeForLanguage(language, latestResult.createdAt)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <FoundryStatusChip tone="success">
                     {copyForLanguage(
                       language,
-                      "Overall health score",
-                      "Puntuación general"
+                      `${buckets?.strong ?? 0} strong`,
+                      `${buckets?.strong ?? 0} fuertes`
                     )}
-                  </h3>
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">
-                    {overviewMessage(latestResult, language)}
+                  </FoundryStatusChip>
+                  <FoundryStatusChip tone="warning">
+                    {copyForLanguage(
+                      language,
+                      `${buckets?.attention ?? 0} watch`,
+                      `${buckets?.attention ?? 0} atención`
+                    )}
+                  </FoundryStatusChip>
+                  <FoundryStatusChip tone="error">
+                    {copyForLanguage(
+                      language,
+                      `${buckets?.critical ?? 0} critical`,
+                      `${buckets?.critical ?? 0} críticas`
+                    )}
+                  </FoundryStatusChip>
+                </div>
+
+                <div className="rounded-[24px] border border-white/10 bg-[#051A24]/45 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
+                    {copyForLanguage(language, "Evidence quality", "Calidad de evidencia")}
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <FoundryStatusChip tone="success">
-                      {copyForLanguage(
-                        language,
-                        `${buckets?.strong ?? 0} strong`,
-                        `${buckets?.strong ?? 0} fuertes`
-                      )}
-                    </FoundryStatusChip>
-                    <FoundryStatusChip tone="warning">
-                      {copyForLanguage(
-                        language,
-                        `${buckets?.attention ?? 0} need attention`,
-                        `${buckets?.attention ?? 0} necesitan atención`
-                      )}
-                    </FoundryStatusChip>
-                    <FoundryStatusChip tone="error">
-                      {copyForLanguage(
-                        language,
-                        `${buckets?.critical ?? 0} critical`,
-                        `${buckets?.critical ?? 0} críticas`
-                      )}
-                    </FoundryStatusChip>
+                  <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                    <div>
+                      <p className="text-xl font-semibold text-white">{qualityCounts?.clear ?? 0}</p>
+                      <p className="text-[11px] text-white/55">
+                        {copyForLanguage(language, "Clear", "Clara")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-semibold text-white">{qualityCounts?.weak ?? 0}</p>
+                      <p className="text-[11px] text-white/55">
+                        {copyForLanguage(language, "Weak", "Débil")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-semibold text-white">{qualityCounts?.missing ?? 0}</p>
+                      <p className="text-[11px] text-white/55">
+                        {copyForLanguage(language, "Missing", "Falta")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-semibold text-white">
+                        {qualityCounts?.contradictory ?? 0}
+                      </p>
+                      <p className="text-[11px] text-white/55">
+                        {copyForLanguage(language, "Conflict", "Conflicto")}
+                      </p>
+                    </div>
                   </div>
-                  <p className="mt-4 text-xs uppercase tracking-[0.16em] text-muted">
-                    {copyForLanguage(language, "Saved", "Guardado")}{" "}
-                    {formatDateTimeForLanguage(language, latestResult.createdAt)}
-                  </p>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
-                <h3 className="text-2xl font-semibold tracking-[-0.03em] text-ink">
+                <h2 className="text-2xl font-semibold tracking-[-0.04em] text-white">
                   {copyForLanguage(
                     language,
                     "No diagnostic has been saved yet.",
                     "Todavía no se ha guardado ningún diagnóstico."
                   )}
-                </h3>
-                <p className="text-sm leading-7 text-muted">
+                </h2>
+                <p className="text-sm leading-7 text-white/68">
                   {copyForLanguage(
                     language,
-                    "Once you run the first diagnostic, this view will show the overall health score, category breakdown, confidence level, and the visible basis behind the read.",
-                    "Cuando ejecutes el primer diagnóstico, esta vista mostrará la puntuación general, el desglose por categorías, el nivel de confianza y la base visible detrás de la lectura."
+                    "Once the first run is saved, this view shows score, category breakdown, confidence, evidence quality, and validation needs.",
+                    "Cuando se guarde la primera ejecución, esta vista mostrará puntuación, categorías, confianza, calidad de evidencia y validaciones pendientes."
                   )}
                 </p>
               </div>
             )}
-          </div>
 
-          <div className="grid gap-4">
-            <FoundryMetricCard
-              detail={copyForLanguage(
-                language,
-                "Diagnostic runs used in the current period against the workspace entitlement.",
-                "Ejecuciones usadas en el período actual frente al cupo del espacio."
-              )}
-              icon={RefreshCw}
-              label={copyForLanguage(language, "Run usage", "Uso de ejecuciones")}
-              tone="info"
-              value={`${counter?.usedCount ?? 0}/${counter?.limitCount ?? 0}`}
-            />
-            <FoundryMetricCard
-              detail={copyForLanguage(
-                language,
-                "The workspace language controls the generated diagnostic output and the current app experience.",
-                "El idioma del espacio controla la salida generada del diagnóstico y la experiencia actual de la app."
-              )}
-              icon={Briefcase}
-              label={copyForLanguage(language, "Output language", "Idioma de salida")}
-              tone="neutral"
-              value={formatOutputLanguageLabel(language)}
-            />
-            <div className="metric-card">
-              <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/[0.07] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
                 {copyForLanguage(language, "Run or re-run", "Ejecutar o repetir")}
               </p>
               <div className="mt-4">

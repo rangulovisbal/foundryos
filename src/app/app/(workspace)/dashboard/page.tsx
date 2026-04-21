@@ -18,7 +18,6 @@ import {
 
 import {
   FoundryMetricCard,
-  FoundryPageHeader,
   FoundryProgressBar,
   FoundrySectionCard,
   FoundryStatusChip,
@@ -86,6 +85,21 @@ function scoreTone(score: number): FoundryStatusTone {
   }
 
   return "error";
+}
+
+function confidenceLabel(
+  confidence: DiagnosticResultRecord["confidence"] | null,
+  language: OutputLanguage
+) {
+  if (!confidence) {
+    return copyForLanguage(language, "Not available", "No disponible");
+  }
+
+  if (language === "es") {
+    return confidence === "high" ? "Alta" : confidence === "medium" ? "Media" : "Baja";
+  }
+
+  return confidence.charAt(0).toUpperCase() + confidence.slice(1);
 }
 
 function dashboardBasis(result: DiagnosticResultRecord | null) {
@@ -306,82 +320,157 @@ export default async function WorkspaceDashboardPage() {
         />
       ) : null}
 
-      <section className="surface p-5 md:p-7">
-        <FoundryPageHeader
-          actions={
-            <Link
-              className="inline-flex items-center gap-2 rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
-              href="/app/diagnostics"
-            >
-              <Stethoscope className="h-4 w-4" />
-              {copyForLanguage(language, "Open diagnostics", "Abrir diagnóstico")}
-            </Link>
-          }
-          eyebrow={copyForLanguage(language, "Dashboard", "Panel")}
-          description={copyForLanguage(
-            language,
-            "Your business health at a glance, using the latest saved diagnostic, plan, and asset context.",
-            "La salud del negocio de un vistazo, usando el último diagnóstico, plan y contexto guardado."
-          )}
-          title={copyForLanguage(
-            language,
-            `A clearer operating snapshot for ${context.workspace.name}.`,
-            `Una vista operativa más clara para ${context.workspace.name}.`
-          )}
-        />
+      <section className="foundry-dark-panel p-5 text-[#E0EBF0] md:p-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-end">
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+              {copyForLanguage(language, "Dashboard", "Panel")}
+            </span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
+              {language === "es" ? (
+                <>
+                  Vista operativa real para{" "}
+                  <span className="font-serif-display text-[#F4F2EC]">
+                    {context.workspace.name}.
+                  </span>
+                </>
+              ) : (
+                <>
+                  Real operating snapshot for{" "}
+                  <span className="font-serif-display text-[#F4F2EC]">
+                    {context.workspace.name}.
+                  </span>
+                </>
+              )}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
+              {copyForLanguage(
+                language,
+                "A summary-first view of the latest saved profile, deterministic diagnostic, planning artifacts, and evidence basis. No mock data, no hidden integrations.",
+                "Una vista primero-resumen del perfil guardado, diagnóstico determinista, artefactos de planificación y base de evidencia. Sin datos simulados ni integraciones ocultas."
+              )}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="/app/diagnostics">
+                <Stethoscope className="h-4 w-4" />
+                {copyForLanguage(language, "Open diagnostics", "Abrir diagnóstico")}
+              </Link>
+              <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/profile">
+                <FileText className="h-4 w-4" />
+                {copyForLanguage(language, "Review profile", "Revisar perfil")}
+              </Link>
+            </div>
+          </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
-          <FoundryMetricCard
-            change={
-              latestDiagnostic
-                ? maturityLabel(maturityScore, language)
-                : copyForLanguage(language, "Needs first run", "Falta la primera ejecución")
-            }
-            detail={copyForLanguage(
-              language,
-              "Overall maturity reflects the latest deterministic diagnostic.",
-              "La madurez general refleja el último diagnóstico determinista."
-            )}
-            icon={Activity}
-            label={copyForLanguage(language, "Health score", "Puntuación general")}
-            tone={maturityScore === null ? "neutral" : scoreTone(maturityScore)}
-            trend={maturityScore !== null && maturityScore >= 75 ? "up" : "neutral"}
-            value={maturityScore === null ? "--" : `${maturityScore}/100`}
-          />
-          <FoundryMetricCard
-            detail={copyForLanguage(
-              language,
-              "Completed actions out of the latest saved action plan.",
-              "Acciones completadas dentro del último plan de acción guardado."
-            )}
-            icon={CheckCircle2}
-            label={copyForLanguage(language, "Actions completed", "Acciones completadas")}
-            tone={actionCounts.total > 0 && actionCounts.completed > 0 ? "success" : "neutral"}
-            value={`${actionCounts.completed}/${actionCounts.total}`}
-          />
-          <FoundryMetricCard
-            detail={copyForLanguage(
-              language,
-              "Current top priorities pulled from the 30-day plan or saved profile goals.",
-              "Prioridades actuales tomadas del plan de 30 días o de los objetivos del perfil."
-            )}
-            icon={Target}
-            label={copyForLanguage(language, "Active priorities", "Prioridades activas")}
-            tone={priorityCount > 0 ? "info" : "neutral"}
-            value={String(priorityCount)}
-          />
-          <FoundryMetricCard
-            detail={copyForLanguage(
-              language,
-              "Saved asset outputs already available for the workspace.",
-              "Activos guardados que ya están disponibles en el espacio."
-            )}
-            icon={FolderOpen}
-            label={copyForLanguage(language, "Assets ready", "Activos listos")}
-            tone={latestAssets.length > 0 ? "warning" : "neutral"}
-            value={String(latestAssets.length)}
-          />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            <article className="rounded-[28px] border border-white/10 bg-white/[0.08] p-5 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
+                {copyForLanguage(language, "Current maturity", "Madurez actual")}
+              </p>
+              <div className="mt-4 flex items-end gap-3">
+                <span className="text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
+                  {maturityScore === null ? "--" : maturityScore}
+                </span>
+                <span className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-white/55">
+                  /100
+                </span>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-white/68">
+                {latestDiagnostic
+                  ? maturityLabel(maturityScore, language)
+                  : copyForLanguage(
+                      language,
+                      "Run the first diagnostic to create the baseline.",
+                      "Ejecuta el primer diagnóstico para crear la línea base."
+                    )}
+              </p>
+            </article>
+
+            <article className="rounded-[28px] border border-white/10 bg-white/[0.08] p-5 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
+                {copyForLanguage(language, "Trust snapshot", "Lectura de confianza")}
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-2xl font-semibold tracking-[-0.04em] text-white">
+                    {confidenceLabel(latestDiagnostic?.confidence ?? null, language)}
+                  </p>
+                  <p className="mt-1 text-xs text-white/55">
+                    {copyForLanguage(language, "Confidence", "Confianza")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-2xl font-semibold tracking-[-0.04em] text-white">
+                    {evidenceBasis.length}
+                  </p>
+                  <p className="mt-1 text-xs text-white/55">
+                    {copyForLanguage(language, "Basis signals", "Señales base")}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-white/68">
+                {copyForLanguage(
+                  language,
+                  "Confidence stays tied to saved evidence quality, not visual polish.",
+                  "La confianza sigue atada a la calidad de evidencia guardada, no al pulido visual."
+                )}
+              </p>
+            </article>
+          </div>
         </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+        <FoundryMetricCard
+          change={
+            latestDiagnostic
+              ? maturityLabel(maturityScore, language)
+              : copyForLanguage(language, "Needs first run", "Falta la primera ejecución")
+          }
+          detail={copyForLanguage(
+            language,
+            "Overall maturity reflects the latest deterministic diagnostic.",
+            "La madurez general refleja el último diagnóstico determinista."
+          )}
+          icon={Activity}
+          label={copyForLanguage(language, "Health score", "Puntuación general")}
+          tone={maturityScore === null ? "neutral" : scoreTone(maturityScore)}
+          trend={maturityScore !== null && maturityScore >= 75 ? "up" : "neutral"}
+          value={maturityScore === null ? "--" : `${maturityScore}/100`}
+        />
+        <FoundryMetricCard
+          detail={copyForLanguage(
+            language,
+            "Completed actions out of the latest saved action plan.",
+            "Acciones completadas dentro del último plan de acción guardado."
+          )}
+          icon={CheckCircle2}
+          label={copyForLanguage(language, "Actions completed", "Acciones completadas")}
+          tone={actionCounts.total > 0 && actionCounts.completed > 0 ? "success" : "neutral"}
+          value={`${actionCounts.completed}/${actionCounts.total}`}
+        />
+        <FoundryMetricCard
+          detail={copyForLanguage(
+            language,
+            "Current top priorities pulled from the 30-day plan or saved profile goals.",
+            "Prioridades actuales tomadas del plan de 30 días o de los objetivos del perfil."
+          )}
+          icon={Target}
+          label={copyForLanguage(language, "Active priorities", "Prioridades activas")}
+          tone={priorityCount > 0 ? "info" : "neutral"}
+          value={String(priorityCount)}
+        />
+        <FoundryMetricCard
+          detail={copyForLanguage(
+            language,
+            "Saved asset outputs already available for the workspace.",
+            "Activos guardados que ya están disponibles en el espacio."
+          )}
+          icon={FolderOpen}
+          label={copyForLanguage(language, "Assets ready", "Activos listos")}
+          tone={latestAssets.length > 0 ? "warning" : "neutral"}
+          value={String(latestAssets.length)}
+        />
       </section>
 
       <section className="grid min-w-0 gap-5 2xl:grid-cols-[1.05fr_0.95fr]">

@@ -3,15 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #f4efe6;
-  --foreground: #10202d;
-  --panel: rgba(255, 255, 255, 0.76);
-  --panel-strong: #fff9f2;
-  --border: rgba(16, 32, 45, 0.12);
-  --muted: #5a6976;
-  --coral: #ff6a3d;
-  --teal: #1d7b72;
-  --gold: #d59d18;
+  --background: #fbfaf7;
+  --foreground: #0d212c;
+  --panel: rgba(255, 255, 255, 0.82);
+  --panel-strong: #f4f2ec;
+  --border: rgba(0, 0, 0, 0.06);
+  --muted: #273c46;
+  --coral: #e7553c;
+  --teal: #2e7d5b;
+  --gold: #d89a2c;
+  --ink-deep: #051a24;
 }
 
 * {
@@ -26,9 +27,9 @@ body {
   min-height: 100vh;
   color: var(--foreground);
   background:
-    radial-gradient(circle at top left, rgba(255, 106, 61, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(29, 123, 114, 0.18), transparent 25%),
-    linear-gradient(180deg, #fbf7f1 0%, var(--background) 100%);
+    radial-gradient(circle at 10% 0%, rgba(216, 154, 44, 0.18), transparent 28%),
+    radial-gradient(circle at 90% 6%, rgba(46, 125, 91, 0.14), transparent 26%),
+    linear-gradient(180deg, #fbfaf7 0%, #f4f2ec 100%);
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
@@ -78,7 +79,7 @@ body:has(.product-app-root) main {
   }
 
   .metric-card {
-    @apply min-w-0 rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5;
+    @apply min-w-0 rounded-[24px] border border-[color:var(--border)] bg-white/90 p-5 shadow-[0_18px_45px_-32px_rgba(5,26,36,0.65)];
   }
 
   .pill {
@@ -91,5 +92,27 @@ body:has(.product-app-root) main {
 
   .section-wrap {
     @apply grid gap-6 md:grid-cols-2;
+  }
+
+  .font-serif-display {
+    font-family: "Instrument Serif", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .foundry-primary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-[24px] bg-[#051A24] px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#FBFAF7] shadow-[0_1px_2px_rgba(5,26,36,0.08),0_8px_20px_-8px_rgba(5,26,36,0.25),inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-0.5 hover:bg-[#0D212C];
+  }
+
+  .foundry-secondary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-[24px] border border-[color:var(--border)] bg-white/85 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink transition hover:-translate-y-0.5 hover:bg-white;
+  }
+
+  .foundry-dark-panel {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.12), transparent 34%),
+      radial-gradient(circle at 84% 100%, rgba(46, 125, 91, 0.28), transparent 36%),
+      #051a24;
+    @apply min-w-0 overflow-hidden rounded-[32px] border border-white/10 shadow-[0_30px_80px_-35px_rgba(5,26,36,0.75)];
   }
 }
