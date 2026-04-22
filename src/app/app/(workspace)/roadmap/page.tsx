@@ -257,7 +257,7 @@ function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
         <p className="mt-4 text-sm text-muted">
           Saved {new Date(roadmap.createdAt).toLocaleString()}
         </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+        <div className="foundry-card-grid mt-6">
           <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
               Total items
@@ -326,7 +326,7 @@ function RoadmapPhaseGroup({
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="foundry-card-grid">
           {items.length > 0 ? (
             items.map((item) => (
               <article

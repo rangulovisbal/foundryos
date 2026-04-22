@@ -42,7 +42,7 @@ export default async function BillingPage() {
         </p>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="foundry-card-grid">
         <article className="metric-card">
           <p className="text-sm uppercase tracking-[0.18em] text-muted">
             {copyForLanguage(language, "Plan", "Plan")}

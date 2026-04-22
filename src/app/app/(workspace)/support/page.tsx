@@ -175,7 +175,7 @@ export default async function SupportPage() {
         <p className="text-sm uppercase tracking-[0.18em] text-muted">
           {copyForLanguage(language, "Legal and trust documents", "Documentos legales y de confianza")}
         </p>
-        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="foundry-card-grid mt-4">
           {publicLegalLinks.map((link) => (
             <Link
               key={link.href}

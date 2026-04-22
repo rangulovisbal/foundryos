@@ -282,7 +282,7 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
           <p className="mt-3 text-2xl font-semibold">{inProgress}</p>
         </article>
       </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="foundry-card-grid mt-6">
         {actionPlan.actions.map((action) => (
           <ActionCard action={action} key={`${action.priority}-${action.title}`} />
         ))}
@@ -351,13 +351,13 @@ function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
         </div>
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="foundry-card-grid">
         <ListCard title="Top 3 priorities" values={plan.topPriorities} />
         <ListCard title="Quick wins" values={plan.quickWins} />
         <ListCard title="Risks to avoid" values={plan.risksToAvoid} />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-4">
+      <section className="foundry-week-grid">
         <WeekCard week={plan.week1} />
         <WeekCard week={plan.week2} />
         <WeekCard week={plan.week3} />
@@ -374,10 +374,10 @@ function ThirtyDayPlanSection({ plan }: { plan: ThirtyDayPlanRecord }) {
 
 function WeekCard({ week }: { week: ThirtyDayPlanWeek }) {
   return (
-    <article className="metric-card">
+    <article className="metric-card foundry-readable-card">
       <p className="text-sm uppercase tracking-[0.18em] text-muted">{week.title}</p>
-      <h3 className="mt-3 text-xl font-semibold">{week.objective}</h3>
-      <p className="mt-4 text-sm text-muted">
+      <h3 className="mt-3 text-lg font-semibold leading-7">{week.objective}</h3>
+      <p className="mt-4 text-sm leading-6 text-muted">
         <strong className="text-ink">Signal:</strong> {week.successSignal}
       </p>
       <details className="mt-4 rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-4 text-sm text-muted">

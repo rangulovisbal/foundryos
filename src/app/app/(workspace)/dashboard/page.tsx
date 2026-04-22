@@ -420,7 +420,7 @@ export default async function WorkspaceDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+      <section className="foundry-card-grid">
         <FoundryMetricCard
           change={
             latestDiagnostic
@@ -661,10 +661,10 @@ export default async function WorkspaceDashboardPage() {
           </div>
 
           {thirtyDayMoments.length > 0 ? (
-            <div className="mt-6 grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+            <div className="foundry-week-grid mt-6">
               {thirtyDayMoments.map((moment) => (
                 <article
-                  className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+                  className="foundry-readable-card rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
                   key={moment.label}
                 >
                   <div className="flex items-center gap-2">
@@ -675,7 +675,9 @@ export default async function WorkspaceDashboardPage() {
                       {moment.label}
                     </p>
                   </div>
-                  <h4 className="mt-4 text-lg font-semibold text-ink">{moment.title}</h4>
+                  <h4 className="mt-4 text-base font-semibold leading-7 text-ink md:text-lg">
+                    {moment.title}
+                  </h4>
                   <p className="mt-3 text-sm leading-6 text-muted">
                     <strong className="text-ink">
                       {copyForLanguage(language, "Success signal", "Señal de éxito")}:
@@ -760,7 +762,7 @@ export default async function WorkspaceDashboardPage() {
         </FoundrySectionCard>
       </section>
 
-      <section className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+      <section className="foundry-card-grid">
         <ModuleCard
           detail={
             profile

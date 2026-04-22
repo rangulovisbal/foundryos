@@ -228,7 +228,7 @@ export function WorkspaceShellFrame({
                     {workspaceDescription}
                   </p>
                 </div>
-                <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:min-w-[560px] xl:grid-cols-4">
+                <div className="foundry-card-grid w-full xl:max-w-[640px]">
                   {metaItems.map((item) => {
                     const Icon = metaIconMap[item.icon];
 

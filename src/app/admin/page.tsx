@@ -153,7 +153,7 @@ export default async function AdminPage() {
               accepted workspace memberships, open invites, and internal admin access.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="foundry-card-grid">
             <StatusCard
               detail="Every saved account in the auth database."
               label="All accounts"

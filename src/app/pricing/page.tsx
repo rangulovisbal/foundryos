@@ -153,7 +153,7 @@ export default function PricingPage() {
 
       <section className="surface p-6 md:p-8">
         <span className="eyebrow">Trust and handling</span>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="foundry-card-grid mt-6">
           {[Lock, Receipt, ShieldCheck, BadgeCheck].map((Icon, index) => (
             <article
               key={trustItems[index]}

@@ -5,7 +5,7 @@ type PageSummaryItem = {
 };
 
 export function PageSummaryGrid({
-  columns = "lg:grid-cols-2 2xl:grid-cols-4",
+  columns = "foundry-card-grid",
   items
 }: {
   columns?: string;

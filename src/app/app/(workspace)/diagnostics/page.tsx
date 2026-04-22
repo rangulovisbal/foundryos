@@ -464,7 +464,7 @@ export default async function DiagnosticsPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
                     {copyForLanguage(language, "Evidence quality", "Calidad de evidencia")}
                   </p>
-                  <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
                     <div>
                       <p className="text-xl font-semibold text-white">{qualityCounts?.clear ?? 0}</p>
                       <p className="text-[11px] text-white/55">
@@ -636,7 +636,7 @@ function LatestResult({
 
   return (
     <section className="space-y-6" id="latest-diagnostic">
-      <div className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+      <div className="foundry-card-grid">
         <FoundryMetricCard
           detail={maturityNarrative(result, language)}
           icon={Activity}

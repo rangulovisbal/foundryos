@@ -82,7 +82,7 @@ export default function SecurityPage() {
         <p className="text-sm uppercase tracking-[0.2em] text-muted">
           Product safeguards
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="foundry-card-grid mt-6">
           {controls.map((item) => (
             <article
               key={item}

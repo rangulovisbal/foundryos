@@ -294,7 +294,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="foundry-card-grid mt-8">
           {firstValue.map(({ icon: Icon, title, body }) => (
             <article
               key={title}
@@ -559,7 +559,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="foundry-card-grid mt-8">
           {trustPoints.map((item, index) => {
             const icons = [Lock, BadgeCheck, Clock3, LayoutDashboard];
             const Icon = icons[index];
