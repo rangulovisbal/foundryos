@@ -176,117 +176,108 @@ export default function HomePage() {
         type="application/ld+json"
       />
 
-      <section className="surface overflow-hidden px-6 py-10 md:px-10 md:py-14">
+      <section className="surface overflow-hidden px-5 py-10 md:px-10 md:py-14">
         <div className="relative">
           <div className="grid-lines absolute inset-0 rounded-[32px] opacity-40" />
           <div className="relative z-10 mx-auto max-w-5xl space-y-7 text-center">
-              <span className="eyebrow justify-center">
-                AI-first operating system for startups and lean teams
-              </span>
-              <div className="space-y-4">
-                <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
-                  Get a 30-day operating plan and execution roadmap without
-                  hiring a full team.
-                </h1>
-                <p className="mx-auto max-w-3xl body-lg">
-                  FoundryOS gives you a business scorecard, roadmap, SOP
-                  starters and automation opportunities in a structured
-                  AI-first workflow built for lean teams.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-4">
-                <Link
-                  className="foundry-primary-button rounded-full"
-                  href="/pricing#plans"
-                >
-                  Get your AI Snapshot <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  className="text-sm font-semibold uppercase tracking-[0.18em] text-ink underline-offset-4 hover:underline"
-                  href="#sample-output"
-                >
-                  See sample output
-                </Link>
-              </div>
-
-              <ul className="mx-auto grid max-w-4xl gap-3 text-sm text-muted md:grid-cols-3">
-                {heroBullets.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-[22px] border border-[color:var(--border)] bg-white/85 px-4 py-4"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
+            <span className="eyebrow justify-center">
+              AI-first operating system for startups and lean teams
+            </span>
+            <div className="space-y-4">
+              <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
+                Get a 30-day operating plan and execution roadmap without
+                hiring a full team.
+              </h1>
+              <p className="mx-auto max-w-3xl body-lg">
+                FoundryOS gives you a business scorecard, roadmap, SOP
+                starters and automation opportunities in a structured AI-first
+                workflow built for lean teams.
+              </p>
             </div>
 
-          <div className="relative z-10 mx-auto mt-10 grid max-w-5xl gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="surface-strong p-6 text-left">
-              <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                First value
-              </p>
-              <div className="mt-4 grid gap-4">
-                <div className="metric-card">
-                  <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link
+                className="foundry-primary-button rounded-full"
+                href="/pricing#plans"
+              >
+                Get your AI Snapshot <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                className="text-sm font-semibold uppercase tracking-[0.18em] text-ink underline-offset-4 hover:underline"
+                href="#sample-output"
+              >
+                See sample output
+              </Link>
+            </div>
+
+            <ul className="mx-auto grid max-w-4xl gap-3 text-sm text-muted md:grid-cols-3">
+              {heroBullets.map((item) => (
+                <li
+                  className="rounded-[22px] border border-[color:var(--border)] bg-white/82 px-4 py-4"
+                  key={item}
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="relative z-10 mx-auto mt-10 max-w-5xl rounded-[32px] border border-[color:var(--border)] bg-[#f7f5ee]/90 p-3 shadow-[0_28px_80px_-55px_rgba(5,26,36,0.65)] md:p-5">
+            <div className="rounded-[26px] border border-[color:var(--border)] bg-white/82 p-4 md:p-6">
+              <div className="flex flex-col gap-3 border-b border-[color:var(--border)] pb-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
+                    FoundryOS diagnostic
+                  </p>
+                  <h2 className="mt-2 text-left text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
+                    {sampleIntake.companyName}
+                  </h2>
+                </div>
+                <span className="pill bg-teal/15 text-teal">{report.maturity}</span>
+              </div>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-[0.75fr_1.25fr]">
+                <article className="rounded-[24px] border border-[color:var(--border)] bg-sand/55 p-5 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                     Operating score
                   </p>
-                  <div className="mt-3 flex items-end justify-between gap-4">
-                    <p className="text-5xl font-semibold">{report.score}</p>
-                    <span className="pill bg-teal/15 text-teal">
-                      {report.maturity}
-                    </span>
+                  <div className="mt-4 flex items-end justify-between gap-4">
+                    <p className="text-6xl font-semibold tracking-[-0.08em]">
+                      {report.score}
+                    </p>
+                    <p className="pb-2 text-sm font-semibold text-muted">/100</p>
                   </div>
-                </div>
+                  <p className="mt-4 text-sm leading-7 text-muted">{report.headline}</p>
+                </article>
 
-                <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
-                  <p className="text-sm uppercase tracking-[0.18em] text-muted">
+                <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                     Next 30 days
                   </p>
-                  <ul className="mt-4 space-y-3 text-sm text-muted">
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
                     {report.priorities.slice(0, 3).map((priority) => (
-                      <li
+                      <div
+                        className="rounded-2xl border border-[color:var(--border)] bg-[#fbfaf7] p-4"
                         key={priority.title}
-                        className="rounded-2xl border border-[color:var(--border)] bg-sand/60 px-4 py-3"
                       >
-                        {priority.title}
-                      </li>
+                        <p className="text-sm font-semibold leading-6">{priority.title}</p>
+                      </div>
                     ))}
-                  </ul>
-                </div>
+                  </div>
+                </article>
               </div>
-            </div>
-
-            <div className="surface-strong p-6 text-left">
-              <p className="text-sm uppercase tracking-[0.2em] text-muted">
-                What this replaces
-              </p>
-              <ul className="mt-4 space-y-3 text-sm text-muted">
-                <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Random task lists with no operating logic
-                </li>
-                <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Strategy docs that never become an execution plan
-                </li>
-                <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Manual chaos that grows faster than the team can handle
-                </li>
-              </ul>
             </div>
           </div>
         </div>
       </section>
 
       <section className="surface p-6 md:p-10">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <span className="eyebrow">What you get in 24 hours</span>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-              The first deliverable is tangible, not conceptual.
-            </h2>
-          </div>
-          <p className="max-w-2xl body-lg">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="eyebrow justify-center">What you get in 24 hours</span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
+            The deliverables feel usable, not conceptual.
+          </h2>
+          <p className="mt-4 body-lg">
             The product should show value immediately: a scorecard, next actions,
             system recommendations and a clearer operating view.
           </p>
@@ -296,9 +287,9 @@ export default function HomePage() {
           {firstValue.map(({ icon: Icon, title, body }) => (
             <article
               key={title}
-              className="rounded-[26px] border border-[color:var(--border)] bg-white/85 p-6"
+              className="rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ink text-sand">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink text-sand">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-xl font-semibold">{title}</h3>
@@ -309,17 +300,22 @@ export default function HomePage() {
       </section>
 
       <section className="surface p-6 md:p-10">
-        <span className="eyebrow">How it works</span>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="eyebrow justify-center">How it works</span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em]">
+            The flow stays simple so the output stays usable.
+          </h2>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
           {steps.map((step, index) => (
             <article
               key={step.title}
-              className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+              className="rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6"
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                Step {index + 1}
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-muted">
+                0{index + 1}
               </p>
-              <h3 className="mt-3 text-xl font-semibold">{step.title}</h3>
+              <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
               <p className="mt-3 text-sm leading-7 text-muted">{step.body}</p>
             </article>
           ))}
@@ -327,21 +323,19 @@ export default function HomePage() {
       </section>
 
       <section className="surface p-6 md:p-10" id="sample-output">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <span className="eyebrow">What the dashboard includes</span>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-              Scorecards, roadmap cards, SOP starters and automation queue.
-            </h2>
-          </div>
-          <p className="max-w-2xl body-lg">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="eyebrow justify-center">What the dashboard includes</span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
+            Scorecards, roadmap cards, SOP starters and automation queue.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl body-lg">
             This is the kind of output the system is designed to deliver:
             visible priorities, next steps and operating logic in one place.
           </p>
         </div>
 
         <div className="mt-10 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="rounded-[28px] border border-[color:var(--border)] bg-ink p-6 text-sand">
+          <div className="rounded-[30px] border border-[color:var(--border)] bg-ink p-6 text-sand shadow-[0_28px_70px_-48px_rgba(5,26,36,0.75)]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-sand/70">
@@ -387,7 +381,7 @@ export default function HomePage() {
             {dashboardBlocks.map((block) => (
               <article
                 key={block.title}
-                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+                className="rounded-[26px] border border-[color:var(--border)] bg-white/85 p-5"
               >
                 <p className="text-sm uppercase tracking-[0.18em] text-muted">
                   {block.title}
@@ -408,7 +402,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-wrap">
+      <section className="grid gap-5 md:grid-cols-2">
         <div className="surface p-6 md:p-8">
           <span className="eyebrow">Before FoundryOS</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
@@ -444,7 +438,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-wrap">
+      <section className="grid gap-5 md:grid-cols-2">
         <div className="surface p-6 md:p-8">
           <span className="eyebrow">Who it is for</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
@@ -480,15 +474,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="surface p-6 md:p-8" id="plans">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <span className="eyebrow">Plans</span>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-              Start with the right level of operating support.
-            </h2>
-          </div>
-          <p className="max-w-2xl body-lg">
+      <section className="surface p-6 md:p-10" id="plans">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="eyebrow justify-center">Plans</span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
+            Start with the right level of operating support.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl body-lg">
             Snapshot is the main starting point. FoundryOS Core is the recurring
             layer. Operator is for teams that need deeper implementation.
           </p>
@@ -498,9 +490,9 @@ export default function HomePage() {
           {pricingPlans.map((plan) => (
             <article
               key={plan.id}
-              className={`rounded-[28px] border p-6 ${
+              className={`rounded-[30px] border p-6 ${
                 plan.id === "snapshot"
-                  ? "border-ink bg-ink text-sand"
+                  ? "border-ink bg-ink text-sand shadow-[0_30px_80px_-50px_rgba(5,26,36,0.85)]"
                   : "border-[color:var(--border)] bg-white/85"
               }`}
             >
@@ -544,14 +536,14 @@ export default function HomePage() {
       </section>
 
       <section className="foundry-dark-panel p-6 text-[#E0EBF0] md:p-10">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">Security and trust</span>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
-              Trust has to be visible, especially for an AI-first product.
-            </h2>
-          </div>
-          <p className="max-w-2xl text-base leading-7 text-white/70 md:text-lg">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
+            Security and trust
+          </span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-white md:text-5xl">
+            Trust has to be visible, especially for an AI-first product.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/70 md:text-lg">
             The commercial promise is simple: secure checkout, clear data
             handling and structured outputs without hype or black-box pricing.
           </p>
@@ -577,17 +569,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="surface p-6 md:p-8">
-        <span className="eyebrow">FAQ</span>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+      <section className="surface p-6 md:p-10">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="eyebrow justify-center">FAQ</span>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em]">
+            Questions teams ask before starting.
+          </h2>
+        </div>
+        <div className="mx-auto mt-8 max-w-4xl divide-y divide-[color:var(--border)] rounded-[28px] border border-[color:var(--border)] bg-white/80">
           {faqs.map((faq) => (
-            <article
+            <details
               key={faq.question}
-              className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+              className="group px-5 py-5 open:bg-white/70 md:px-7"
             >
-              <h3 className="text-lg font-semibold">{faq.question}</h3>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
+                <span className="text-lg font-semibold">{faq.question}</span>
+                <span className="text-xl text-muted transition group-open:rotate-45">+</span>
+              </summary>
               <p className="mt-3 text-sm leading-7 text-muted">{faq.answer}</p>
-            </article>
+            </details>
           ))}
         </div>
       </section>
