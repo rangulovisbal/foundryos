@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DownstreamTrustPanel } from "@/components/downstream-trust-panel";
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import { PageSectionLinks } from "@/components/page-section-links";
 import { PageSummaryGrid } from "@/components/page-summary-grid";
@@ -22,6 +23,7 @@ import {
   type AssetJobWithAssets,
   type BusinessAssetRecord
 } from "@/lib/foundation";
+import { resolveDownstreamTrustState } from "@/lib/downstream-trust";
 
 function resolveDisabledReason(
   context: Awaited<ReturnType<typeof requireWorkspaceContext>>,
@@ -97,6 +99,11 @@ export default async function AssetsPage() {
     Boolean(latestActionPlan),
     Boolean(latestThirtyDayPlan)
   );
+  const trustState = resolveDownstreamTrustState({
+    diagnostic: latestDiagnostic,
+    language: context.workspace.outputLanguage,
+    profile
+  });
 
   return (
     <div className="space-y-6">
@@ -213,6 +220,8 @@ export default async function AssetsPage() {
           hasThirtyDayPlan={Boolean(latestThirtyDayPlan)}
         />
       ) : null}
+
+      <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
 
       {latestAssets.length > 0 ? (
         <LatestAssetsSection assets={latestAssets} />

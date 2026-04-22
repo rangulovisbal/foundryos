@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DownstreamTrustPanel } from "@/components/downstream-trust-panel";
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import { PageSectionLinks } from "@/components/page-section-links";
 import { PageSummaryGrid } from "@/components/page-summary-grid";
@@ -19,6 +20,7 @@ import {
   type RoadmapItem,
   type RoadmapRecord
 } from "@/lib/foundation";
+import { resolveDownstreamTrustState } from "@/lib/downstream-trust";
 
 function resolveDisabledReason(
   context: Awaited<ReturnType<typeof requireWorkspaceContext>>,
@@ -71,6 +73,11 @@ export default async function RoadmapPage() {
     Boolean(profile),
     Boolean(latestDiagnostic)
   );
+  const trustState = resolveDownstreamTrustState({
+    diagnostic: latestDiagnostic,
+    language: context.workspace.outputLanguage,
+    profile
+  });
 
   return (
     <div className="space-y-6">
@@ -184,6 +191,8 @@ export default async function RoadmapPage() {
       {!profile || !latestDiagnostic ? (
         <PrerequisitePanel hasDiagnostic={Boolean(latestDiagnostic)} hasProfile={Boolean(profile)} />
       ) : null}
+
+      <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
 
       {latestRoadmap ? (
         <RoadmapResult roadmap={latestRoadmap} />

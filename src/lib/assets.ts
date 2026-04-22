@@ -11,6 +11,7 @@ import type {
   ThirtyDayPlanRecord,
   WorkspaceRecord
 } from "@/lib/foundation";
+import { resolveDownstreamTrustState, type DownstreamTrustState } from "@/lib/downstream-trust";
 import { getPlanDefinition } from "@/lib/foundation";
 
 type AssetGenerationInput = {
@@ -408,6 +409,204 @@ function createAsset({
     createdAt: now,
     updatedAt: now
   };
+}
+
+function buildValidationFirstAssets(
+  input: AssetGenerationInput,
+  trustState: DownstreamTrustState
+): BusinessAssetRecord[] {
+  const { diagnostic, profile, workspace } = input;
+  const language = workspace.outputLanguage;
+  const sl = (en: string, es: string) => (language === "es" ? es : en);
+  const company = fallback(profile.companyName, workspace.name);
+  const ns = sl("not specified", "no especificado");
+  const prefix = trustState.hasContradiction
+    ? sl("Conditional draft", "Borrador condicional")
+    : sl("Provisional draft", "Borrador provisional");
+  const knownSignals = [
+    `${sl("Company", "Empresa")}: ${company}`,
+    `${sl("Website", "Website")}: ${fallback(profile.website, ns)}`,
+    `${sl("Offer", "Oferta")}: ${fallback(profile.primaryOffer, ns)}`,
+    `${sl("Audience", "Audiencia")}: ${fallback(profile.targetAudience, ns)}`,
+    `${sl("CTA", "CTA")}: ${fallback(profile.conversionAction, ns)}`,
+    `${sl("Channels", "Canales")}: ${joinSignals(profile.currentChannels, ns)}`,
+    `${sl("Tools", "Herramientas")}: ${joinSignals(profile.currentTools, ns)}`
+  ];
+  const gaps = trustState.evidenceGaps.length
+    ? trustState.evidenceGaps
+    : [sl("Minimum profile evidence is incomplete.", "La evidencia minima del perfil esta incompleta.")];
+  const tasks = trustState.validationTasks.length
+    ? trustState.validationTasks
+    : [
+        sl(
+          "Validate offer, audience, CTA, channel, sales process, tools, and reporting evidence.",
+          "Validar oferta, audiencia, CTA, canal, proceso de venta, herramientas y reporting."
+        )
+      ];
+  const cannotClaim = trustState.cannotClaim.length
+    ? trustState.cannotClaim
+    : [
+        sl(
+          "Do not treat this as final positioning, channel, conversion, or operating advice yet.",
+          "No tratar esto aun como posicionamiento, canal, conversion o consejo operativo final."
+        )
+      ];
+  const trustSections = [
+    section(sl("Trust status", "Estado de confianza"), [
+      trustState.summary,
+      `${sl("Diagnostic confidence", "Confianza diagnostica")}: ${localizeConfidence(diagnostic.confidence, language)}`
+    ]),
+    section(sl("Known evidence", "Evidencia conocida"), knownSignals),
+    section(sl("Needs validation before use", "Necesita validacion antes de uso"), tasks.slice(0, 5)),
+    section(sl("Do not claim yet", "No afirmar todavia"), cannotClaim.slice(0, 4))
+  ];
+  const validationSourceFocus: AssetSourceFocus = {
+    profile: knownSignals,
+    diagnostic: [
+      `${sl("Score", "Puntuacion")}: ${diagnostic.overallMaturityScore}/100`,
+      `${sl("Confidence", "Confianza")}: ${localizeConfidence(diagnostic.confidence, language)}`,
+      `${sl("Trust state", "Estado de confianza")}: ${trustState.label}`,
+      `${sl("Evidence gaps", "Gaps de evidencia")}: ${joinSignals(gaps, ns)}`
+    ],
+    actionPlan: input.actionPlan.actions.map((action) => `${localizePriority(action.priority, language)}: ${action.title}`).slice(0, 5),
+    thirtyDayPlan: [
+      `${sl("Objective", "Objetivo")}: ${input.thirtyDayPlan.monthObjective}`,
+      `${sl("Validation metrics", "Metricas de validacion")}: ${joinSignals(input.thirtyDayPlan.metricsToWatch, ns)}`
+    ]
+  };
+  const provisionalChannelList = profile.currentChannels.length
+    ? profile.currentChannels
+    : [
+        sl(
+          "No active channel confirmed yet - choose one channel only after evidence is repaired.",
+          "No hay canal activo confirmado - elegir un canal solo despues de reparar evidencia."
+        )
+      ];
+
+  return [
+    createAsset({
+      input,
+      type: "positioning_summary",
+      title: `${prefix}: ${assetLabel("positioning_summary", language).title}`,
+      purpose: sl(
+        "Capture provisional positioning only; do not use as final market-facing language until evidence is validated.",
+        "Capturar posicionamiento provisional; no usar como lenguaje final de mercado hasta validar evidencia."
+      ),
+      sourceFocus: validationSourceFocus,
+      content: [
+        ...trustSections,
+        section(sl("Conditional positioning frame", "Marco de posicionamiento condicional"), [
+          sl(
+            `If the offer and audience evidence are confirmed, ${company} can sharpen one promise for one buyer segment.`,
+            `Si se confirma la evidencia de oferta y audiencia, ${company} puede afinar una promesa para un segmento comprador.`
+          ),
+          sl(
+            "If validation fails, change the segment, offer, or CTA before increasing acquisition activity.",
+            "Si la validacion falla, cambiar segmento, oferta o CTA antes de aumentar actividad de adquisicion."
+          )
+        ])
+      ]
+    }),
+    createAsset({
+      input,
+      type: "thirty_day_action_plan_summary",
+      title: `${prefix}: ${assetLabel("thirty_day_action_plan_summary", language).title}`,
+      purpose: sl(
+        "Summarize validation work first, before treating the plan as an execution calendar.",
+        "Resumir primero el trabajo de validacion antes de tratar el plan como calendario de ejecucion."
+      ),
+      sourceFocus: validationSourceFocus,
+      content: [
+        ...trustSections,
+        section(sl("Validation-first sequence", "Secuencia de validacion primero"), [
+          input.thirtyDayPlan.week1.objective,
+          input.thirtyDayPlan.week2.objective,
+          input.thirtyDayPlan.week3.objective,
+          input.thirtyDayPlan.week4.objective
+        ])
+      ]
+    }),
+    createAsset({
+      input,
+      type: "messaging_framework",
+      title: `${prefix}: ${assetLabel("messaging_framework", language).title}`,
+      purpose: sl(
+        "Create conditional messaging prompts for testing, not confident public copy.",
+        "Crear prompts condicionales de mensaje para probar, no copy publico definitivo."
+      ),
+      sourceFocus: validationSourceFocus,
+      content: [
+        ...trustSections,
+        section(sl("Conditional message tests", "Pruebas condicionales de mensaje"), [
+          sl(
+            "Test one pain, one buyer, one promise, and one measurable result before publishing stronger copy.",
+            "Probar un dolor, un comprador, una promesa y un resultado medible antes de publicar copy mas fuerte."
+          ),
+          sl(
+            "Use neutral language such as 'we are testing' or 'we help with' until proof is confirmed.",
+            "Usar lenguaje neutral como 'estamos probando' o 'ayudamos con' hasta confirmar prueba."
+          )
+        ])
+      ]
+    }),
+    createAsset({
+      input,
+      type: "basic_channel_plan",
+      title: `${prefix}: ${assetLabel("basic_channel_plan", language).title}`,
+      purpose: sl(
+        "Treat channels as validation paths until acquisition evidence is confirmed.",
+        "Tratar canales como rutas de validacion hasta confirmar evidencia de adquisicion."
+      ),
+      sourceFocus: validationSourceFocus,
+      content: [
+        ...trustSections,
+        section(sl("Channel validation candidates", "Candidatos de validacion de canal"), provisionalChannelList),
+        section(sl("Decision rule", "Regla de decision"), [
+          sl(
+            "Do not scale channel activity until source, conversion action, owner, and baseline metric are documented.",
+            "No escalar actividad de canal hasta documentar fuente, accion de conversion, owner y metrica base."
+          )
+        ])
+      ]
+    }),
+    createAsset({
+      input,
+      type: "execution_checklist",
+      title: `${prefix}: ${assetLabel("execution_checklist", language).title}`,
+      purpose: sl(
+        "Convert uncertainty into a verification checklist before execution.",
+        "Convertir incertidumbre en checklist de verificacion antes de ejecutar."
+      ),
+      sourceFocus: validationSourceFocus,
+      content: [
+        ...trustSections,
+        section(sl("Verification checklist", "Checklist de verificacion"), tasks.slice(0, 8))
+      ]
+    }),
+    createAsset({
+      input,
+      type: "founder_summary",
+      title: `${prefix}: ${assetLabel("founder_summary", language).title}`,
+      purpose: sl(
+        "Give the founder an honest readout of what is known, uncertain, and blocked.",
+        "Dar al founder un resumen honesto de lo conocido, incierto y bloqueado."
+      ),
+      sourceFocus: validationSourceFocus,
+      content: [
+        ...trustSections,
+        section(sl("Founder decision", "Decision del founder"), [
+          sl(
+            "Use this run to repair evidence, not to approve a full operating system rollout.",
+            "Usar esta corrida para reparar evidencia, no para aprobar un despliegue operativo completo."
+          ),
+          sl(
+            "Regenerate roadmap, actions, assets, and SOPs after the missing or contradictory evidence is resolved.",
+            "Regenerar roadmap, acciones, assets y SOPs despues de resolver la evidencia faltante o contradictoria."
+          )
+        ])
+      ]
+    })
+  ];
 }
 
 function primaryBottleneck(diagnostic: DiagnosticResultRecord, language: OutputLanguage) {
@@ -918,6 +1117,12 @@ function section(heading: string, items: string[]): BusinessAssetSection {
 export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetRecord[] {
   const { actionPlan, diagnostic, profile, roadmap, thirtyDayPlan, workspace } = input;
   const language = workspace.outputLanguage;
+  const trustState = resolveDownstreamTrustState({ diagnostic, language, profile });
+
+  if (trustState?.mode === "validation_first") {
+    return buildValidationFirstAssets(input, trustState);
+  }
+
   const type = detectBusinessType(profile);
   const company = fallback(profile.companyName, workspace.name);
   const vertical = typeLabel(type, language);

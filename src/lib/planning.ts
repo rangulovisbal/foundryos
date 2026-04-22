@@ -13,6 +13,7 @@ import type {
   ThirtyDayPlanRecord,
   WorkspaceRecord
 } from "@/lib/foundation";
+import { resolveDownstreamTrustState, type DownstreamTrustState } from "@/lib/downstream-trust";
 import { getPlanDefinition } from "@/lib/foundation";
 
 type PlanningInput = {
@@ -660,6 +661,100 @@ function evidenceForIndex(evidenceCards: DiagnosticEvidenceCard[], index: number
   return `${evidence.title}: ${evidence.observation}`;
 }
 
+function profileSignalSummary(profile: BusinessProfileRecord, language: OutputLanguage) {
+  const ns = language === "es" ? "no especificado" : "not specified";
+  const sl = (en: string, es: string) => (language === "es" ? es : en);
+  const channels = profile.currentChannels.length ? profile.currentChannels.join(", ") : ns;
+  const tools = profile.currentTools.length ? profile.currentTools.join(", ") : ns;
+
+  return [
+    `${sl("Website", "Website")}: ${profile.website ?? ns}`,
+    `${sl("Positioning", "Posicionamiento")}: ${profile.positioningStatement ?? ns}`,
+    `${sl("Offer", "Oferta")}: ${profile.primaryOffer ?? ns}`,
+    `${sl("Audience", "Audiencia")}: ${profile.targetAudience ?? ns}`,
+    `${sl("CTA", "CTA")}: ${profile.conversionAction ?? ns}`,
+    `${sl("Channels", "Canales")}: ${channels}`,
+    `${sl("Tools", "Herramientas")}: ${tools}`
+  ].join("; ");
+}
+
+function validationRoadmapItems(input: PlanningInput, trustState: DownstreamTrustState): RoadmapItem[] {
+  const language = input.workspace.outputLanguage;
+  const type = detectBusinessType(input.profile);
+  const sl = (en: string, es: string) => (language === "es" ? es : en);
+  const gaps = trustState.evidenceGaps.length
+    ? trustState.evidenceGaps
+    : [
+        sl(
+          "Core evidence is incomplete: offer, audience, CTA, acquisition, sales process, tools, or reporting need confirmation.",
+          "La evidencia base esta incompleta: oferta, audiencia, CTA, adquisicion, proceso de venta, herramientas o reporting necesitan confirmacion."
+        )
+      ];
+  const tasks = trustState.validationTasks.length
+    ? trustState.validationTasks
+    : [
+        sl(
+          "Confirm the minimum evidence set before execution planning.",
+          "Confirmar el set minimo de evidencia antes de planificar ejecucion."
+        )
+      ];
+  const profileSignals = profileSignalSummary(input.profile, language);
+  const roadmapSeeds = [
+    {
+      title: trustState.hasContradiction
+        ? sl("Resolve contradictory evidence", "Resolver evidencia contradictoria")
+        : sl("Inventory weak and missing evidence", "Inventariar evidencia debil y faltante"),
+      phase: "now" as const,
+      signal: gaps[0],
+      category: "data" as CategoryTag
+    },
+    {
+      title: sl("Validate offer, audience, and CTA", "Validar oferta, audiencia y CTA"),
+      phase: "now" as const,
+      signal: tasks[0] ?? gaps[0],
+      category: "positioning" as CategoryTag
+    },
+    {
+      title: sl("Confirm acquisition and sales evidence", "Confirmar evidencia de adquisicion y ventas"),
+      phase: "now" as const,
+      signal: tasks[1] ?? gaps[1] ?? gaps[0],
+      category: "acquisition" as CategoryTag
+    },
+    {
+      title: sl("Document tools, reporting, and operating cadence", "Documentar herramientas, reporting y cadencia operativa"),
+      phase: "next" as const,
+      signal: tasks[2] ?? gaps[2] ?? gaps[0],
+      category: "operations" as CategoryTag
+    },
+    {
+      title: sl("Decide what can become an operating plan", "Decidir que puede convertirse en plan operativo"),
+      phase: "later" as const,
+      signal: trustState.cannotClaim[0] ?? trustState.summary,
+      category: "execution" as CategoryTag
+    }
+  ];
+
+  return roadmapSeeds.map((item, index): RoadmapItem => ({
+    title: item.title,
+    description:
+      language === "es"
+        ? `Modo validacion primero para este ${businessTypeLabel(type, language)}. Antes de ejecutar, confirmar: ${item.signal}`
+        : `Validation-first mode for this ${businessTypeLabel(type, language)}. Before execution, confirm: ${item.signal}`,
+    phase: item.phase,
+    categoryTags: [item.category],
+    effortLevel: index < 3 ? "low" : "medium",
+    expectedImpact: index < 3 ? "high" : "medium",
+    dependencies:
+      language === "es"
+        ? ["Actualizar el perfil con evidencia visible antes de tratar esto como consejo fuerte."]
+        : ["Update the profile with visible evidence before treating this as strong advice."],
+    reasoning:
+      language === "es"
+        ? `${trustState.label}. Basado en inputs actuales: ${profileSignals}`
+        : `${trustState.label}. Based on current inputs: ${profileSignals}`
+  }));
+}
+
 function roadmapItemFromFinding({
   finding,
   index,
@@ -745,7 +840,7 @@ function roadmapItemFromOpportunity({
 function dedupeRoadmapItems(items: RoadmapItem[]) {
   const seen = new Set<string>();
   return items.filter((item) => {
-    const key = `${item.phase}:${item.title.toLowerCase()}`;
+    const key = item.title.toLowerCase();
     if (seen.has(key)) {
       return false;
     }
@@ -757,6 +852,11 @@ function dedupeRoadmapItems(items: RoadmapItem[]) {
 
 export function buildRoadmap(input: PlanningInput): RoadmapRecord {
   const language = input.workspace.outputLanguage;
+  const trustState = resolveDownstreamTrustState({
+    diagnostic: input.diagnostic,
+    language,
+    profile: input.profile
+  });
   const findings = [
     ...input.diagnostic.topBottlenecks,
     ...input.diagnostic.topRisks
@@ -808,6 +908,7 @@ export function buildRoadmap(input: PlanningInput): RoadmapRecord {
   const items = dedupeRoadmapItems([...nowItems, ...nextItems, ...laterItems]);
   const type = detectBusinessType(input.profile);
   const plan = getPlanDefinition(input.workspace.plan);
+  const validationFirst = trustState?.mode === "validation_first";
 
   return {
     id: crypto.randomUUID(),
@@ -815,10 +916,14 @@ export function buildRoadmap(input: PlanningInput): RoadmapRecord {
     workspaceId: input.workspace.id,
     sourceDiagnosticResultId: input.diagnostic.id,
     summary:
-      language === "es"
-        ? `${copy(language).roadmapSummary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
-        : `${copy(language).roadmapSummary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`,
-    items,
+      validationFirst && trustState
+        ? language === "es"
+          ? `Roadmap de validacion primero. ${trustState.summary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
+          : `Validation-first roadmap. ${trustState.summary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`
+        : language === "es"
+          ? `${copy(language).roadmapSummary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
+          : `${copy(language).roadmapSummary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`,
+    items: validationFirst && trustState ? validationRoadmapItems(input, trustState) : items,
     createdAt: new Date().toISOString()
   };
 }
@@ -840,7 +945,7 @@ function actionFromRoadmapItem({
   const signal = cleanProblemLabel({
     category,
     language,
-    title: item.reasoning,
+    title: item.description || item.title,
     type
   });
 
@@ -904,7 +1009,66 @@ function fallbackActions(input: PlanningInput) {
   );
 }
 
+function validationFirstActions(input: ActionPlanInput, trustState: DownstreamTrustState) {
+  const language = input.workspace.outputLanguage;
+  const sl = (en: string, es: string) => (language === "es" ? es : en);
+  const actionSeeds = [
+    {
+      title: trustState.hasContradiction
+        ? sl("Resolve contradiction before execution", "Resolver contradiccion antes de ejecutar")
+        : sl("Close the minimum evidence gaps", "Cerrar los gaps minimos de evidencia"),
+      category: "data" as CategoryTag,
+      evidence: trustState.evidenceGaps[0] ?? trustState.summary
+    },
+    {
+      title: sl("Validate offer, audience, and CTA evidence", "Validar evidencia de oferta, audiencia y CTA"),
+      category: "positioning" as CategoryTag,
+      evidence: trustState.validationTasks[0] ?? trustState.evidenceGaps[0] ?? trustState.summary
+    },
+    {
+      title: sl("Confirm acquisition source and sales process", "Confirmar fuente de adquisicion y proceso de venta"),
+      category: "acquisition" as CategoryTag,
+      evidence: trustState.validationTasks[1] ?? trustState.evidenceGaps[1] ?? trustState.summary
+    },
+    {
+      title: sl("Document tools, owners, and reporting cadence", "Documentar herramientas, owners y cadencia de reporting"),
+      category: "operations" as CategoryTag,
+      evidence: trustState.validationTasks[2] ?? trustState.evidenceGaps[2] ?? trustState.summary
+    },
+    {
+      title: sl("Decide what advice is safe to operationalize", "Decidir que recomendacion es segura para operar"),
+      category: "execution" as CategoryTag,
+      evidence: trustState.cannotClaim[0] ?? trustState.summary
+    }
+  ];
+
+  return actionSeeds.map((seed, index): PlanActionItem => ({
+    title: seed.title,
+    description:
+      language === "es"
+        ? `Tarea de validacion, no ejecucion definitiva. Confirmar evidencia antes de convertir esta recomendacion en trabajo operativo: ${seed.evidence}`
+        : `Validation task, not final execution. Confirm evidence before converting this recommendation into operating work: ${seed.evidence}`,
+    priority: index < 3 ? "high" : "medium",
+    ownerSuggestion:
+      language === "es"
+        ? "Owner del workspace o responsable de evidencia"
+        : "Workspace owner or evidence owner",
+    status: "not_started",
+    linkedCategory: seed.category,
+    linkedReasoning: trustState.summary
+  }));
+}
+
 export function buildActionPlan(input: ActionPlanInput): ActionPlanRecord {
+  const trustState = resolveDownstreamTrustState({
+    diagnostic: input.diagnostic,
+    language: input.workspace.outputLanguage,
+    profile: input.profile
+  });
+  const sourceActions =
+    trustState?.mode === "validation_first"
+      ? validationFirstActions(input, trustState)
+      : null;
   const roadmapActions =
     input.roadmap?.items.map((item, index) =>
       actionFromRoadmapItem({
@@ -914,7 +1078,7 @@ export function buildActionPlan(input: ActionPlanInput): ActionPlanRecord {
         profile: input.profile
       })
     ) ?? [];
-  const actions = dedupeActions(roadmapActions.length > 0 ? roadmapActions : fallbackActions(input))
+  const actions = dedupeActions(sourceActions ?? (roadmapActions.length > 0 ? roadmapActions : fallbackActions(input)))
     .slice(0, 9)
     .map((action) => ({
       ...action,
@@ -1386,8 +1550,163 @@ function verticalSuccessSignals(type: BusinessType, language: OutputLanguage) {
   return signals[type][language];
 }
 
+function validationWeek({
+  actions,
+  objective,
+  successSignal,
+  title
+}: {
+  actions: string[];
+  objective: string;
+  successSignal: string;
+  title: string;
+}): ThirtyDayPlanRecord["week1"] {
+  return {
+    title,
+    objective,
+    actions,
+    successSignal
+  };
+}
+
+function buildValidationFirstThirtyDayPlan(
+  input: ThirtyDayPlanInput,
+  trustState: DownstreamTrustState
+): ThirtyDayPlanRecord {
+  const language = input.workspace.outputLanguage;
+  const sl = (en: string, es: string) => (language === "es" ? es : en);
+  const company = input.profile.companyName ?? input.workspace.name;
+  const gaps = trustState.evidenceGaps.length
+    ? trustState.evidenceGaps
+    : [
+        sl(
+          "Minimum business evidence is incomplete.",
+          "La evidencia minima del negocio esta incompleta."
+        )
+      ];
+  const tasks = trustState.validationTasks.length
+    ? trustState.validationTasks
+    : [
+        sl(
+          "Confirm offer, audience, CTA, acquisition, sales process, tools, and reporting evidence.",
+          "Confirmar oferta, audiencia, CTA, adquisicion, proceso de venta, herramientas y reporting."
+        )
+      ];
+  const priorities = [
+    trustState.hasContradiction
+      ? sl("Resolve contradictory evidence before execution", "Resolver evidencia contradictoria antes de ejecutar")
+      : sl("Close the highest-risk evidence gaps", "Cerrar los gaps de evidencia de mayor riesgo"),
+    sl("Validate offer, audience, CTA, and acquisition claims", "Validar afirmaciones de oferta, audiencia, CTA y adquisicion"),
+    sl("Decide what can become an operating plan", "Decidir que puede convertirse en plan operativo")
+  ];
+
+  return {
+    id: crypto.randomUUID(),
+    jobId: input.jobId,
+    workspaceId: input.workspace.id,
+    sourceDiagnosticResultId: input.diagnostic.id,
+    monthObjective:
+      language === "es"
+        ? `${company}: modo validacion primero. Reparar evidencia antes de tratar el diagnostico como plan operativo.`
+        : `${company}: validation-first mode. Repair evidence before treating the diagnostic as an operating plan.`,
+    topPriorities: priorities,
+    week1: validationWeek({
+      title: sl("Week 1: Evidence inventory", "Semana 1: Inventario de evidencia"),
+      objective: sl(
+        "List what is known, what is missing, and which claims are unsafe to operationalize.",
+        "Listar que se sabe, que falta y que afirmaciones no son seguras para operar."
+      ),
+      actions: [
+        tasks[0] ?? priorities[0],
+        sl("Capture the current profile gaps in one decision log.", "Capturar los gaps actuales del perfil en un registro de decisiones."),
+        sl("Mark each recommendation as confirmed, provisional, or blocked.", "Marcar cada recomendacion como confirmada, provisional o bloqueada.")
+      ],
+      successSignal: sl(
+        "Evidence gaps and unsafe claims are visible in one reviewable list.",
+        "Los gaps de evidencia y afirmaciones inseguras estan visibles en una lista revisable."
+      )
+    }),
+    week2: validationWeek({
+      title: sl("Week 2: Offer and conversion validation", "Semana 2: Validacion de oferta y conversion"),
+      objective: sl(
+        "Confirm whether the offer, audience, CTA, and pricing evidence support the current diagnosis.",
+        "Confirmar si la evidencia de oferta, audiencia, CTA y precio soporta el diagnostico actual."
+      ),
+      actions: [
+        tasks[1] ?? priorities[1],
+        gaps[0],
+        sl("Rewrite only the claims that are backed by visible evidence.", "Reescribir solo las afirmaciones respaldadas por evidencia visible.")
+      ],
+      successSignal: sl(
+        "Offer, audience, CTA, and pricing claims are either confirmed or explicitly provisional.",
+        "Las afirmaciones de oferta, audiencia, CTA y precio quedan confirmadas o explicitamente provisionales."
+      )
+    }),
+    week3: validationWeek({
+      title: sl("Week 3: Channel and operating proof", "Semana 3: Prueba de canal y operacion"),
+      objective: sl(
+        "Validate acquisition source, sales process, tools, reporting, and operating ownership before scaling work.",
+        "Validar fuente de adquisicion, proceso de venta, herramientas, reporting y ownership operativo antes de escalar trabajo."
+      ),
+      actions: [
+        tasks[2] ?? priorities[2],
+        gaps[1] ?? gaps[0],
+        sl("Document the minimum metric and owner for each current channel.", "Documentar metrica minima y owner para cada canal actual.")
+      ],
+      successSignal: sl(
+        "Each active channel or tool has a documented purpose, owner, and evidence source.",
+        "Cada canal o herramienta activa tiene proposito, owner y fuente de evidencia documentados."
+      )
+    }),
+    week4: validationWeek({
+      title: sl("Week 4: Operating-plan decision", "Semana 4: Decision de plan operativo"),
+      objective: sl(
+        "Decide whether the evidence is strong enough to convert into a normal 30-day execution plan.",
+        "Decidir si la evidencia es suficientemente fuerte para convertirla en un plan normal de ejecucion de 30 dias."
+      ),
+      actions: [
+        sl("Classify each downstream recommendation as execute, revise, or discard.", "Clasificar cada recomendacion posterior como ejecutar, revisar o descartar."),
+        trustState.cannotClaim[0] ?? priorities[2],
+        sl("Update the profile before regenerating roadmap, actions, assets, or SOPs.", "Actualizar el perfil antes de regenerar roadmap, acciones, assets o SOPs.")
+      ],
+      successSignal: sl(
+        "There is a recorded decision on whether to proceed with execution planning or continue validation.",
+        "Existe una decision registrada sobre avanzar a planificacion de ejecucion o continuar validacion."
+      )
+    }),
+    quickWins: [
+      sl("Add missing website, offer, CTA, channel, pricing, and sales-process evidence.", "Anadir evidencia faltante de website, oferta, CTA, canal, precio y proceso de venta."),
+      sl("Resolve any contradictory profile evidence before generating customer-facing assets.", "Resolver evidencia contradictoria antes de generar assets de cara al cliente."),
+      sl("Replace generic claims with founder-confirmed facts.", "Reemplazar afirmaciones genericas por hechos confirmados por el founder.")
+    ],
+    risksToAvoid: trustState.cannotClaim,
+    successSignals: [
+      sl("All critical evidence gaps are closed or explicitly marked provisional.", "Todos los gaps criticos de evidencia estan cerrados o marcados como provisionales."),
+      sl("Contradictions are resolved before execution advice is accepted.", "Las contradicciones se resuelven antes de aceptar consejos de ejecucion."),
+      sl("The next generation run can cite stronger profile evidence.", "La siguiente generacion puede citar evidencia de perfil mas fuerte.")
+    ],
+    metricsToWatch: [
+      sl("Evidence gaps closed", "Gaps de evidencia cerrados"),
+      sl("Contradictions resolved", "Contradicciones resueltas"),
+      sl("Profile fields confirmed", "Campos de perfil confirmados"),
+      sl("Recommendations marked execute/revise/discard", "Recomendaciones marcadas ejecutar/revisar/descartar")
+    ],
+    createdAt: new Date().toISOString()
+  };
+}
+
 export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanRecord {
   const language = input.workspace.outputLanguage;
+  const trustState = resolveDownstreamTrustState({
+    diagnostic: input.diagnostic,
+    language,
+    profile: input.profile
+  });
+
+  if (trustState?.mode === "validation_first") {
+    return buildValidationFirstThirtyDayPlan(input, trustState);
+  }
+
   const type = detectBusinessType(input.profile);
   const priorities = priorityFallback(input.actionPlan, language, input.profile);
   const primaryAction = input.actionPlan.actions[0];

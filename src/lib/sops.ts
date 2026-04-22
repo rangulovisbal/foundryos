@@ -9,6 +9,7 @@ import type {
   ThirtyDayPlanRecord,
   WorkspaceRecord
 } from "@/lib/foundation";
+import { resolveDownstreamTrustState, type DownstreamTrustState } from "@/lib/downstream-trust";
 
 type BusinessType =
   | "academy"
@@ -802,6 +803,75 @@ function buildInternalApprovalSop(
   };
 }
 
+function applySopTrustMode(
+  artifact: SopArtifactRecord,
+  trustState: DownstreamTrustState,
+  language: OutputLanguage
+): SopArtifactRecord {
+  if (trustState.mode !== "validation_first") {
+    return artifact;
+  }
+
+  const en = language === "en";
+  const prefix = trustState.hasContradiction
+    ? en
+      ? "Conditional template"
+      : "Plantilla condicional"
+    : en
+      ? "Draft template"
+      : "Plantilla borrador";
+  const validationItems = trustState.validationTasks.length
+    ? trustState.validationTasks
+    : [
+        en
+          ? "Validate the missing business evidence before operationalizing this SOP."
+          : "Validar la evidencia de negocio faltante antes de operar este SOP."
+      ];
+  const cannotClaim = trustState.cannotClaim.length
+    ? trustState.cannotClaim
+    : [
+        en
+          ? "This SOP is not operationally ready until evidence gaps are closed."
+          : "Este SOP no esta listo para operar hasta cerrar los gaps de evidencia."
+      ];
+
+  return {
+    ...artifact,
+    title: `${prefix}: ${artifact.title}`,
+    purpose: en
+      ? `Draft only. ${artifact.purpose} Use after validation confirms the required evidence and ownership.`
+      : `Solo borrador. ${artifact.purpose} Usar despues de que la validacion confirme evidencia y ownership requeridos.`,
+    content: [
+      {
+        heading: en ? "Trust status" : "Estado de confianza",
+        items: [
+          trustState.summary,
+          en
+            ? `Diagnostic confidence: ${trustState.confidence}.`
+            : `Confianza diagnostica: ${trustState.confidence}.`
+        ]
+      },
+      {
+        heading: en ? "Validate before operationalizing" : "Validar antes de operar",
+        items: validationItems.slice(0, 5)
+      },
+      {
+        heading: en ? "Do not claim yet" : "No afirmar todavia",
+        items: cannotClaim.slice(0, 4)
+      },
+      ...artifact.content
+    ],
+    sourceReferences: [
+      ...artifact.sourceReferences,
+      {
+        sourceType: "diagnostic",
+        label: en ? "Downstream trust state" : "Estado de confianza posterior",
+        detail: trustState.label
+      }
+    ]
+  };
+}
+
 // ─── Public builder ───────────────────────────────────────────────────────────
 
 export function buildSopArtifacts({
@@ -822,12 +892,17 @@ export function buildSopArtifacts({
   const type = detectBusinessType(profile);
   const language = workspace.outputLanguage;
   const workspaceId = workspace.id;
+  const trustState = resolveDownstreamTrustState({ diagnostic, language, profile });
 
-  return [
+  const artifacts = [
     buildLeadHandlingSop(jobId, workspaceId, type, profile, diagnostic, language),
     buildReportingCadenceSop(jobId, workspaceId, type, profile, diagnostic, thirtyDayPlan, language),
     buildCampaignSetupSop(jobId, workspaceId, type, profile, diagnostic, roadmap, language),
     buildContentWorkflowSop(jobId, workspaceId, type, profile, diagnostic, language),
     buildInternalApprovalSop(jobId, workspaceId, type, profile, diagnostic, roadmap, language)
   ];
+
+  return trustState
+    ? artifacts.map((artifact) => applySopTrustMode(artifact, trustState, language))
+    : artifacts;
 }
