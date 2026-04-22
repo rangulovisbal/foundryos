@@ -273,8 +273,8 @@ function SupportHistoryPanel({
       <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em]">
         {copyForLanguage(language, "Recent support requests", "Solicitudes recientes de soporte")}
       </h3>
-      <div className="mt-5 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-        <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+      <div className="foundry-table-frame mt-5">
+        <table className="foundry-table">
           <thead className="bg-white/90 text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">
@@ -358,8 +358,8 @@ function DeletionHistoryPanel({
         {copyForLanguage(language, "Deletion requests", "Solicitudes de eliminación")}
       </p>
       <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em]">{title}</h3>
-      <div className="mt-5 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-        <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+      <div className="foundry-table-frame mt-5">
+        <table className="foundry-table">
           <thead className="bg-white/90 text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">

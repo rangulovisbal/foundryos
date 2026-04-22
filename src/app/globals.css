@@ -101,6 +101,14 @@ body:has(.auth-app-root) .site-chrome {
     @apply min-w-0;
   }
 
+  .foundry-table-frame {
+    @apply w-full overflow-x-auto rounded-[24px] border border-[color:var(--border)];
+  }
+
+  .foundry-table {
+    @apply min-w-[720px] divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm;
+  }
+
   .pill {
     @apply inline-flex items-center rounded-full px-3 py-1 text-sm font-medium;
   }

@@ -55,8 +55,8 @@ export default async function TeamPage() {
         <p className="text-sm uppercase tracking-[0.18em] text-muted">
           {copyForLanguage(language, "Members", "Miembros")}
         </p>
-        <div className="mt-4 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-          <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+        <div className="foundry-table-frame mt-4">
+          <table className="foundry-table">
             <thead className="bg-white/90 text-muted">
               <tr>
                 <th className="px-4 py-3 font-semibold">
@@ -97,8 +97,8 @@ export default async function TeamPage() {
         <p className="text-sm uppercase tracking-[0.18em] text-muted">
           {copyForLanguage(language, "Pending invites", "Invitaciones pendientes")}
         </p>
-        <div className="mt-4 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-          <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+        <div className="foundry-table-frame mt-4">
+          <table className="foundry-table">
             <thead className="bg-white/90 text-muted">
               <tr>
                 <th className="px-4 py-3 font-semibold">

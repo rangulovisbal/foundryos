@@ -256,8 +256,8 @@ export default async function AdminPage() {
           </summary>
 
           <div className="px-6 pb-6 md:px-8 md:pb-8">
-            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <div className="foundry-table-frame">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -328,8 +328,8 @@ export default async function AdminPage() {
           </summary>
 
           <div className="px-6 pb-6 md:px-8 md:pb-8">
-            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <div className="foundry-table-frame">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -406,8 +406,8 @@ export default async function AdminPage() {
           </summary>
 
           <div className="px-6 pb-6 md:px-8 md:pb-8">
-            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <div className="foundry-table-frame">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -482,8 +482,8 @@ export default async function AdminPage() {
           </summary>
 
           <div className="px-6 pb-6 md:px-8 md:pb-8">
-            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <div className="foundry-table-frame">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -557,8 +557,8 @@ export default async function AdminPage() {
             managed manually here during pilot operations.
           </p>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+          <div className="foundry-table-frame mt-6">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -643,8 +643,8 @@ export default async function AdminPage() {
             is deleted automatically from the user-facing surface.
           </p>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+          <div className="foundry-table-frame mt-6">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -741,8 +741,8 @@ export default async function AdminPage() {
             to live Stripe state, invoicing, or automated dunning.
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+          <div className="foundry-table-frame mt-6">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -818,8 +818,8 @@ export default async function AdminPage() {
           </summary>
 
           <div className="px-6 pb-6 md:px-8 md:pb-8">
-            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <div className="foundry-table-frame">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">User</th>
@@ -878,8 +878,8 @@ export default async function AdminPage() {
             </p>
           </summary>
           <div className="px-6 pb-6 md:px-8 md:pb-8">
-            <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+            <div className="foundry-table-frame">
+            <table className="foundry-table">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">When</th>

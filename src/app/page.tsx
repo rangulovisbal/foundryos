@@ -176,29 +176,28 @@ export default function HomePage() {
         type="application/ld+json"
       />
 
-      <section className="surface overflow-hidden px-6 py-8 md:px-9 md:py-10">
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative">
-            <div className="grid-lines absolute inset-0 rounded-[32px] opacity-50" />
-            <div className="relative z-10 space-y-6">
-              <span className="eyebrow">
+      <section className="surface overflow-hidden px-6 py-10 md:px-10 md:py-14">
+        <div className="relative">
+          <div className="grid-lines absolute inset-0 rounded-[32px] opacity-40" />
+          <div className="relative z-10 mx-auto max-w-5xl space-y-7 text-center">
+              <span className="eyebrow justify-center">
                 AI-first operating system for startups and lean teams
               </span>
               <div className="space-y-4">
-                <h1 className="display max-w-4xl">
+                <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
                   Get a 30-day operating plan and execution roadmap without
                   hiring a full team.
                 </h1>
-                <p className="max-w-3xl body-lg">
+                <p className="mx-auto max-w-3xl body-lg">
                   FoundryOS gives you a business scorecard, roadmap, SOP
                   starters and automation opportunities in a structured
                   AI-first workflow built for lean teams.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
+                  className="foundry-primary-button rounded-full"
                   href="/pricing#plans"
                 >
                   Get your AI Snapshot <ArrowRight className="h-4 w-4" />
@@ -211,7 +210,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <ul className="grid gap-3 text-sm text-muted md:grid-cols-3">
+              <ul className="mx-auto grid max-w-4xl gap-3 text-sm text-muted md:grid-cols-3">
                 {heroBullets.map((item) => (
                   <li
                     key={item}
@@ -222,10 +221,9 @@ export default function HomePage() {
                 ))}
               </ul>
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <div className="surface-strong p-6">
+          <div className="relative z-10 mx-auto mt-10 grid max-w-5xl gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="surface-strong p-6 text-left">
               <p className="text-sm uppercase tracking-[0.2em] text-muted">
                 First value
               </p>
@@ -260,7 +258,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="surface-strong p-6">
+            <div className="surface-strong p-6 text-left">
               <p className="text-sm uppercase tracking-[0.2em] text-muted">
                 What this replaces
               </p>
@@ -280,7 +278,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-6 md:p-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <span className="eyebrow">What you get in 24 hours</span>
@@ -294,7 +292,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="foundry-card-grid mt-8">
+        <div className="foundry-card-grid mt-10">
           {firstValue.map(({ icon: Icon, title, body }) => (
             <article
               key={title}
@@ -310,7 +308,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="surface p-6 md:p-8">
+      <section className="surface p-6 md:p-10">
         <span className="eyebrow">How it works</span>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {steps.map((step, index) => (
@@ -328,7 +326,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="surface p-6 md:p-8" id="sample-output">
+      <section className="surface p-6 md:p-10" id="sample-output">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <span className="eyebrow">What the dashboard includes</span>
@@ -342,7 +340,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mt-10 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-[28px] border border-[color:var(--border)] bg-ink p-6 text-sand">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -545,15 +543,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="surface p-6 md:p-8">
+      <section className="foundry-dark-panel p-6 text-[#E0EBF0] md:p-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow">Security and trust</span>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">Security and trust</span>
+            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
               Trust has to be visible, especially for an AI-first product.
             </h2>
           </div>
-          <p className="max-w-2xl body-lg">
+          <p className="max-w-2xl text-base leading-7 text-white/70 md:text-lg">
             The commercial promise is simple: secure checkout, clear data
             handling and structured outputs without hype or black-box pricing.
           </p>
@@ -567,12 +565,12 @@ export default function HomePage() {
             return (
               <article
                 key={item}
-                className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5"
+                className="rounded-[24px] border border-white/10 bg-white/[0.08] p-5"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ink text-sand">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white">
                   <Icon className="h-5 w-5" />
                 </div>
-                <p className="mt-4 text-base font-medium text-muted">{item}</p>
+                <p className="mt-4 text-base font-medium text-white/72">{item}</p>
               </article>
             );
           })}

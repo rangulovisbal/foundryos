@@ -383,8 +383,8 @@ function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[]
         </p>
       </summary>
       <div className="px-6 pb-6 md:px-8 md:pb-8">
-        <div className="overflow-hidden rounded-[24px] border border-[color:var(--border)]">
-          <table className="min-w-full divide-y divide-[color:var(--border)] bg-white/80 text-left text-sm">
+        <div className="foundry-table-frame">
+          <table className="foundry-table">
             <thead className="bg-white/90 text-muted">
               <tr>
                 <th className="px-4 py-3 font-semibold">Created</th>
