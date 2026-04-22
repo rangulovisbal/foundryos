@@ -87,6 +87,47 @@ const dashboardBlocks = [
   }
 ];
 
+const evidenceSignals = [
+  {
+    label: "Website",
+    value: sampleIntake.website,
+    detail: "Used as the public reference point"
+  },
+  {
+    label: "Main channel",
+    value: sampleIntake.mainChannel,
+    detail: "Grounds acquisition recommendations"
+  },
+  {
+    label: "Tools",
+    value: sampleIntake.currentTools,
+    detail: "Shows the current operating stack"
+  },
+  {
+    label: "Revenue band",
+    value: sampleIntake.monthlyRevenueBand,
+    detail: "Frames maturity and urgency"
+  }
+];
+
+const operatingSignals = [
+  {
+    label: "Analytics",
+    value: sampleIntake.hasAnalytics ? "Present" : "Missing",
+    status: sampleIntake.hasAnalytics ? "usable signal" : "needs validation"
+  },
+  {
+    label: "SOPs",
+    value: sampleIntake.hasDocumentedSOPs ? "Documented" : "Not documented",
+    status: sampleIntake.hasDocumentedSOPs ? "stable" : "priority gap"
+  },
+  {
+    label: "Automation",
+    value: sampleIntake.openToAutomation ? "Open" : "Not ready",
+    status: sampleIntake.openToAutomation ? "implementation path" : "manual first"
+  }
+];
+
 const fit = {
   yes: [
     "Startups and digital businesses with validated demand",
@@ -185,8 +226,11 @@ export default function HomePage() {
             </span>
             <div className="space-y-4">
               <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
-                Get a 30-day operating plan and execution roadmap without
-                hiring a full team.
+                Get a 30-day{" "}
+                <span className="font-serif-display tracking-[-0.03em]">
+                  operating plan
+                </span>{" "}
+                and execution roadmap without hiring a full team.
               </h1>
               <p className="mx-auto max-w-3xl body-lg">
                 FoundryOS gives you a business scorecard, roadmap, SOP
@@ -224,6 +268,12 @@ export default function HomePage() {
 
           <div className="relative z-10 mx-auto mt-10 max-w-5xl rounded-[32px] border border-[color:var(--border)] bg-[#f7f5ee]/90 p-3 shadow-[0_28px_80px_-55px_rgba(5,26,36,0.65)] md:p-5">
             <div className="rounded-[26px] border border-[color:var(--border)] bg-white/82 p-4 md:p-6">
+              <div className="mb-5 flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-coral/80" />
+                <span className="h-2.5 w-2.5 rounded-full bg-gold/80" />
+                <span className="h-2.5 w-2.5 rounded-full bg-teal/80" />
+                <span className="ml-auto hidden h-2 w-32 rounded-full bg-ink/10 sm:block" />
+              </div>
               <div className="flex flex-col gap-3 border-b border-[color:var(--border)] pb-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
@@ -247,6 +297,13 @@ export default function HomePage() {
                     </p>
                     <p className="pb-2 text-sm font-semibold text-muted">/100</p>
                   </div>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+                    <div
+                      aria-hidden="true"
+                      className="h-full rounded-full bg-teal"
+                      style={{ width: `${report.score}%` }}
+                    />
+                  </div>
                   <p className="mt-4 text-sm leading-7 text-muted">{report.headline}</p>
                 </article>
 
@@ -266,6 +323,25 @@ export default function HomePage() {
                   </div>
                 </article>
               </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {operatingSignals.map((signal) => (
+                  <div
+                    className="rounded-[20px] border border-[color:var(--border)] bg-white/75 p-4 text-left"
+                    key={signal.label}
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                      {signal.label}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold tracking-[-0.03em]">
+                      {signal.value}
+                    </p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted">
+                      {signal.status}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -275,7 +351,9 @@ export default function HomePage() {
         <div className="mx-auto max-w-3xl text-center">
           <span className="eyebrow justify-center">What you get in 24 hours</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
-            The deliverables feel usable, not conceptual.
+            The deliverables feel{" "}
+            <span className="font-serif-display tracking-[-0.02em]">usable</span>,
+            not conceptual.
           </h2>
           <p className="mt-4 body-lg">
             The product should show value immediately: a scorecard, next actions,
@@ -303,20 +381,23 @@ export default function HomePage() {
         <div className="mx-auto max-w-3xl text-center">
           <span className="eyebrow justify-center">How it works</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em]">
-            The flow stays simple so the output stays usable.
+            The flow stays{" "}
+            <span className="font-serif-display tracking-[-0.02em]">simple</span>{" "}
+            so the output stays usable.
           </h2>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {steps.map((step, index) => (
             <article
               key={step.title}
-              className="rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6"
+              className="relative overflow-hidden rounded-[28px] border border-[color:var(--border)] bg-white/85 p-6"
             >
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-muted">
+              <div className="absolute right-5 top-5 h-16 w-16 rounded-full border border-[color:var(--border)] bg-sand/80" />
+              <p className="relative text-sm font-semibold uppercase tracking-[0.22em] text-muted">
                 0{index + 1}
               </p>
-              <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-muted">{step.body}</p>
+              <h3 className="relative mt-4 text-xl font-semibold">{step.title}</h3>
+              <p className="relative mt-3 text-sm leading-7 text-muted">{step.body}</p>
             </article>
           ))}
         </div>
@@ -326,7 +407,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center">
           <span className="eyebrow justify-center">What the dashboard includes</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
-            Scorecards, roadmap cards, SOP starters and automation queue.
+            Scorecards, roadmap cards, SOP starters and{" "}
+            <span className="font-serif-display tracking-[-0.02em]">
+              automation queue.
+            </span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl body-lg">
             This is the kind of output the system is designed to deliver:
@@ -373,6 +457,30 @@ export default function HomePage() {
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-[22px] border border-white/10 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-sand/70">
+                Evidence used in this sample
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {evidenceSignals.map((signal) => (
+                  <div
+                    className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"
+                    key={signal.label}
+                  >
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-sand/55">
+                      {signal.label}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-sand">
+                      {signal.value}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-sand/60">
+                      {signal.detail}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -478,7 +586,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center">
           <span className="eyebrow justify-center">Plans</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
-            Start with the right level of operating support.
+            Start with the right level of{" "}
+            <span className="font-serif-display tracking-[-0.02em]">
+              operating support.
+            </span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl body-lg">
             Snapshot is the main starting point. FoundryOS Core is the recurring
@@ -541,7 +652,9 @@ export default function HomePage() {
             Security and trust
           </span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-white md:text-5xl">
-            Trust has to be visible, especially for an AI-first product.
+            Trust has to be{" "}
+            <span className="font-serif-display tracking-[-0.02em]">visible</span>,
+            especially for an AI-first product.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/70 md:text-lg">
             The commercial promise is simple: secure checkout, clear data
@@ -573,7 +686,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center">
           <span className="eyebrow justify-center">FAQ</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em]">
-            Questions teams ask before starting.
+            Questions teams ask{" "}
+            <span className="font-serif-display tracking-[-0.02em]">
+              before starting.
+            </span>
           </h2>
         </div>
         <div className="mx-auto mt-8 max-w-4xl divide-y divide-[color:var(--border)] rounded-[28px] border border-[color:var(--border)] bg-white/80">
