@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { getRequestAppUrl, registerUser } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { signupSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage, setLanguageCookie } from "@/lib/language-server";
 
@@ -37,7 +36,7 @@ export async function POST(request: Request) {
       }
     });
 
-    const response = NextResponse.json({
+    const response = noStoreJson({
       ok: true,
       verificationPreviewUrl: result.verificationPreviewUrl,
       emailDelivery: result.emailDelivery,
@@ -46,14 +45,9 @@ export async function POST(request: Request) {
     setLanguageCookie(response, result.user.preferredLanguage ?? "en");
     return response;
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(
-          error,
-          copyForLanguage(language, "Signup failed.", "No se pudo crear la cuenta.")
-        )
-      },
-      { status: getErrorStatus(error, 400) }
+    return publicErrorJson(
+      error,
+      copyForLanguage(language, "Signup failed.", "No se pudo crear la cuenta.")
     );
   }
 }

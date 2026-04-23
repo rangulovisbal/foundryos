@@ -1,24 +1,29 @@
-import { NextResponse } from "next/server";
-
-import { generateSnapshotReportWithAI } from "@/lib/snapshot-ai";
+import { noStoreJson, publicErrorJson, getClientIp } from "@/lib/http";
+import { consumeRateLimit } from "@/lib/rate-limit";
+import { generateSnapshotReport } from "@/lib/snapshot";
 import { businessIntakeSchema } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rateLimit = consumeRateLimit(`snapshot:${ip}`, {
+      max: 4,
+      windowMs: 60_000
+    });
+
+    if (!rateLimit.success) {
+      return noStoreJson(
+        { error: "Too many snapshot requests. Try again shortly." },
+        { status: 429 }
+      );
+    }
+
     const json = await request.json();
     const intake = businessIntakeSchema.parse(json);
-    const report = await generateSnapshotReportWithAI(intake);
+    const report = generateSnapshotReport(intake);
 
-    return NextResponse.json(report);
+    return noStoreJson(report);
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Snapshot request could not be processed."
-      },
-      { status: 400 }
-    );
+    return publicErrorJson(error, "Snapshot request could not be processed.");
   }
 }

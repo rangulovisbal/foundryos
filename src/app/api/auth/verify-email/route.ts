@@ -8,20 +8,35 @@ import {
   verifyEmailAndCreateSession
 } from "@/lib/auth";
 import { isConfigurationError } from "@/lib/errors";
+import { applyNoStoreHeaders, noStoreJson } from "@/lib/http";
 import { setLanguageCookie } from "@/lib/language-server";
 
 export async function GET(request: Request) {
-  const appUrl = getRequestAppUrl(request);
+  let appUrl: string;
+
+  try {
+    appUrl = getRequestAppUrl(request);
+  } catch {
+    return noStoreJson(
+      { error: "Email verification is temporarily unavailable." },
+      { status: 503 }
+    );
+  }
+
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
   const redirectTo = sanitizeRedirectPath(url.searchParams.get("redirectTo"));
 
   if (!token) {
-    return NextResponse.redirect(new URL("/verify-email?status=invalid", appUrl));
+    return applyNoStoreHeaders(
+      NextResponse.redirect(new URL("/verify-email?status=invalid", appUrl))
+    );
   }
 
   try {
-    const response = NextResponse.redirect(new URL("/app", appUrl), 303);
+    const response = applyNoStoreHeaders(
+      NextResponse.redirect(new URL("/app", appUrl), 303)
+    );
     const user = await verifyEmailAndCreateSession(token, response);
 
     if (!user) {
@@ -38,9 +53,13 @@ export async function GET(request: Request) {
     return response;
   } catch (error) {
     if (isConfigurationError(error)) {
-      return NextResponse.redirect(new URL("/verify-email?status=unavailable", appUrl));
+      return applyNoStoreHeaders(
+        NextResponse.redirect(new URL("/verify-email?status=unavailable", appUrl))
+      );
     }
 
-    return NextResponse.redirect(new URL("/verify-email?status=invalid", appUrl));
+    return applyNoStoreHeaders(
+      NextResponse.redirect(new URL("/verify-email?status=invalid", appUrl))
+    );
   }
 }

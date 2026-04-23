@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createDeletionRequest,
   findOpenDeletionRequest
 } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import {
   canRequestAccountDeletion,
   canRequestWorkspaceDeletion,
@@ -14,13 +11,14 @@ import {
   getDeletionConfirmationPhrase,
   type DeletionRequestRecord
 } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export async function POST(request: Request) {
   try {
     const context = await getCurrentWorkspaceContext();
 
     if (!context) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return noStoreJson({ error: "Authentication required." }, { status: 401 });
     }
 
     const payload = deletionRequestSchema.parse(await request.json());
@@ -30,7 +28,7 @@ export async function POST(request: Request) {
     );
 
     if (payload.confirmationText !== expectedPhrase) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: `Type exactly "${expectedPhrase}" to submit this request.` },
         { status: 400 }
       );
@@ -40,7 +38,7 @@ export async function POST(request: Request) {
       payload.requestType === "account_deletion" &&
       !canRequestAccountDeletion()
     ) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Account deletion requests are unavailable for this user." },
         { status: 403 }
       );
@@ -50,7 +48,7 @@ export async function POST(request: Request) {
       payload.requestType === "workspace_deletion" &&
       !canRequestWorkspaceDeletion(context.membership.role)
     ) {
-      return NextResponse.json(
+      return noStoreJson(
         {
           error:
             "Only workspace owners and admins can submit workspace deletion requests."
@@ -66,7 +64,7 @@ export async function POST(request: Request) {
     });
 
     if (existingRequest) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "An open deletion request of this type already exists." },
         { status: 409 }
       );
@@ -103,11 +101,8 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json({ ok: true, requestId: record.id });
+    return noStoreJson({ ok: true, requestId: record.id });
   } catch (error) {
-    return NextResponse.json(
-      { error: getErrorMessage(error, "Deletion request could not be created.") },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Deletion request could not be created.");
   }
 }

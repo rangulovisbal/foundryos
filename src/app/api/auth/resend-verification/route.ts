@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getRequestAppUrl, resendVerificationEmail } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage } from "@/lib/language-server";
 
@@ -25,25 +24,20 @@ export async function POST(request: Request) {
       language
     });
 
-    return NextResponse.json({
+    return noStoreJson({
       ok: true,
       previewUrl: result.previewUrl,
       emailDelivery: result.emailDelivery,
       deliveryMode: result.deliveryMode
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(
-          error,
-          copyForLanguage(
-            language,
-            "Verification email could not be prepared.",
-            "No se pudo preparar el correo de verificación."
-          )
-        )
-      },
-      { status: getErrorStatus(error, 400) }
+    return publicErrorJson(
+      error,
+      copyForLanguage(
+        language,
+        "Verification email could not be prepared.",
+        "No se pudo preparar el correo de verificación."
+      )
     );
   }
 }

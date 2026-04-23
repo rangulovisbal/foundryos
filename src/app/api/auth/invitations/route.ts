@@ -1,12 +1,10 @@
-import { NextResponse } from "next/server";
-
 import {
   getCurrentWorkspaceContext,
   getRequestAppUrl,
   inviteUserToWorkspace
 } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { inviteMemberSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage } from "@/lib/language-server";
 
@@ -18,7 +16,7 @@ export async function POST(request: Request) {
     const context = await getCurrentWorkspaceContext();
 
     if (!context) {
-      return NextResponse.json(
+      return noStoreJson(
         {
           error: copyForLanguage(
             language,
@@ -41,24 +39,19 @@ export async function POST(request: Request) {
       role: payload.role
     });
 
-    return NextResponse.json({
+    return noStoreJson({
       ok: true,
       previewUrl: result.previewUrl,
       emailDelivery: result.emailDelivery
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(
-          error,
-          copyForLanguage(
-            language,
-            "Invitation could not be created.",
-            "No se pudo crear la invitación."
-          )
-        )
-      },
-      { status: getErrorStatus(error, 400) }
+    return publicErrorJson(
+      error,
+      copyForLanguage(
+        language,
+        "Invitation could not be created.",
+        "No se pudo crear la invitación."
+      )
     );
   }
 }

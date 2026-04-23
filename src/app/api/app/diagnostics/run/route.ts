@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createDiagnosticJob,
@@ -10,12 +8,13 @@ import {
 } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
 import { buildDiagnosticResult } from "@/lib/diagnostics";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
+import { getErrorMessage } from "@/lib/errors";
 import {
   canRunDiagnostics,
   getUsageCounter,
   type DiagnosticJobRecord
 } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export async function POST() {
   let job: DiagnosticJobRecord | null = null;
@@ -24,7 +23,7 @@ export async function POST() {
     const context = await getCurrentWorkspaceContext();
 
     if (!context) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return noStoreJson({ error: "Authentication required." }, { status: 401 });
     }
 
     if (!canRunDiagnostics(context)) {
@@ -33,7 +32,7 @@ export async function POST() {
         ? `Diagnostic run limit reached: ${counter.usedCount}/${counter.limitCount}.`
         : "Diagnostic run entitlement is missing for this workspace.";
 
-      return NextResponse.json(
+      return noStoreJson(
         {
           error:
             context.workspace.accountState === "past_due"
@@ -46,7 +45,7 @@ export async function POST() {
 
     const profile = await getBusinessProfile(context.workspace.id);
     if (!profile) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Complete and save the business profile before running diagnostics." },
         { status: 400 }
       );
@@ -100,7 +99,7 @@ export async function POST() {
       }
     });
 
-    return NextResponse.json({ ok: true, jobId: job.id, result });
+    return noStoreJson({ ok: true, jobId: job.id, result });
   } catch (error) {
     if (job) {
       try {
@@ -114,11 +113,6 @@ export async function POST() {
       }
     }
 
-    return NextResponse.json(
-      {
-        error: getErrorMessage(error, "Diagnostic run could not be created.")
-      },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Diagnostic run could not be created.");
   }
 }

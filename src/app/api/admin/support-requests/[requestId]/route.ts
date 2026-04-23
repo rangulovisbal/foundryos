@@ -1,10 +1,8 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { updateSupportRequest } from "@/db/foundation";
 import { requireInternalAdmin } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { supportRequestAdminUpdateSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export async function PATCH(
   request: Request,
@@ -35,11 +33,8 @@ export async function PATCH(
       }
     });
 
-    return NextResponse.json({ ok: true });
+    return noStoreJson({ ok: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: getErrorMessage(error, "Support request could not be updated.") },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Support request could not be updated.");
   }
 }

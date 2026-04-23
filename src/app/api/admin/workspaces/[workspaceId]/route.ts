@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
-
 import { getCurrentUserSession, logWorkspaceAdminChange } from "@/lib/auth";
 import { findWorkspaceById, updateWorkspace } from "@/db/foundation";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceAdminUpdateSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export async function PATCH(
   request: Request,
@@ -13,14 +11,14 @@ export async function PATCH(
     const current = await getCurrentUserSession();
 
     if (!current || current.user.globalRole !== "internal_admin") {
-      return NextResponse.json({ error: "Internal admin access required." }, { status: 403 });
+      return noStoreJson({ error: "Internal admin access required." }, { status: 403 });
     }
 
     const { workspaceId } = await params;
     const existing = await findWorkspaceById(workspaceId);
 
     if (!existing) {
-      return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
+      return noStoreJson({ error: "Workspace not found." }, { status: 404 });
     }
 
     const payload = workspaceAdminUpdateSchema.parse(await request.json());
@@ -30,7 +28,7 @@ export async function PATCH(
     });
 
     if (!workspace) {
-      return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
+      return noStoreJson({ error: "Workspace not found." }, { status: 404 });
     }
 
     if (
@@ -47,13 +45,8 @@ export async function PATCH(
       });
     }
 
-    return NextResponse.json({ ok: true, workspace });
+    return noStoreJson({ ok: true, workspace });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(error, "Workspace state could not be updated.")
-      },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Workspace state could not be updated.");
   }
 }

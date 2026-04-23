@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
-
 import { createLeadRecord } from "@/db/queries";
 import { verifyTurnstile } from "@/lib/cloudflare";
 import { sendLeadNotifications } from "@/lib/email";
+import { getClientIp, noStoreJson, publicErrorJson } from "@/lib/http";
 import { type LeadRecord, leadCaptureSchema } from "@/lib/leads";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
@@ -10,15 +9,14 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const forwardedFor = request.headers.get("x-forwarded-for");
-    const ip = forwardedFor?.split(",")[0]?.trim() ?? "local";
+    const ip = getClientIp(request);
     const rateLimit = consumeRateLimit(`lead:${ip}`, {
       max: 6,
       windowMs: 60_000
     });
 
     if (!rateLimit.success) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Too many lead submissions. Try again shortly." },
         { status: 429 }
       );
@@ -32,7 +30,7 @@ export async function POST(request: Request) {
     });
 
     if (!turnstile.ok) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Bot verification failed. Please retry." },
         { status: 400 }
       );
@@ -60,17 +58,11 @@ export async function POST(request: Request) {
     await createLeadRecord(lead);
     await sendLeadNotifications(lead);
 
-    return NextResponse.json({
+    return noStoreJson({
       ok: true,
       message: "Lead stored. We will review the request shortly."
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Lead submission failed."
-      },
-      { status: 400 }
-    );
+    return publicErrorJson(error, "Lead submission failed.");
   }
 }

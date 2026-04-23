@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
@@ -8,8 +7,8 @@ import {
   resolvePrimaryLanguageForUser,
   startSessionForUser
 } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { loginSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage, setLanguageCookie } from "@/lib/language-server";
 
@@ -30,7 +29,7 @@ export async function POST(request: Request) {
     });
 
     if (result.requiresVerification || !result.user) {
-      return NextResponse.json(
+      return noStoreJson(
         {
           error: copyForLanguage(
             language,
@@ -48,19 +47,14 @@ export async function POST(request: Request) {
 
     const resolvedLanguage = await resolvePrimaryLanguageForUser(result.user);
     const redirectTo = await getPostAuthRedirectPath(result.user.id, payload.redirectTo);
-    const response = NextResponse.json({ ok: true, redirectTo });
+    const response = noStoreJson({ ok: true, redirectTo });
     await startSessionForUser(result.user.id, response);
     setLanguageCookie(response, resolvedLanguage);
     return response;
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(
-          error,
-          copyForLanguage(language, "Login failed.", "No se pudo iniciar sesión.")
-        )
-      },
-      { status: getErrorStatus(error, 400) }
+    return publicErrorJson(
+      error,
+      copyForLanguage(language, "Login failed.", "No se pudo iniciar sesión.")
     );
   }
 }

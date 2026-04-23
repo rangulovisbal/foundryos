@@ -1,10 +1,8 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { updateDeletionRequest } from "@/db/foundation";
 import { requireInternalAdmin } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { deletionRequestAdminUpdateSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export async function PATCH(
   request: Request,
@@ -36,11 +34,8 @@ export async function PATCH(
       }
     });
 
-    return NextResponse.json({ ok: true });
+    return noStoreJson({ ok: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: getErrorMessage(error, "Deletion request could not be updated.") },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Deletion request could not be updated.");
   }
 }

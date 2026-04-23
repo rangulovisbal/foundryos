@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   getBusinessProfile,
@@ -8,12 +6,12 @@ import {
   upsertBusinessProfile
 } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import {
   businessProfileSchema,
   canAccessWorkspace,
   canEditBusinessProfile
 } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { setLanguageCookie } from "@/lib/language-server";
 
 export async function GET() {
@@ -21,18 +19,13 @@ export async function GET() {
     const context = await getCurrentWorkspaceContext();
 
     if (!context || !canAccessWorkspace(context.workspace.accountState)) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return noStoreJson({ error: "Authentication required." }, { status: 401 });
     }
 
     const profile = await getBusinessProfile(context.workspace.id);
-    return NextResponse.json({ ok: true, profile });
+    return noStoreJson({ ok: true, profile });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(error, "Business profile could not be loaded.")
-      },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Business profile could not be loaded.");
   }
 }
 
@@ -41,11 +34,11 @@ export async function POST(request: Request) {
     const context = await getCurrentWorkspaceContext();
 
     if (!context) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return noStoreJson({ error: "Authentication required." }, { status: 401 });
     }
 
     if (!canAccessWorkspace(context.workspace.accountState)) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "This workspace cannot access the app while it is in lead state." },
         { status: 403 }
       );
@@ -57,7 +50,7 @@ export async function POST(request: Request) {
         context.workspace.accountState
       )
     ) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "You do not have permission to update this business profile." },
         { status: 403 }
       );
@@ -107,15 +100,10 @@ export async function POST(request: Request) {
       }
     });
 
-    const response = NextResponse.json({ ok: true, profile: savedProfile });
+    const response = noStoreJson({ ok: true, profile: savedProfile });
     setLanguageCookie(response, payload.outputLanguage);
     return response;
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(error, "Business profile could not be saved.")
-      },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Business profile could not be saved.");
   }
 }

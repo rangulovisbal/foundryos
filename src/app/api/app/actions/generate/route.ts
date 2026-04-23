@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createActionPlan,
@@ -11,8 +9,9 @@ import {
   updatePlanningJob
 } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
+import { getErrorMessage } from "@/lib/errors";
 import { canGenerateThirtyDayPlan, type PlanningJobRecord } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { buildActionPlan, buildThirtyDayPlan } from "@/lib/planning";
 
 export async function POST() {
@@ -22,11 +21,11 @@ export async function POST() {
     const context = await getCurrentWorkspaceContext();
 
     if (!context) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return noStoreJson({ error: "Authentication required." }, { status: 401 });
     }
 
     if (!canGenerateThirtyDayPlan(context)) {
-      return NextResponse.json(
+      return noStoreJson(
         {
           error:
             context.workspace.accountState === "past_due"
@@ -44,14 +43,14 @@ export async function POST() {
     ]);
 
     if (!profile) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Complete and save the business profile before generating actions." },
         { status: 400 }
       );
     }
 
     if (!diagnostic) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Run diagnostics before generating actions and a 30-day plan." },
         { status: 400 }
       );
@@ -114,7 +113,7 @@ export async function POST() {
       }
     });
 
-    return NextResponse.json({ ok: true, jobId: job.id, actionPlan, thirtyDayPlan });
+    return noStoreJson({ ok: true, jobId: job.id, actionPlan, thirtyDayPlan });
   } catch (error) {
     if (job) {
       try {
@@ -128,9 +127,6 @@ export async function POST() {
       }
     }
 
-    return NextResponse.json(
-      { error: getErrorMessage(error, "30-day plan could not be generated.") },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "30-day plan could not be generated.");
   }
 }

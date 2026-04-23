@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { captureAnalyticsEvent } from "@/lib/analytics";
+import { getClientIp, noStoreJson, publicErrorJson } from "@/lib/http";
 import { createCheckoutSession } from "@/lib/payments";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
@@ -15,15 +15,14 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const forwardedFor = request.headers.get("x-forwarded-for");
-    const ip = forwardedFor?.split(",")[0]?.trim() ?? "local";
+    const ip = getClientIp(request);
     const rateLimit = consumeRateLimit(`checkout:${ip}`, {
       max: 8,
       windowMs: 60_000
     });
 
     if (!rateLimit.success) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Too many checkout attempts. Try again shortly." },
         { status: 429 }
       );
@@ -44,14 +43,8 @@ export async function POST(request: Request) {
 
     const session = await createCheckoutSession(payload);
 
-    return NextResponse.json({ url: session.url });
+    return noStoreJson({ url: session.url });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Checkout is not available."
-      },
-      { status: 400 }
-    );
+    return publicErrorJson(error, "Checkout is not available.");
   }
 }

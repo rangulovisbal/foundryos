@@ -1,9 +1,16 @@
-import { NextResponse } from "next/server";
-
 import { env } from "@/lib/env";
+import { noStoreJson } from "@/lib/http";
 
 export async function GET() {
-  return NextResponse.json({
+  if (env.isProduction) {
+    return noStoreJson({
+      ok: true,
+      service: "foundryos",
+      environment: env.vercelEnv
+    });
+  }
+
+  return noStoreJson({
     ok: true,
     service: "foundryos",
     environment: env.vercelEnv,

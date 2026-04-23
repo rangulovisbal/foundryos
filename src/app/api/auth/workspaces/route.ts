@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createWorkspaceForUser, getCurrentUserSession } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { workspaceCreationSchema } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage, setLanguageCookie } from "@/lib/language-server";
 
@@ -14,7 +12,7 @@ export async function POST(request: Request) {
     const current = await getCurrentUserSession();
 
     if (!current) {
-      return NextResponse.json(
+      return noStoreJson(
         {
           error: copyForLanguage(
             language,
@@ -47,22 +45,17 @@ export async function POST(request: Request) {
       }
     });
 
-    const response = NextResponse.json({ ok: true, workspace });
+    const response = noStoreJson({ ok: true, workspace });
     setLanguageCookie(response, workspace.outputLanguage);
     return response;
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(
-          error,
-          copyForLanguage(
-            language,
-            "Workspace could not be created.",
-            "No se pudo crear el espacio."
-          )
-        )
-      },
-      { status: getErrorStatus(error, 400) }
+    return publicErrorJson(
+      error,
+      copyForLanguage(
+        language,
+        "Workspace could not be created.",
+        "No se pudo crear el espacio."
+      )
     );
   }
 }

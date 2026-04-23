@@ -30,3 +30,10 @@ export function verifyPassword(password: string, passwordHash: string) {
 
   return timingSafeEqual(derived, stored);
 }
+
+export function verifySecret(providedSecret: string, expectedSecret: string) {
+  const provided = createHash("sha256").update(providedSecret).digest();
+  const expected = createHash("sha256").update(expectedSecret).digest();
+
+  return timingSafeEqual(provided, expected);
+}

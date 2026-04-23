@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { upsertSubscriptionRecord } from "@/db/queries";
+import { noStoreJson } from "@/lib/http";
 import { getStripeClient } from "@/lib/payments";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!signature || !stripe || !webhookSecret) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Stripe webhook is not configured." },
       { status: 400 }
     );
@@ -74,14 +74,8 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ received: true });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Webhook verification failed."
-      },
-      { status: 400 }
-    );
+    return noStoreJson({ received: true });
+  } catch {
+    return noStoreJson({ error: "Webhook verification failed." }, { status: 400 });
   }
 }

@@ -1,25 +1,23 @@
-import { NextResponse } from "next/server";
-
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { createSupportRequest } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
-import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 import {
   canSubmitSupportRequest,
   supportRequestSchema,
   type SupportRequestRecord
 } from "@/lib/foundation";
+import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export async function POST(request: Request) {
   try {
     const context = await getCurrentWorkspaceContext();
 
     if (!context) {
-      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+      return noStoreJson({ error: "Authentication required." }, { status: 401 });
     }
 
     if (!canSubmitSupportRequest()) {
-      return NextResponse.json(
+      return noStoreJson(
         { error: "Support requests are unavailable in this workspace." },
         { status: 403 }
       );
@@ -56,11 +54,8 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json({ ok: true, requestId: record.id });
+    return noStoreJson({ ok: true, requestId: record.id });
   } catch (error) {
-    return NextResponse.json(
-      { error: getErrorMessage(error, "Support request could not be created.") },
-      { status: getErrorStatus(error, 400) }
-    );
+    return publicErrorJson(error, "Support request could not be created.");
   }
 }

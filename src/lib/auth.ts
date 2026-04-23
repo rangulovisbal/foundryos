@@ -32,7 +32,7 @@ import {
   updateUser
 } from "@/db/foundation";
 import { env } from "@/lib/env";
-import { isConfigurationError } from "@/lib/errors";
+import { ConfigurationError, isConfigurationError } from "@/lib/errors";
 import {
   type AdminAuditLogRecord,
   type AppUser,
@@ -52,7 +52,13 @@ import {
 } from "@/lib/foundation";
 import { copyForLanguage, DEFAULT_LANGUAGE, normalizeLanguage } from "@/lib/language";
 import { sendTransactionalEmail } from "@/lib/email";
-import { createRawToken, hashPassword, hashToken, verifyPassword } from "@/lib/security";
+import {
+  createRawToken,
+  hashPassword,
+  hashToken,
+  verifyPassword,
+  verifySecret
+} from "@/lib/security";
 
 const SESSION_COOKIE_NAME =
   process.env.NODE_ENV === "production"
@@ -94,6 +100,10 @@ function appendSearchParams(
 }
 
 function resolveAppUrl(appUrl?: string | null) {
+  if (env.isProduction) {
+    return resolveProductionAppUrl();
+  }
+
   if (!appUrl) {
     return env.appUrl;
   }
@@ -105,7 +115,41 @@ function resolveAppUrl(appUrl?: string | null) {
   }
 }
 
+function resolveProductionAppUrl() {
+  if (!env.hasConfiguredAppUrl) {
+    throw new ConfigurationError(
+      "Canonical app URL is not configured.",
+      "canonical_app_url_missing"
+    );
+  }
+
+  let url: URL;
+
+  try {
+    url = new URL(env.appUrl);
+  } catch {
+    throw new ConfigurationError(
+      "Canonical app URL is invalid.",
+      "canonical_app_url_invalid"
+    );
+  }
+
+  const localHostnames = new Set(["localhost", "127.0.0.1", "::1"]);
+  if (url.protocol !== "https:" || localHostnames.has(url.hostname)) {
+    throw new ConfigurationError(
+      "Canonical app URL must be a production HTTPS origin.",
+      "canonical_app_url_unsafe"
+    );
+  }
+
+  return url.origin;
+}
+
 export function getRequestAppUrl(request: Request) {
+  if (env.isProduction) {
+    return resolveProductionAppUrl();
+  }
+
   const origin = request.headers.get("origin");
 
   if (origin) {
@@ -131,6 +175,10 @@ function buildAbsoluteUrl(path: string, appUrl?: string | null) {
 export function getAuthDeliveryMode(): AuthDeliveryMode {
   if (env.hasResend) {
     return "email";
+  }
+
+  if (env.authPreviewLinksBlocked) {
+    return "unavailable";
   }
 
   if (env.allowAuthPreviewLinks) {
@@ -929,8 +977,9 @@ export async function acceptWorkspaceInvite(rawToken: string, user: AppUser) {
 export async function bootstrapInternalAdminFromToken(token: string, response: NextResponse) {
   const expected = process.env.ADMIN_ACCESS_TOKEN;
   const providedToken = token.trim();
+  const expectedToken = expected?.trim();
 
-  if (!expected || providedToken !== expected.trim()) {
+  if (!expectedToken || !verifySecret(providedToken, expectedToken)) {
     throw new Error("Invalid admin access token.");
   }
 
