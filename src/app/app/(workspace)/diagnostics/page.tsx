@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { DiagnosticsRunButton } from "@/components/diagnostics-run-button";
+import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
 import {
   FoundryMetricCard,
   FoundryProgressBar,
@@ -552,6 +553,15 @@ export default async function DiagnosticsPage() {
       ) : null}
 
       {latestResult ? <LatestResult language={language} result={latestResult} /> : null}
+
+      {latestResult ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="diagnostic"
+          outputId={latestResult.id}
+          language={language}
+        />
+      ) : null}
 
       <details className="surface overflow-hidden" id="diagnostic-history">
         <summary className="cursor-pointer px-6 py-5 text-left md:px-8">

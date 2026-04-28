@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DownstreamTrustPanel } from "@/components/downstream-trust-panel";
 import { LockedStatePanel } from "@/components/locked-state-panel";
+import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
 import { PageSectionLinks } from "@/components/page-section-links";
 import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
@@ -237,6 +238,15 @@ export default async function AssetsPage() {
           </p>
         </section>
       )}
+
+      {latestAssets.length > 0 ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="assets"
+          outputId={latestAssets[0].jobId}
+          language={context.workspace.outputLanguage}
+        />
+      ) : null}
 
       <AssetHistoryTable history={history} />
     </div>

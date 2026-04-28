@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { DownstreamTrustPanel } from "@/components/downstream-trust-panel";
+import { LockedStatePanel } from "@/components/locked-state-panel";
+import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
 import { PageSectionLinks } from "@/components/page-section-links";
 import { PageSummaryGrid } from "@/components/page-summary-grid";
-import { LockedStatePanel } from "@/components/locked-state-panel";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
 import {
   getBusinessProfile,
@@ -214,6 +215,15 @@ export default async function ActionsPage() {
 
       {latestThirtyDayPlan ? (
         <ThirtyDayPlanSection plan={latestThirtyDayPlan} />
+      ) : null}
+
+      {latestThirtyDayPlan ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="plan_30d"
+          outputId={latestThirtyDayPlan.id}
+          language={context.workspace.outputLanguage}
+        />
       ) : null}
 
       <PlanningHistoryTable history={history} />

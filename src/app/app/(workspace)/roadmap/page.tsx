@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DownstreamTrustPanel } from "@/components/downstream-trust-panel";
 import { LockedStatePanel } from "@/components/locked-state-panel";
+import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
 import { PageSectionLinks } from "@/components/page-section-links";
 import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
@@ -208,6 +209,15 @@ export default async function RoadmapPage() {
           </p>
         </section>
       )}
+
+      {latestRoadmap ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="roadmap"
+          outputId={latestRoadmap.id}
+          language={context.workspace.outputLanguage}
+        />
+      ) : null}
 
       <PlanningHistoryTable history={history} />
     </div>

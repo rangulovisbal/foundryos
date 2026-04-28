@@ -745,6 +745,30 @@ export const deletionRequests = pgTable(
   ]
 );
 
+export const outputFeedback = pgTable(
+  "output_feedback",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    moduleType: varchar("module_type", { length: 32 }).notNull(),
+    outputId: uuid("output_id"),
+    label: varchar("label", { length: 16 }).notNull(),
+    note: text("note"),
+    submittedByUserId: uuid("submitted_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>()
+  },
+  (table) => [
+    index("output_feedback_workspace_idx").on(table.workspaceId),
+    index("output_feedback_module_idx").on(table.workspaceId, table.moduleType),
+    index("output_feedback_submitted_idx").on(table.submittedAt)
+  ]
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {
