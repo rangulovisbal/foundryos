@@ -14,6 +14,7 @@ import {
   diagnosticJobs,
   diagnosticResults,
   emailVerificationTokens,
+  outputFeedback,
   passwordResetTokens,
   planningJobs,
   roadmaps,
@@ -88,6 +89,23 @@ export type AdminAuditLogRow = {
   log: AdminAuditLogRecord;
   adminUser: Pick<AppUser, "id" | "email" | "fullName">;
   workspace: Pick<WorkspaceRecord, "id" | "name" | "slug">;
+};
+
+export type AdminOutputFeedbackRow = {
+  feedback: {
+    id: string;
+    workspaceId: string;
+    moduleType: string;
+    outputId: string | null;
+    label: string;
+    note: string | null;
+    submittedAt: string;
+  };
+  workspace: Pick<
+    WorkspaceRecord,
+    "id" | "name" | "slug" | "plan" | "accountState" | "outputLanguage"
+  >;
+  submittedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
 };
 
 export type AdminDiagnosticJobRow = {
@@ -1898,6 +1916,50 @@ export async function listAdminAuditLogs(limit = 20) {
         name: row.workspace.name,
         slug: row.workspace.slug
       }
+    })
+  );
+}
+
+export async function listAdminOutputFeedback(limit = 20) {
+  const db = await requireDb("admin output feedback lookup");
+  const rows = await db
+    .select({
+      feedback: outputFeedback,
+      workspace: workspaces,
+      submittedByUser: appUsers
+    })
+    .from(outputFeedback)
+    .innerJoin(workspaces, eq(outputFeedback.workspaceId, workspaces.id))
+    .leftJoin(appUsers, eq(outputFeedback.submittedByUserId, appUsers.id))
+    .orderBy(desc(outputFeedback.submittedAt))
+    .limit(limit);
+
+  return rows.map(
+    (row): AdminOutputFeedbackRow => ({
+      feedback: {
+        id: row.feedback.id,
+        workspaceId: row.feedback.workspaceId,
+        moduleType: row.feedback.moduleType,
+        outputId: row.feedback.outputId,
+        label: row.feedback.label,
+        note: row.feedback.note,
+        submittedAt: row.feedback.submittedAt.toISOString()
+      },
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"],
+        outputLanguage: row.workspace.outputLanguage as WorkspaceRecord["outputLanguage"]
+      },
+      submittedByUser: row.submittedByUser
+        ? {
+            id: row.submittedByUser.id,
+            email: row.submittedByUser.email,
+            fullName: row.submittedByUser.fullName
+          }
+        : null
     })
   );
 }

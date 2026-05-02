@@ -22,6 +22,7 @@ import {
   listAdminAuditLogs,
   listAdminDeletionRequests,
   listAdminDiagnosticJobs,
+  listAdminOutputFeedback,
   listAdminPendingInvitations,
   listAdminPlanningJobs,
   listAdminSopJobs,
@@ -34,6 +35,7 @@ import {
   type AdminDeletionRequestRow,
   type AdminDiagnosticJobRow,
   type AdminOverviewMetrics,
+  type AdminOutputFeedbackRow,
   type AdminPendingInvitationRow,
   type AdminPlanningJobRow,
   type AdminSopJobRow,
@@ -49,6 +51,13 @@ type AdminLoadResult<T> = {
 type RequestCounts = {
   total: number;
   open: number;
+};
+
+type FeedbackCounts = {
+  total: number;
+  useful: number;
+  partial: number;
+  generic: number;
 };
 
 type RecentJobIssue = {
@@ -75,6 +84,8 @@ type AdminWorkspaceViewRow = {
   owner: AppUser | undefined;
   supportCounts: RequestCounts;
   deletionCounts: RequestCounts;
+  feedbackCounts: FeedbackCounts;
+  latestFeedback: AdminOutputFeedbackRow | undefined;
   latestDiagnostic: AdminDiagnosticJobRow | undefined;
   latestRoadmap: AdminPlanningJobRow | undefined;
   latestThirtyDay: AdminPlanningJobRow | undefined;
@@ -120,6 +131,33 @@ function buildRequestCountsByWorkspace<T extends { request: { workspaceId: strin
       current.open += 1;
     }
     counts.set(row.request.workspaceId, current);
+  }
+
+  return counts;
+}
+
+function buildFeedbackCountsByWorkspace(rows: AdminOutputFeedbackRow[]) {
+  const counts = new Map<string, FeedbackCounts>();
+
+  for (const row of rows) {
+    const current = counts.get(row.workspace.id) ?? {
+      total: 0,
+      useful: 0,
+      partial: 0,
+      generic: 0
+    };
+
+    current.total += 1;
+
+    if (row.feedback.label === "useful") {
+      current.useful += 1;
+    } else if (row.feedback.label === "partial") {
+      current.partial += 1;
+    } else if (row.feedback.label === "generic") {
+      current.generic += 1;
+    }
+
+    counts.set(row.workspace.id, current);
   }
 
   return counts;
@@ -225,6 +263,7 @@ export default async function AdminPage() {
       usersResult,
       workspacesResult,
       auditLogsResult,
+      outputFeedbackResult,
       diagnosticJobsResult,
       planningJobsResult,
       assetJobsResult,
@@ -243,6 +282,7 @@ export default async function AdminPage() {
       loadAdminDataset(listUsers(), []),
       loadAdminDataset(listWorkspaces(), []),
       loadAdminDataset(listAdminAuditLogs(50), []),
+      loadAdminDataset(listAdminOutputFeedback(200), []),
       loadAdminDataset(listAdminDiagnosticJobs(100), []),
       loadAdminDataset(listAdminPlanningJobs(100), []),
       loadAdminDataset(listAdminAssetJobs(100), []),
@@ -257,6 +297,7 @@ export default async function AdminPage() {
     const users = usersResult.data;
     const workspaces = workspacesResult.data;
     const auditLogs = auditLogsResult.data;
+    const outputFeedbackEntries = outputFeedbackResult.data;
     const diagnosticJobs = diagnosticJobsResult.data;
     const planningJobs = planningJobsResult.data;
     const assetJobs = assetJobsResult.data;
@@ -271,6 +312,7 @@ export default async function AdminPage() {
       usersResult.status !== "ok" ? "users" : null,
       workspacesResult.status !== "ok" ? "workspaces" : null,
       auditLogsResult.status !== "ok" ? "audit log" : null,
+      outputFeedbackResult.status !== "ok" ? "output feedback" : null,
       diagnosticJobsResult.status !== "ok" ? "diagnostic jobs" : null,
       planningJobsResult.status !== "ok" ? "planning jobs" : null,
       assetJobsResult.status !== "ok" ? "asset jobs" : null,
@@ -288,6 +330,9 @@ export default async function AdminPage() {
     );
     const openDeletionRequests = deletionRequests.filter(
       (entry) => !["rejected", "completed"].includes(entry.request.status)
+    );
+    const attentionFeedback = outputFeedbackEntries.filter(
+      (entry) => entry.feedback.label === "partial" || entry.feedback.label === "generic"
     );
     const workspacesNeedingReview = workspaces.filter((workspace) =>
       ["past_due", "canceled", "suspended", "archived"].includes(workspace.accountState)
@@ -308,7 +353,9 @@ export default async function AdminPage() {
       deletionRequests,
       (status) => !["rejected", "completed"].includes(status)
     );
+    const feedbackCountsByWorkspace = buildFeedbackCountsByWorkspace(outputFeedbackEntries);
 
+    const latestFeedbackByWorkspace = firstByWorkspace(outputFeedbackEntries);
     const latestDiagnosticByWorkspace = firstByWorkspace(diagnosticJobs);
     const latestRoadmapByWorkspace = firstByWorkspace(
       planningJobs.filter((entry) => entry.job.jobType === "roadmap_generation")
@@ -330,6 +377,13 @@ export default async function AdminPage() {
       owner: usersById.get(workspace.ownerUserId),
       supportCounts: supportCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
       deletionCounts: deletionCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
+      feedbackCounts: feedbackCountsByWorkspace.get(workspace.id) ?? {
+        total: 0,
+        useful: 0,
+        partial: 0,
+        generic: 0
+      },
+      latestFeedback: latestFeedbackByWorkspace.get(workspace.id),
       latestDiagnostic: latestDiagnosticByWorkspace.get(workspace.id),
       latestRoadmap: latestRoadmapByWorkspace.get(workspace.id),
       latestThirtyDay: latestThirtyDayByWorkspace.get(workspace.id),
@@ -343,11 +397,12 @@ export default async function AdminPage() {
         openSupportRequests.length +
         openDeletionRequests.length +
         workspacesNeedingReview.length +
-        recentJobIssues.length,
+        recentJobIssues.length +
+        attentionFeedback.length,
       workspaces: workspaces.length,
       jobs: recentJobIssues.length,
       "users-access": pendingInvitations.length + internalAdmins.length,
-      logs: auditLogs.length
+      logs: auditLogs.length + outputFeedbackEntries.length
     } satisfies Partial<
       Record<"overview" | "needs-attention" | "workspaces" | "jobs" | "users-access" | "logs", number>
     >;
@@ -403,9 +458,9 @@ export default async function AdminPage() {
               sopJobs={sopJobs}
             />
           }
-          logs={<LogsPanel auditLogs={auditLogs} />}
           needsAttention={
             <NeedsAttentionPanel
+              attentionFeedback={attentionFeedback}
               openDeletionRequests={openDeletionRequests}
               openSupportRequests={openSupportRequests}
               recentJobIssues={recentJobIssues}
@@ -438,6 +493,12 @@ export default async function AdminPage() {
             />
           }
           workspaces={<WorkspacesPanel workspaceRows={workspaceRows} />}
+          logs={
+            <LogsPanel
+              auditLogs={auditLogs}
+              outputFeedbackEntries={outputFeedbackEntries}
+            />
+          }
         />
       </div>
     );
@@ -566,7 +627,7 @@ function OverviewPanel({
             <p>
               <strong className="text-ink">Needs attention</strong> is the founder’s
               working queue for support, deletion, manual account-state review, and
-              recent failed jobs.
+              recent failed jobs, plus partial/generic pilot feedback.
             </p>
             <p>
               <strong className="text-ink">Workspaces</strong> is the concise customer
@@ -576,7 +637,7 @@ function OverviewPanel({
             <p>
               <strong className="text-ink">Jobs</strong> and{" "}
               <strong className="text-ink">Logs</strong> hold the verbose technical
-              history so the overview stays readable.
+              history and feedback history so the overview stays readable.
             </p>
           </div>
         </article>
@@ -586,11 +647,13 @@ function OverviewPanel({
 }
 
 function NeedsAttentionPanel({
+  attentionFeedback,
   openSupportRequests,
   openDeletionRequests,
   workspaceRows,
   recentJobIssues
 }: {
+  attentionFeedback: AdminOutputFeedbackRow[];
   openSupportRequests: AdminSupportRequestRow[];
   openDeletionRequests: AdminDeletionRequestRow[];
   workspaceRows: AdminWorkspaceViewRow[];
@@ -602,7 +665,7 @@ function NeedsAttentionPanel({
         <SectionLead
           eyebrow="Needs attention"
           title="What needs handling today"
-          body="This section is the working queue: open support, open deletions, workspaces in restricted states, and recent failed jobs."
+          body="This section is the working queue: open support, open deletions, workspaces in restricted states, recent failed jobs, and low-signal pilot feedback worth reviewing."
         />
 
         <div className="foundry-card-grid mt-6">
@@ -625,6 +688,11 @@ function NeedsAttentionPanel({
             detail="Recent failed jobs surfaced from the loaded history."
             label="Recent job issues"
             value={String(recentJobIssues.length)}
+          />
+          <StatusCard
+            detail="Recent pilot feedback marked partial or generic."
+            label="Partial / generic feedback"
+            value={String(attentionFeedback.length)}
           />
         </div>
       </section>
@@ -929,6 +997,20 @@ function NeedsAttentionPanel({
           </table>
         </div>
       </section>
+
+      <section className="surface p-6 md:p-8">
+        <SectionLead
+          eyebrow="Pilot feedback"
+          title="Recent partial or generic feedback"
+          body="These entries do not mutate anything. They simply surface where a founder should review output quality before more pilots run."
+        />
+        <div className="mt-6">
+          <OutputFeedbackTable
+            emptyMessage="No partial or generic feedback needs founder review right now."
+            entries={attentionFeedback}
+          />
+        </div>
+      </section>
     </div>
   );
 }
@@ -944,11 +1026,11 @@ function WorkspacesPanel({
         <SectionLead
           eyebrow="Workspaces"
           title="Customer-oriented workspace view"
-          body="This is the concise workspace/customer table: owner, plan, account state, language, latest output status, request counts, and manual controls."
+          body="This is the concise workspace/customer table: owner, plan, account state, language, latest output status, pilot feedback summary, request counts, and manual controls."
         />
 
         <div className="foundry-table-frame mt-6">
-          <table className="foundry-table min-w-[1480px]">
+          <table className="foundry-table min-w-[1640px]">
             <thead className="bg-white/90 text-muted">
               <tr>
                 <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -960,6 +1042,7 @@ function WorkspacesPanel({
                 <th className="px-4 py-3 font-semibold">Roadmap / 30-day</th>
                 <th className="px-4 py-3 font-semibold">Assets</th>
                 <th className="px-4 py-3 font-semibold">SOPs</th>
+                <th className="px-4 py-3 font-semibold">Pilot feedback</th>
                 <th className="px-4 py-3 font-semibold">Support / deletion</th>
                 <th className="px-4 py-3 font-semibold">Controls</th>
               </tr>
@@ -1006,6 +1089,12 @@ function WorkspacesPanel({
                       <SopStateCell entry={row.latestSop} />
                     </td>
                     <td className="px-4 py-4">
+                      <FeedbackSummaryCell
+                        counts={row.feedbackCounts}
+                        latestEntry={row.latestFeedback}
+                      />
+                    </td>
+                    <td className="px-4 py-4">
                       <RequestStateCell
                         deletionCounts={row.deletionCounts}
                         supportCounts={row.supportCounts}
@@ -1021,7 +1110,7 @@ function WorkspacesPanel({
                   </tr>
                 ))
               ) : (
-                <EmptyTableRow colSpan={11} message="No workspaces provisioned yet." />
+                <EmptyTableRow colSpan={12} message="No workspaces provisioned yet." />
               )}
             </tbody>
           </table>
@@ -1636,11 +1725,16 @@ function UsersAccessPanel({
 }
 
 function LogsPanel({
-  auditLogs
+  auditLogs,
+  outputFeedbackEntries
 }: {
   auditLogs: AdminAuditLogRow[];
+  outputFeedbackEntries: AdminOutputFeedbackRow[];
 }) {
   const affectedWorkspaceCount = new Set(auditLogs.map((entry) => entry.workspace.id)).size;
+  const feedbackWorkspaceCount = new Set(
+    outputFeedbackEntries.map((entry) => entry.workspace.id)
+  ).size;
 
   return (
     <div className="space-y-6">
@@ -1648,7 +1742,7 @@ function LogsPanel({
         <SectionLead
           eyebrow="Logs"
           title="Manual admin history"
-          body="Audit and state-change history lives here. It stays collapsed by default because it is important but not the first place to operate from."
+          body="Audit history and pilot feedback history live here. Both stay collapsed by default because they are important but not the first place to operate from."
         />
 
         <div className="foundry-card-grid mt-6">
@@ -1662,6 +1756,16 @@ function LogsPanel({
             label="Workspaces touched"
             value={String(affectedWorkspaceCount)}
           />
+          <StatusCard
+            detail="Recent loaded pilot feedback entries."
+            label="Output feedback"
+            value={String(outputFeedbackEntries.length)}
+          />
+          <StatusCard
+            detail="Distinct workspaces represented in the loaded feedback window."
+            label="Feedback workspaces"
+            value={String(feedbackWorkspaceCount)}
+          />
         </div>
       </section>
 
@@ -1669,9 +1773,25 @@ function LogsPanel({
         <SectionLead
           eyebrow="Available log families"
           title="What exists today"
-          body="The admin currently records workspace plan and account-state changes. There are no additional founder-facing admin log tables beyond this audit trail yet."
+          body="The admin currently records workspace plan/account-state changes and pilot output feedback history."
         />
       </section>
+
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+          <SectionLead
+            eyebrow="Output feedback"
+            title="Output feedback history"
+            body="Expand for the raw pilot feedback history captured from workspace output screens."
+          />
+        </summary>
+        <div className="px-6 pb-6 md:px-8 md:pb-8">
+          <OutputFeedbackTable
+            emptyMessage="No output feedback has been captured yet."
+            entries={outputFeedbackEntries}
+          />
+        </div>
+      </details>
 
       <details className="surface overflow-hidden">
         <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
@@ -1731,6 +1851,142 @@ function LogsPanel({
           </div>
         </div>
       </details>
+    </div>
+  );
+}
+
+function formatFeedbackModuleType(value: string) {
+  switch (value) {
+    case "diagnostic":
+      return "Diagnostic";
+    case "roadmap":
+      return "Roadmap";
+    case "plan_30d":
+      return "30-day plan";
+    case "assets":
+      return "Assets";
+    case "sops":
+      return "SOPs";
+    default:
+      return humanize(value);
+  }
+}
+
+function FeedbackLabelBadge({
+  label
+}: {
+  label: string;
+}) {
+  const classes =
+    label === "useful"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : label === "partial"
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : "border-rose-200 bg-rose-50 text-rose-700";
+
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${classes}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function FeedbackSummaryCell({
+  counts,
+  latestEntry
+}: {
+  counts: FeedbackCounts;
+  latestEntry: AdminOutputFeedbackRow | undefined;
+}) {
+  if (!latestEntry || counts.total === 0) {
+    return <span className="text-muted">No feedback yet</span>;
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <FeedbackLabelBadge label={latestEntry.feedback.label} />
+        <span className="text-xs font-semibold text-ink">
+          {formatFeedbackModuleType(latestEntry.feedback.moduleType)}
+        </span>
+      </div>
+      <p className="text-xs text-muted">{formatAdminDate(latestEntry.feedback.submittedAt)}</p>
+      <p className="text-xs text-muted">
+        {counts.total} total · {counts.useful} useful · {counts.partial} partial ·{" "}
+        {counts.generic} generic
+      </p>
+      {latestEntry.feedback.note ? (
+        <p className="max-w-[28ch] text-xs text-muted">{latestEntry.feedback.note}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function OutputFeedbackTable({
+  entries,
+  emptyMessage
+}: {
+  entries: AdminOutputFeedbackRow[];
+  emptyMessage: string;
+}) {
+  return (
+    <div className="foundry-table-frame">
+      <table className="foundry-table min-w-[1280px]">
+        <thead className="bg-white/90 text-muted">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Submitted</th>
+            <th className="px-4 py-3 font-semibold">Workspace</th>
+            <th className="px-4 py-3 font-semibold">Module</th>
+            <th className="px-4 py-3 font-semibold">Label</th>
+            <th className="px-4 py-3 font-semibold">Note</th>
+            <th className="px-4 py-3 font-semibold">Output ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.length > 0 ? (
+            entries.map((entry) => (
+              <tr
+                key={entry.feedback.id}
+                className="border-t border-[color:var(--border)] align-top"
+              >
+                <td className="px-4 py-4 text-muted">
+                  {formatAdminDate(entry.feedback.submittedAt)}
+                </td>
+                <td className="px-4 py-4">
+                  <p className="font-semibold">{entry.workspace.name}</p>
+                  <p className="text-muted">{entry.workspace.slug || entry.workspace.id}</p>
+                </td>
+                <td className="px-4 py-4 font-semibold">
+                  {formatFeedbackModuleType(entry.feedback.moduleType)}
+                </td>
+                <td className="px-4 py-4">
+                  <FeedbackLabelBadge label={entry.feedback.label} />
+                </td>
+                <td className="px-4 py-4 text-muted">
+                  {entry.feedback.note ? (
+                    <p className="max-w-[42ch]">{entry.feedback.note}</p>
+                  ) : (
+                    "No note"
+                  )}
+                </td>
+                <td className="px-4 py-4">
+                  {entry.feedback.outputId ? (
+                    <code className="break-all text-xs text-muted">
+                      {entry.feedback.outputId}
+                    </code>
+                  ) : (
+                    <span className="text-muted">n/a</span>
+                  )}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <EmptyTableRow colSpan={6} message={emptyMessage} />
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
