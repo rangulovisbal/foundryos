@@ -66,6 +66,24 @@ export type WorkspaceMemberRow = {
   user: AppUser;
 };
 
+export type AdminWorkspaceMemberRow = {
+  workspace: Pick<
+    WorkspaceRecord,
+    "id" | "name" | "slug" | "plan" | "accountState" | "outputLanguage"
+  >;
+  membership: WorkspaceMembershipRecord;
+  user: Pick<AppUser, "id" | "email" | "fullName" | "emailVerifiedAt" | "globalRole">;
+};
+
+export type AdminPendingInvitationRow = {
+  invitation: WorkspaceInvitationRecord;
+  workspace: Pick<
+    WorkspaceRecord,
+    "id" | "name" | "slug" | "plan" | "accountState" | "outputLanguage"
+  >;
+  invitedByUser: Pick<AppUser, "id" | "email" | "fullName"> | null;
+};
+
 export type AdminAuditLogRow = {
   log: AdminAuditLogRecord;
   adminUser: Pick<AppUser, "id" | "email" | "fullName">;
@@ -826,6 +844,41 @@ export async function listWorkspaceMembers(workspaceId: string) {
   );
 }
 
+export async function listAdminWorkspaceMembers() {
+  const db = await requireDb("admin workspace member lookup");
+  const rows = await db
+    .select({
+      membership: workspaceMemberships,
+      user: appUsers,
+      workspace: workspaces
+    })
+    .from(workspaceMemberships)
+    .innerJoin(appUsers, eq(workspaceMemberships.userId, appUsers.id))
+    .innerJoin(workspaces, eq(workspaceMemberships.workspaceId, workspaces.id))
+    .orderBy(desc(workspaces.createdAt), desc(workspaceMemberships.createdAt));
+
+  return rows.map(
+    (row): AdminWorkspaceMemberRow => ({
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"],
+        outputLanguage: row.workspace.outputLanguage as WorkspaceRecord["outputLanguage"]
+      },
+      membership: mapMembership(row.membership),
+      user: {
+        id: row.user.id,
+        email: row.user.email,
+        fullName: row.user.fullName,
+        emailVerifiedAt: row.user.emailVerifiedAt?.toISOString() ?? null,
+        globalRole: row.user.globalRole as AppUser["globalRole"]
+      }
+    })
+  );
+}
+
 export async function createWorkspaceMembership(record: WorkspaceMembershipRecord) {
   const db = await requireDb("workspace membership creation");
 
@@ -883,6 +936,47 @@ export async function listWorkspaceInvitations(workspaceId: string) {
     .orderBy(desc(workspaceInvitations.createdAt));
 
   return rows.map(mapInvitation);
+}
+
+export async function listAdminPendingInvitations() {
+  const db = await requireDb("admin workspace invitation lookup");
+  const rows = await db
+    .select({
+      invitation: workspaceInvitations,
+      workspace: workspaces,
+      invitedByUser: appUsers
+    })
+    .from(workspaceInvitations)
+    .innerJoin(workspaces, eq(workspaceInvitations.workspaceId, workspaces.id))
+    .leftJoin(appUsers, eq(workspaceInvitations.invitedByUserId, appUsers.id))
+    .where(
+      and(
+        isNull(workspaceInvitations.acceptedAt),
+        gt(workspaceInvitations.expiresAt, new Date())
+      )
+    )
+    .orderBy(desc(workspaceInvitations.createdAt));
+
+  return rows.map(
+    (row): AdminPendingInvitationRow => ({
+      invitation: mapInvitation(row.invitation),
+      workspace: {
+        id: row.workspace.id,
+        name: row.workspace.name,
+        slug: row.workspace.slug,
+        plan: row.workspace.plan as WorkspaceRecord["plan"],
+        accountState: row.workspace.accountState as WorkspaceRecord["accountState"],
+        outputLanguage: row.workspace.outputLanguage as WorkspaceRecord["outputLanguage"]
+      },
+      invitedByUser: row.invitedByUser
+        ? {
+            id: row.invitedByUser.id,
+            email: row.invitedByUser.email,
+            fullName: row.invitedByUser.fullName
+          }
+        : null
+    })
+  );
 }
 
 export async function findInvitationByTokenHash(tokenHash: string) {
