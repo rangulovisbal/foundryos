@@ -12,6 +12,7 @@ import {
   formatRoleLabel,
   formatSupportIssueType,
   formatSupportRequestStatus,
+  getAccountStateMeta,
   supportRequestStatusOptions,
   type AppUser,
   type WorkspaceRecord
@@ -84,6 +85,8 @@ type AdminWorkspaceViewRow = {
   owner: AppUser | undefined;
   supportCounts: RequestCounts;
   deletionCounts: RequestCounts;
+  openDeletionRequest: AdminDeletionRequestRow | undefined;
+  latestAdminAction: AdminAuditLogRow | undefined;
   feedbackCounts: FeedbackCounts;
   latestFeedback: AdminOutputFeedbackRow | undefined;
   latestDiagnostic: AdminDiagnosticJobRow | undefined;
@@ -165,6 +168,18 @@ function buildFeedbackCountsByWorkspace(rows: AdminOutputFeedbackRow[]) {
 
 function firstByWorkspace<T extends { workspace: { id: string } }>(rows: T[]) {
   const latest = new Map<string, T>();
+
+  for (const row of rows) {
+    if (!latest.has(row.workspace.id)) {
+      latest.set(row.workspace.id, row);
+    }
+  }
+
+  return latest;
+}
+
+function latestDeletionRequestByWorkspace(rows: AdminDeletionRequestRow[]) {
+  const latest = new Map<string, AdminDeletionRequestRow>();
 
   for (const row of rows) {
     if (!latest.has(row.workspace.id)) {
@@ -355,6 +370,9 @@ export default async function AdminPage() {
     );
     const feedbackCountsByWorkspace = buildFeedbackCountsByWorkspace(outputFeedbackEntries);
 
+    const latestOpenDeletionRequestByWorkspace =
+      latestDeletionRequestByWorkspace(openDeletionRequests);
+    const latestAdminActionByWorkspace = firstByWorkspace(auditLogs);
     const latestFeedbackByWorkspace = firstByWorkspace(outputFeedbackEntries);
     const latestDiagnosticByWorkspace = firstByWorkspace(diagnosticJobs);
     const latestRoadmapByWorkspace = firstByWorkspace(
@@ -377,6 +395,8 @@ export default async function AdminPage() {
       owner: usersById.get(workspace.ownerUserId),
       supportCounts: supportCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
       deletionCounts: deletionCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
+      openDeletionRequest: latestOpenDeletionRequestByWorkspace.get(workspace.id),
+      latestAdminAction: latestAdminActionByWorkspace.get(workspace.id),
       feedbackCounts: feedbackCountsByWorkspace.get(workspace.id) ?? {
         total: 0,
         useful: 0,
@@ -858,7 +878,7 @@ function NeedsAttentionPanel({
         <SectionLead
           eyebrow="Workspace review"
           title="Manual account-state controls for restricted workspaces"
-          body="Use this table when a workspace is past due, canceled, suspended, or archived and needs manual founder review."
+          body="Use this table when a workspace is past due, canceled, suspended, or archived and needs manual founder review, restoration, archival, or deletion review."
         />
         <div className="foundry-table-frame mt-6">
           <table className="foundry-table min-w-[1160px]">
@@ -896,11 +916,13 @@ function NeedsAttentionPanel({
                       {humanize(row.workspace.plan)}
                     </td>
                     <td className="px-4 py-4 capitalize">
-                      {humanize(row.workspace.accountState)}
+                      <AccountStateBadge accountState={row.workspace.accountState} />
                     </td>
                     <td className="px-4 py-4">
                       <RequestStateCell
                         deletionCounts={row.deletionCounts}
+                        latestAdminAction={row.latestAdminAction}
+                        openDeletionRequest={row.openDeletionRequest}
                         supportCounts={row.supportCounts}
                       />
                     </td>
@@ -917,8 +939,12 @@ function NeedsAttentionPanel({
                     </td>
                     <td className="px-4 py-4">
                       <AdminWorkspaceControls
+                        hasOpenDeletionRequest={Boolean(row.openDeletionRequest)}
                         initialPlan={row.workspace.plan}
                         initialState={row.workspace.accountState}
+                        openDeletionRequestStatus={
+                          row.openDeletionRequest?.request.status ?? null
+                        }
                         workspaceId={row.workspace.id}
                       />
                     </td>
@@ -1026,11 +1052,11 @@ function WorkspacesPanel({
         <SectionLead
           eyebrow="Workspaces"
           title="Customer-oriented workspace view"
-          body="This is the concise workspace/customer table: owner, plan, account state, language, latest output status, pilot feedback summary, request counts, and manual controls."
+          body="This is the concise workspace/customer table: owner, plan, account state, language, latest output status, pilot feedback summary, open deletion review visibility, last admin action, and manual controls."
         />
 
         <div className="foundry-table-frame mt-6">
-          <table className="foundry-table min-w-[1640px]">
+          <table className="foundry-table min-w-[1700px]">
             <thead className="bg-white/90 text-muted">
               <tr>
                 <th className="px-4 py-3 font-semibold">Workspace</th>
@@ -1067,8 +1093,8 @@ function WorkspacesPanel({
                       </p>
                     </td>
                     <td className="px-4 py-4 capitalize">{humanize(row.workspace.plan)}</td>
-                    <td className="px-4 py-4 capitalize">
-                      {humanize(row.workspace.accountState)}
+                    <td className="px-4 py-4">
+                      <AccountStateBadge accountState={row.workspace.accountState} />
                     </td>
                     <td className="px-4 py-4 uppercase">
                       {row.workspace.outputLanguage}
@@ -1097,13 +1123,19 @@ function WorkspacesPanel({
                     <td className="px-4 py-4">
                       <RequestStateCell
                         deletionCounts={row.deletionCounts}
+                        latestAdminAction={row.latestAdminAction}
+                        openDeletionRequest={row.openDeletionRequest}
                         supportCounts={row.supportCounts}
                       />
                     </td>
                     <td className="px-4 py-4">
                       <AdminWorkspaceControls
+                        hasOpenDeletionRequest={Boolean(row.openDeletionRequest)}
                         initialPlan={row.workspace.plan}
                         initialState={row.workspace.accountState}
+                        openDeletionRequestStatus={
+                          row.openDeletionRequest?.request.status ?? null
+                        }
                         workspaceId={row.workspace.id}
                       />
                     </td>
@@ -1724,6 +1756,30 @@ function UsersAccessPanel({
   );
 }
 
+function formatAuditAction(action: string) {
+  switch (action) {
+    case "workspace.state.updated":
+      return "Manual plan / state update";
+    case "workspace.access.suspended":
+      return "Suspend access";
+    case "workspace.access.restored":
+      return "Restore access";
+    case "workspace.archived":
+      return "Archive workspace";
+    case "workspace.deletion_review.marked":
+      return "Mark for deletion review";
+    case "workspace.deletion_review.canceled":
+      return "Cancel deletion mark";
+    default:
+      return humanize(action);
+  }
+}
+
+function extractAuditNote(metadata: Record<string, unknown> | null) {
+  const note = metadata?.note;
+  return typeof note === "string" && note.trim().length > 0 ? note : null;
+}
+
 function LogsPanel({
   auditLogs,
   outputFeedbackEntries
@@ -1803,12 +1859,14 @@ function LogsPanel({
         </summary>
         <div className="px-6 pb-6 md:px-8 md:pb-8">
           <div className="foundry-table-frame">
-            <table className="foundry-table min-w-[1080px]">
+            <table className="foundry-table min-w-[1320px]">
               <thead className="bg-white/90 text-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">When</th>
                   <th className="px-4 py-3 font-semibold">Admin</th>
                   <th className="px-4 py-3 font-semibold">Workspace</th>
+                  <th className="px-4 py-3 font-semibold">Action</th>
+                  <th className="px-4 py-3 font-semibold">Note</th>
                   <th className="px-4 py-3 font-semibold">Plan</th>
                   <th className="px-4 py-3 font-semibold">Account state</th>
                 </tr>
@@ -1831,6 +1889,14 @@ function LogsPanel({
                         <p className="font-semibold">{entry.workspace.name}</p>
                         <p className="text-muted">{entry.workspace.slug}</p>
                       </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">
+                          {formatAuditAction(entry.log.action)}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4 text-muted">
+                        {extractAuditNote(entry.log.metadata) ?? "No note"}
+                      </td>
                       <td className="px-4 py-4 text-muted">
                         {entry.log.previousPlan ?? "n/a"} → {entry.log.nextPlan ?? "n/a"}
                       </td>
@@ -1842,7 +1908,7 @@ function LogsPanel({
                   ))
                 ) : (
                   <EmptyTableRow
-                    colSpan={5}
+                    colSpan={7}
                     message="No admin state changes recorded yet."
                   />
                 )}
@@ -2087,12 +2153,43 @@ function SopStateCell({
   );
 }
 
+function AccountStateBadge({
+  accountState
+}: {
+  accountState: WorkspaceRecord["accountState"];
+}) {
+  const meta = getAccountStateMeta(accountState);
+  const toneClass =
+    meta.tone === "coral"
+      ? "border-coral/30 bg-coral/10 text-coral"
+      : meta.tone === "gold"
+        ? "border-[color:var(--gold)]/30 bg-[color:var(--gold)]/10 text-ink"
+        : meta.tone === "muted"
+          ? "border-[color:var(--border)] bg-white/80 text-muted"
+          : "border-teal/30 bg-teal/10 text-teal";
+
+  return (
+    <div className="space-y-1">
+      <span
+        className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${toneClass}`}
+      >
+        {humanize(accountState)}
+      </span>
+      <p className="max-w-[24ch] text-xs text-muted">{meta.title}</p>
+    </div>
+  );
+}
+
 function RequestStateCell({
   supportCounts,
-  deletionCounts
+  deletionCounts,
+  openDeletionRequest,
+  latestAdminAction
 }: {
   supportCounts: RequestCounts;
   deletionCounts: RequestCounts;
+  openDeletionRequest: AdminDeletionRequestRow | undefined;
+  latestAdminAction: AdminAuditLogRow | undefined;
 }) {
   return (
     <div className="space-y-1 text-sm text-muted">
@@ -2102,6 +2199,21 @@ function RequestStateCell({
       <p>
         Deletion: {deletionCounts.total} total · {deletionCounts.open} open
       </p>
+      {openDeletionRequest ? (
+        <p>
+          Open deletion review:{" "}
+          {formatDeletionRequestStatus(openDeletionRequest.request.status)} ·{" "}
+          {openDeletionRequest.requestedByUser.fullName}
+        </p>
+      ) : null}
+      {latestAdminAction ? (
+        <div className="pt-1">
+          <p>
+            Last admin action: {formatAuditAction(latestAdminAction.log.action)}
+          </p>
+          <p>{formatAdminDate(latestAdminAction.log.createdAt)}</p>
+        </div>
+      ) : null}
     </div>
   );
 }

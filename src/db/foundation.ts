@@ -1773,6 +1773,31 @@ export async function findOpenDeletionRequest(input: {
   return rows[0] ? mapDeletionRequest(rows[0]) : null;
 }
 
+export async function findLatestOpenDeletionRequestForWorkspace(input: {
+  workspaceId: string;
+  requestType: DeletionRequestRecord["requestType"];
+}) {
+  const db = await requireDb("workspace deletion request lookup");
+  const rows = await db
+    .select()
+    .from(deletionRequests)
+    .where(
+      and(
+        eq(deletionRequests.workspaceId, input.workspaceId),
+        eq(deletionRequests.requestType, input.requestType),
+        inArray(deletionRequests.status, [
+          "submitted",
+          "under_review",
+          "approved"
+        ])
+      )
+    )
+    .orderBy(desc(deletionRequests.createdAt))
+    .limit(1);
+
+  return rows[0] ? mapDeletionRequest(rows[0]) : null;
+}
+
 export async function updateDeletionRequest(
   requestId: string,
   patch: Partial<

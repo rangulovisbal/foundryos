@@ -100,6 +100,13 @@ export const deletionRequestStatusOptions = [
   "rejected",
   "completed"
 ] as const;
+export const workspaceAdminClosureActionOptions = [
+  "suspend_access",
+  "restore_access",
+  "archive_workspace",
+  "mark_deletion_review",
+  "cancel_deletion_mark"
+] as const;
 
 export const roadmapPhaseOptions = ["now", "next", "later"] as const;
 export const effortLevelOptions = ["low", "medium", "high"] as const;
@@ -124,6 +131,8 @@ export type SupportIssueType = (typeof supportIssueTypeOptions)[number];
 export type SupportRequestStatus = (typeof supportRequestStatusOptions)[number];
 export type DeletionRequestType = (typeof deletionRequestTypeOptions)[number];
 export type DeletionRequestStatus = (typeof deletionRequestStatusOptions)[number];
+export type WorkspaceAdminClosureAction =
+  (typeof workspaceAdminClosureActionOptions)[number];
 export type RoadmapPhase = (typeof roadmapPhaseOptions)[number];
 export type EffortLevel = (typeof effortLevelOptions)[number];
 export type ImpactLevel = (typeof impactLevelOptions)[number];
@@ -631,6 +640,35 @@ export const workspaceAdminUpdateSchema = z.object({
   plan: z.enum(workspacePlanOptions)
 });
 
+export const workspaceAdminSettingsMutationSchema = z.object({
+  mode: z.literal("settings"),
+  accountState: z.enum(workspaceAccountStateOptions),
+  plan: z.enum(workspacePlanOptions)
+});
+
+export const workspaceAdminClosureActionSchema = z
+  .object({
+    mode: z.literal("closure_action"),
+    action: z.enum(workspaceAdminClosureActionOptions),
+    note: z.string().trim().max(500).optional().default(""),
+    confirmationText: z.string().trim().max(120).optional().default(""),
+    restoreState: z.enum(["trial", "active"]).optional()
+  })
+  .superRefine((value, ctx) => {
+    if (value.action === "restore_access" && !value.restoreState) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["restoreState"],
+        message: "Choose the state to restore this workspace into."
+      });
+    }
+  });
+
+export const workspaceAdminMutationSchema = z.union([
+  workspaceAdminSettingsMutationSchema,
+  workspaceAdminClosureActionSchema
+]);
+
 const optionalProfileText = (max = 500) =>
   z
     .string()
@@ -1061,6 +1099,48 @@ export function canRequestAccountDeletion() {
 
 export function canRequestWorkspaceDeletion(role: WorkspaceRole) {
   return ["owner", "admin"].includes(role);
+}
+
+export function isDestructiveWorkspaceAdminAction(
+  action: WorkspaceAdminClosureAction
+) {
+  return [
+    "suspend_access",
+    "archive_workspace",
+    "mark_deletion_review"
+  ].includes(action);
+}
+
+export function getWorkspaceAdminConfirmationPhrase(
+  action: WorkspaceAdminClosureAction
+) {
+  switch (action) {
+    case "suspend_access":
+      return "SUSPEND ACCESS";
+    case "archive_workspace":
+      return "ARCHIVE WORKSPACE";
+    case "mark_deletion_review":
+      return "MARK FOR DELETION";
+    default:
+      return "";
+  }
+}
+
+export function formatWorkspaceAdminClosureAction(
+  action: WorkspaceAdminClosureAction
+) {
+  switch (action) {
+    case "suspend_access":
+      return "Suspend access";
+    case "restore_access":
+      return "Restore access";
+    case "archive_workspace":
+      return "Archive workspace";
+    case "mark_deletion_review":
+      return "Mark for deletion review";
+    case "cancel_deletion_mark":
+      return "Cancel deletion mark";
+  }
 }
 
 export function getDeletionConfirmationPhrase(

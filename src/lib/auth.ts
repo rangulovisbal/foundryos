@@ -1038,17 +1038,19 @@ export async function logWorkspaceAdminChange(input: {
   nextPlan: WorkspaceRecord["plan"];
   previousAccountState: WorkspaceRecord["accountState"];
   nextAccountState: WorkspaceRecord["accountState"];
+  action?: string;
+  metadata?: Record<string, unknown> | null;
 }) {
   const audit: AdminAuditLogRecord = {
     id: crypto.randomUUID(),
     adminUserId: input.adminUserId,
     workspaceId: input.workspaceId,
-    action: "workspace.state.updated",
+    action: input.action ?? "workspace.state.updated",
     previousPlan: input.previousPlan,
     nextPlan: input.nextPlan,
     previousAccountState: input.previousAccountState,
     nextAccountState: input.nextAccountState,
-    metadata: null,
+    metadata: input.metadata ?? null,
     createdAt: new Date().toISOString()
   };
 
