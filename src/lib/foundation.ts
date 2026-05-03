@@ -639,35 +639,97 @@ const optionalProfileText = (max = 500) =>
     .optional()
     .default("");
 
+const urlPlaceholderValues = new Set([
+  "na",
+  "n/a",
+  "none",
+  "no website",
+  "no website yet",
+  "-"
+]);
+
+function normalizeProfileUrlValue(value: unknown) {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+
+  if (urlPlaceholderValues.has(trimmed.toLowerCase())) {
+    return "";
+  }
+
+  return trimmed;
+}
+
+function isValidProfileUrl(value: string) {
+  if (!value || /\s/.test(value)) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      url.hostname.includes(".")
+    );
+  } catch {
+    return false;
+  }
+}
+
+const optionalProfileUrl = (max = 255) =>
+  z.preprocess(
+    normalizeProfileUrlValue,
+    z
+      .string()
+      .trim()
+      .max(max)
+      .refine(
+        (value) => !value || isValidProfileUrl(value),
+        "Leave this field blank if not available, or enter a valid full URL starting with http:// or https://."
+      )
+      .optional()
+      .default("")
+  );
+
 const profileListSchema = z
   .array(z.string().trim().min(1).max(120))
   .max(12)
   .optional()
   .default([]);
 
-const profileUrlListSchema = z
-  .array(
-    z
-      .string()
-      .trim()
-      .min(1)
-      .max(255)
-      .refine(
-        (value) => /^https?:\/\/[^.\s]+\.[^\s]+$/i.test(value),
-        "Use full URLs starting with http:// or https://."
-      )
-  )
-  .max(8)
-  .optional()
-  .default([]);
+const profileUrlListSchema = z.preprocess(
+  (value) => {
+    if (!Array.isArray(value)) {
+      return value;
+    }
+
+    return value
+      .map((item) => normalizeProfileUrlValue(item))
+      .filter((item): item is string => typeof item === "string" && item.length > 0);
+  },
+  z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(255)
+        .refine(
+          (value) => isValidProfileUrl(value),
+          "Leave this field blank if not available, or enter a valid full URL starting with http:// or https://."
+        )
+    )
+    .max(8)
+    .optional()
+    .default([])
+);
 
 export const businessProfileSchema = z.object({
   outputLanguage: z.enum(outputLanguageOptions).default("en"),
   companyName: optionalProfileText(160),
-  website: optionalProfileText(255).refine(
-    (value) => !value || /^https?:\/\/[^.\s]+\.[^\s]+$/i.test(value),
-    "Use a full website URL starting with http:// or https://."
-  ),
+  website: optionalProfileUrl(255),
   positioningStatement: optionalProfileText(500),
   channelUrls: profileUrlListSchema,
   industry: optionalProfileText(120),

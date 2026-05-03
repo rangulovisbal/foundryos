@@ -346,6 +346,18 @@ function normalize(value: string | null | undefined) {
   return (value ?? "").toLowerCase();
 }
 
+function websiteEvidenceNote(profile: BusinessProfileRecord, language: OutputLanguage) {
+  if (filled(profile.website)) {
+    return language === "es"
+      ? "Hay evidencia de website aportada."
+      : "Website evidence is provided.";
+  }
+
+  return language === "es"
+    ? "Todavia no se ha aportado evidencia de website."
+    : "No website evidence provided yet.";
+}
+
 function dedupe<T>(items: T[]) {
   return Array.from(new Set(items));
 }
@@ -1139,9 +1151,13 @@ function validationNeeds(
 
   if (!signals.hasVisiblePositioningEvidence || !filled(profile.positioningStatement)) {
     needs.push(
-      language === "es"
-        ? "Validar homepage, posicionamiento y mensaje visible antes de tratar el gap de oferta como verdad fuerte."
-        : "Validate the homepage, positioning, and visible message before treating the offer gap as firm truth."
+      !filled(profile.website)
+        ? language === "es"
+          ? "Todavia no hay evidencia de website. Validar posicionamiento y mensaje visible de canal antes de tratar el gap de oferta como verdad fuerte."
+          : "No website evidence provided yet. Validate positioning and visible channel message before treating the offer gap as firm truth."
+        : language === "es"
+          ? "Validar homepage, posicionamiento y mensaje visible antes de tratar el gap de oferta como verdad fuerte."
+          : "Validate the homepage, positioning, and visible message before treating the offer gap as firm truth."
     );
   }
 
@@ -1824,8 +1840,8 @@ function buildEvidence(
         title: "Oferta y audiencia",
         observation:
           filled(profile.primaryOffer) && filled(profile.targetAudience)
-            ? `Oferta declarada, audiencia declarada y posicionamiento visible ${profile.positioningStatement ? "capturado" : "pendiente"}. Especificidad ${signals.specificity}/100.`
-            : "Falta detalle claro de oferta o audiencia.",
+            ? `Oferta declarada, audiencia declarada y posicionamiento visible ${profile.positioningStatement ? "capturado" : "pendiente"}. ${websiteEvidenceNote(profile, language)} Especificidad ${signals.specificity}/100.`
+            : `Falta detalle claro de oferta o audiencia. ${websiteEvidenceNote(profile, language)}`,
         implication:
           signals.hasPositioningClarity
             ? "Esta base permite una lectura mas enfocada del posicionamiento."
@@ -1939,8 +1955,8 @@ function buildEvidence(
       title: "Offer and audience",
       observation:
         filled(profile.primaryOffer) && filled(profile.targetAudience)
-          ? `Offer, target audience, and visible positioning are ${profile.positioningStatement ? "captured" : "partly captured"}. Specificity is ${signals.specificity}/100.`
-          : "Offer or audience detail is still missing.",
+          ? `Offer, target audience, and visible positioning are ${profile.positioningStatement ? "captured" : "partly captured"}. ${websiteEvidenceNote(profile, language)} Specificity is ${signals.specificity}/100.`
+          : `Offer or audience detail is still missing. ${websiteEvidenceNote(profile, language)}`,
       implication:
         signals.hasPositioningClarity
           ? "This gives the diagnostic a more focused positioning base."

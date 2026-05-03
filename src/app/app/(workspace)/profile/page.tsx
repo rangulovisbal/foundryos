@@ -23,7 +23,6 @@ function profileCompletion(profile: BusinessProfileRecord | null) {
 
   const values = [
     profile.companyName,
-    profile.website,
     profile.industry,
     profile.businessModel,
     profile.teamSize,

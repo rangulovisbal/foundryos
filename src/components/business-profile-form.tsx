@@ -34,6 +34,20 @@ type ProfileDraft = {
   lifecycleStage: string;
 };
 
+const optionalProgressFields = new Set<keyof ProfileDraft>([
+  "website",
+  "channelUrls",
+  "evidenceNotes"
+]);
+const urlPlaceholderValues = new Set([
+  "na",
+  "n/a",
+  "none",
+  "no website",
+  "no website yet",
+  "-"
+]);
+
 type ProfileStepKey =
   | "business-basics"
   | "visible-evidence"
@@ -162,6 +176,18 @@ function textToList(value: string) {
     .filter(Boolean);
 }
 
+function normalizeUrlFieldValue(value: string) {
+  const trimmed = value.trim();
+  return urlPlaceholderValues.has(trimmed.toLowerCase()) ? "" : trimmed;
+}
+
+function textToUrlList(value: string) {
+  return value
+    .split(/\n|,/)
+    .map((item) => normalizeUrlFieldValue(item))
+    .filter(Boolean);
+}
+
 function buildInitialDraft(
   profile: BusinessProfileRecord | null,
   outputLanguage: OutputLanguage
@@ -194,6 +220,10 @@ function buildInitialDraft(
 
 function fieldHasValue(field: keyof ProfileDraft, value: string) {
   if (field === "outputLanguage") {
+    return true;
+  }
+
+  if (optionalProgressFields.has(field) && value.trim().length === 0) {
     return true;
   }
 
@@ -384,6 +414,13 @@ function renderStepFields({
               placeholder="https://example.com"
               value={draft.website}
             />
+            <p className="text-sm font-normal text-muted">
+              {copyForLanguage(
+                language,
+                'Optional. Leave it blank if there is "No website yet". If you add one, enter a valid full URL. Do not type N/A.',
+                'Opcional. Déjalo en blanco si "Aún no hay sitio web". Si añades uno, introduce una URL válida completa. No escribas N/A.'
+              )}
+            </p>
           </Field>
           <Field label={copyForLanguage(language, "Industry", "Industria")}>
             <input
@@ -438,6 +475,13 @@ function renderStepFields({
                 placeholder="https://linkedin.com/company/example&#10;https://instagram.com/example"
                 value={draft.channelUrls}
               />
+              <p className="text-sm font-normal text-muted">
+                {copyForLanguage(
+                  language,
+                  "Optional. Add one full URL per line. Leave it blank if links are not available yet. Do not type N/A.",
+                  "Opcional. Añade una URL completa por línea. Déjalo en blanco si todavía no hay enlaces disponibles. No escribas N/A."
+                )}
+              </p>
             </Field>
             <Field label={copyForLanguage(language, "Current CTA or conversion action", "CTA o acción de conversión actual")}>
               <textarea
@@ -779,9 +823,9 @@ export function BusinessProfileForm({
       body: JSON.stringify({
         outputLanguage: draft.outputLanguage,
         companyName: draft.companyName,
-        website: draft.website,
+        website: normalizeUrlFieldValue(draft.website),
         positioningStatement: draft.positioningStatement,
-        channelUrls: textToList(draft.channelUrls),
+        channelUrls: textToUrlList(draft.channelUrls),
         industry: draft.industry,
         businessModel: draft.businessModel,
         teamSize: draft.teamSize,
@@ -802,18 +846,27 @@ export function BusinessProfileForm({
       })
     });
 
-    const payload = (await response.json()) as { error?: string };
+    const payload = (await response.json()) as {
+      error?: string;
+      field?: keyof ProfileDraft;
+      profile?: BusinessProfileRecord;
+    };
 
     if (!response.ok) {
-      throw new Error(
+      const failure = new Error(
         payload.error ??
           copyForLanguage(
             language,
             "Profile save failed.",
             "No se pudo guardar el perfil."
           )
-      );
+      ) as Error & { field?: keyof ProfileDraft };
+
+      failure.field = payload.field;
+      throw failure;
     }
+
+    return payload.profile ?? null;
   }
 
   async function runDiagnosticFromReview() {
@@ -849,7 +902,11 @@ export function BusinessProfileForm({
     setMessage(null);
 
     try {
-      await saveProfile();
+      const savedProfile = await saveProfile();
+
+      if (savedProfile) {
+        setDraft(buildInitialDraft(savedProfile, draft.outputLanguage));
+      }
 
       if (mode === "run") {
         await runDiagnosticFromReview();
@@ -868,6 +925,18 @@ export function BusinessProfileForm({
       );
       router.refresh();
     } catch (error) {
+      const failingField =
+        error instanceof Error && "field" in error
+          ? (error.field as keyof ProfileDraft | undefined)
+          : undefined;
+
+      if (failingField) {
+        const relatedStep = wizardSteps.find((step) => step.fields.includes(failingField));
+        if (relatedStep) {
+          setActiveStep(relatedStep.key);
+        }
+      }
+
       setMessageTone("error");
       setMessage(
         error instanceof Error

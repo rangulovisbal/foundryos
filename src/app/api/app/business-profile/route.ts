@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   getBusinessProfile,
@@ -9,10 +11,75 @@ import { getCurrentWorkspaceContext } from "@/lib/auth";
 import {
   businessProfileSchema,
   canAccessWorkspace,
-  canEditBusinessProfile
+  canEditBusinessProfile,
+  type OutputLanguage
 } from "@/lib/foundation";
 import { noStoreJson, publicErrorJson } from "@/lib/http";
+import { copyForLanguage } from "@/lib/language";
 import { setLanguageCookie } from "@/lib/language-server";
+
+function resolveRequestedLanguage(value: unknown): OutputLanguage {
+  if (
+    value &&
+    typeof value === "object" &&
+    "outputLanguage" in value &&
+    value.outputLanguage === "es"
+  ) {
+    return "es";
+  }
+
+  return "en";
+}
+
+function formatBusinessProfileValidationError(
+  error: ZodError,
+  language: OutputLanguage
+) {
+  const issue = error.issues[0];
+  const field = String(issue?.path[0] ?? "");
+  const fieldLabel = {
+    companyName: copyForLanguage(language, "Company name", "Nombre de la empresa"),
+    website: copyForLanguage(language, "Website", "Sitio web"),
+    channelUrls: copyForLanguage(
+      language,
+      "Main social / channel URLs",
+      "URLs principales de canales"
+    )
+  }[field] ?? field;
+
+  if (field === "website") {
+    return {
+      error: copyForLanguage(
+        language,
+        "Website: leave it blank if you do not have one yet, or enter a valid full URL starting with http:// or https://.",
+        "Sitio web: déjalo en blanco si aún no existe, o introduce una URL válida completa que empiece por http:// o https://."
+      ),
+      field
+    };
+  }
+
+  if (field === "channelUrls") {
+    const index = typeof issue?.path[1] === "number" ? issue.path[1] + 1 : null;
+
+    return {
+      error: copyForLanguage(
+        language,
+        index
+          ? `Main social / channel URLs entry ${index}: leave it blank if not available, or enter a valid full URL starting with http:// or https://.`
+          : "Main social / channel URLs: leave them blank if not available, or enter valid full URLs starting with http:// or https://.",
+        index
+          ? `Entrada ${index} de URLs principales de canales: déjala en blanco si no existe, o introduce una URL válida completa que empiece por http:// o https://.`
+          : "URLs principales de canales: déjalas en blanco si no existen, o introduce URLs válidas completas que empiecen por http:// o https://."
+      ),
+      field
+    };
+  }
+
+  return {
+    error: `${fieldLabel}: ${issue?.message ?? copyForLanguage(language, "Invalid value.", "Valor no válido.")}`,
+    field
+  };
+}
 
 export async function GET() {
   try {
@@ -30,6 +97,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let requestedLanguage: OutputLanguage = "en";
+
   try {
     const context = await getCurrentWorkspaceContext();
 
@@ -56,7 +125,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const payload = businessProfileSchema.parse(await request.json());
+    const rawPayload = await request.json();
+    requestedLanguage = resolveRequestedLanguage(rawPayload);
+    const payload = businessProfileSchema.parse(rawPayload);
     await updateWorkspace(context.workspace.id, {
       outputLanguage: payload.outputLanguage
     });
@@ -104,6 +175,11 @@ export async function POST(request: Request) {
     setLanguageCookie(response, payload.outputLanguage);
     return response;
   } catch (error) {
+    if (error instanceof ZodError) {
+      const formatted = formatBusinessProfileValidationError(error, requestedLanguage);
+      return noStoreJson(formatted, { status: 400 });
+    }
+
     return publicErrorJson(error, "Business profile could not be saved.");
   }
 }
