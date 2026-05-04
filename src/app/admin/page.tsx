@@ -360,11 +360,19 @@ export default async function AdminPage() {
 
     const usersById = new Map(users.map((user) => [user.id, user]));
     const ownedWorkspaceCounts = new Map<string, number>();
+    const ownedActiveWorkspaceCounts = new Map<string, number>();
     for (const workspace of workspaces) {
       ownedWorkspaceCounts.set(
         workspace.ownerUserId,
         (ownedWorkspaceCounts.get(workspace.ownerUserId) ?? 0) + 1
       );
+
+      if (["lead", "trial", "active", "past_due", "canceled"].includes(workspace.accountState)) {
+        ownedActiveWorkspaceCounts.set(
+          workspace.ownerUserId,
+          (ownedActiveWorkspaceCounts.get(workspace.ownerUserId) ?? 0) + 1
+        );
+      }
     }
     const internalAdmins = users.filter((user) => user.globalRole === "internal_admin");
     const openSupportRequests = supportRequests.filter(
@@ -430,11 +438,11 @@ export default async function AdminPage() {
         isTestLike,
         directDeleteEligible: Boolean(owner) && isTestLike && !deletingOwnLastWorkspace,
         directDeleteBlockedReason: !owner
-          ? "Workspace owner could not be resolved, so direct test cleanup is blocked."
+          ? "Workspace owner could not be resolved."
           : !isTestLike
-            ? "Direct delete stays disabled unless the workspace is clearly marked as test, smoke, demo, or sandbox data."
+            ? "Only available for test/demo data."
             : deletingOwnLastWorkspace
-              ? "You cannot delete your own last owned workspace from internal admin. Keep one recovery path available."
+              ? "Cannot delete current internal admin recovery workspace."
               : null,
         supportCounts: supportCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
         deletionCounts: deletionCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
@@ -554,6 +562,7 @@ export default async function AdminPage() {
               overviewMetrics={overviewMetrics}
               pendingInvitations={pendingInvitations}
               users={users}
+              ownedActiveWorkspaceCounts={ownedActiveWorkspaceCounts}
               workspaces={workspaces}
               workspaceMembers={workspaceMembers}
             />
@@ -779,7 +788,7 @@ function NeedsAttentionPanel({
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Reviewed by</th>
                 <th className="px-4 py-3 font-semibold">Created</th>
-                <th className="px-4 py-3 font-semibold">Controls</th>
+                <th className="px-4 py-3 font-semibold">Manage</th>
               </tr>
             </thead>
             <tbody>
@@ -859,7 +868,7 @@ function NeedsAttentionPanel({
                 <th className="px-4 py-3 font-semibold">Reason</th>
                 <th className="px-4 py-3 font-semibold">Reviewed by</th>
                 <th className="px-4 py-3 font-semibold">Created</th>
-                <th className="px-4 py-3 font-semibold">Controls</th>
+                <th className="px-4 py-3 font-semibold">Manage</th>
               </tr>
             </thead>
             <tbody>
@@ -995,7 +1004,6 @@ function NeedsAttentionPanel({
                           row.openDeletionRequest?.request.status ?? null
                         }
                         workspaceId={row.workspace.id}
-                        workspaceSlug={row.workspace.slug}
                       />
                     </td>
                   </tr>
@@ -1102,7 +1110,7 @@ function WorkspacesPanel({
         <SectionLead
           eyebrow="Workspaces"
           title="Customer-oriented workspace view"
-          body="This is the concise workspace/customer table: owner, plan, account state, language, latest output status, pilot feedback summary, open deletion review visibility, last admin action, and manual controls."
+          body="This is the concise workspace/customer table: owner, plan, account state, language, latest output status, pilot feedback summary, deletion review visibility, and grouped founder controls for access, review, and test cleanup."
         />
 
         <div className="foundry-table-frame mt-6">
@@ -1189,7 +1197,6 @@ function WorkspacesPanel({
                           row.openDeletionRequest?.request.status ?? null
                         }
                         workspaceId={row.workspace.id}
-                        workspaceSlug={row.workspace.slug}
                       />
                     </td>
                   </tr>
@@ -1553,6 +1560,7 @@ function UsersAccessPanel({
   currentUserId,
   overviewMetrics,
   internalAdmins,
+  ownedActiveWorkspaceCounts,
   pendingInvitations,
   workspaceMembers,
   users,
@@ -1561,6 +1569,7 @@ function UsersAccessPanel({
   currentUserId: string;
   overviewMetrics: AdminOverviewMetrics;
   internalAdmins: AppUser[];
+  ownedActiveWorkspaceCounts: Map<string, number>;
   pendingInvitations: AdminPendingInvitationRow[];
   workspaceMembers: AdminWorkspaceMemberRow[];
   users: AppUser[];
@@ -1810,16 +1819,24 @@ function UsersAccessPanel({
                   users.map((user) => {
                     const membershipCount = membershipCounts.get(user.id) ?? 0;
                     const ownedWorkspaceCount = ownedWorkspaceCounts.get(user.id) ?? 0;
+                    const ownedActiveWorkspaceCount =
+                      ownedActiveWorkspaceCounts.get(user.id) ?? 0;
                     const isTestLike = isClearlyTestLikeUser(user);
                     const isCurrentUser = user.id === currentUserId;
                     const cleanupBlockedReason = isCurrentUser
-                      ? "You cannot delete your own internal admin account."
+                      ? "Cannot delete current internal admin."
                       : user.globalRole === "internal_admin"
-                        ? "Internal admin accounts are protected from direct test cleanup."
-                        : ownedWorkspaceCount > 0 || membershipCount > 0
-                          ? "Delete the user's test workspace first. Direct test account cleanup only works once the account has no owned workspaces or memberships."
+                        ? internalAdmins.length <= 1
+                          ? "Cannot delete last internal admin."
+                          : "Cannot delete internal admin from test cleanup."
+                        : ownedActiveWorkspaceCount > 0
+                          ? "User owns active workspace."
+                          : ownedWorkspaceCount > 0
+                            ? "User still owns workspace data."
+                          : membershipCount > 0
+                            ? "User still belongs to a workspace."
                           : !isTestLike
-                            ? "Direct delete stays disabled unless the account is clearly marked as test, smoke, demo, or sandbox data."
+                            ? "Only available for test/demo data."
                             : null;
 
                     return (

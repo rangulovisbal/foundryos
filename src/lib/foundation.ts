@@ -1221,8 +1221,8 @@ export function getDeleteTestAccountConfirmationPhrase() {
   return "DELETE TEST ACCOUNT";
 }
 
-export function getDeleteWorkspaceConfirmationPhrase(workspaceSlug: string) {
-  return `DELETE WORKSPACE ${workspaceSlug}`;
+export function getDeleteWorkspaceConfirmationPhrase() {
+  return "DELETE TEST WORKSPACE";
 }
 
 export function getDeletionConfirmationPhrase(

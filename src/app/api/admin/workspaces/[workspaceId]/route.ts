@@ -76,7 +76,7 @@ export async function PATCH(
       if (isDestructiveWorkspaceAdminAction(payload.action)) {
         const phrase =
           payload.action === "delete_test_workspace"
-            ? getDeleteWorkspaceConfirmationPhrase(existing.slug)
+            ? getDeleteWorkspaceConfirmationPhrase()
             : getWorkspaceAdminConfirmationPhrase(payload.action);
 
         if (payload.confirmationText !== phrase) {
