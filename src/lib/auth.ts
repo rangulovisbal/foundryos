@@ -258,12 +258,27 @@ export async function getPostAuthRedirectPath(
   userId: string,
   requestedPath?: string | null
 ) {
-  const memberships = await listUserWorkspaceMemberships(userId);
-  if (memberships.length === 0) {
-    return "/app/setup";
+  const sanitizedPath = sanitizeRedirectPath(requestedPath);
+  const user = await findUserById(userId);
+
+  if (user?.globalRole === "internal_admin") {
+    if (sanitizedPath.startsWith("/admin")) {
+      return sanitizedPath;
+    }
+
+    if (
+      !requestedPath ||
+      ["/app", "/app/setup", "/app/dashboard"].includes(sanitizedPath)
+    ) {
+      return "/admin";
+    }
   }
 
-  const sanitizedPath = sanitizeRedirectPath(requestedPath);
+  const memberships = await listUserWorkspaceMemberships(userId);
+  if (memberships.length === 0) {
+    return user?.globalRole === "internal_admin" ? "/admin" : "/app/setup";
+  }
+
   return sanitizedPath === "/app" ? "/app/dashboard" : sanitizedPath;
 }
 
@@ -1033,11 +1048,11 @@ export function redirectAfterAuth(target?: string | null) {
 
 export async function logWorkspaceAdminChange(input: {
   adminUserId: string;
-  workspaceId: string;
-  previousPlan: WorkspaceRecord["plan"];
-  nextPlan: WorkspaceRecord["plan"];
-  previousAccountState: WorkspaceRecord["accountState"];
-  nextAccountState: WorkspaceRecord["accountState"];
+  workspaceId: string | null;
+  previousPlan: WorkspaceRecord["plan"] | null;
+  nextPlan: WorkspaceRecord["plan"] | null;
+  previousAccountState: WorkspaceRecord["accountState"] | null;
+  nextAccountState: WorkspaceRecord["accountState"] | null;
   action?: string;
   metadata?: Record<string, unknown> | null;
 }) {

@@ -105,7 +105,8 @@ export const workspaceAdminClosureActionOptions = [
   "restore_access",
   "archive_workspace",
   "mark_deletion_review",
-  "cancel_deletion_mark"
+  "cancel_deletion_mark",
+  "delete_test_workspace"
 ] as const;
 
 export const roadmapPhaseOptions = ["now", "next", "later"] as const;
@@ -568,7 +569,7 @@ export type DeletionRequestWithRequester = {
 export type AdminAuditLogRecord = {
   id: string;
   adminUserId: string;
-  workspaceId: string;
+  workspaceId: string | null;
   action: string;
   previousPlan: WorkspacePlan | null;
   nextPlan: WorkspacePlan | null;
@@ -635,6 +636,10 @@ export const adminBootstrapSchema = z.object({
   token: z.string().trim().min(1, "Admin token is required.")
 });
 
+export const adminBootstrapRequestSchema = z.object({
+  token: z.string().trim().optional().default("")
+});
+
 export const workspaceAdminUpdateSchema = z.object({
   accountState: z.enum(workspaceAccountStateOptions),
   plan: z.enum(workspacePlanOptions)
@@ -652,7 +657,8 @@ export const workspaceAdminClosureActionSchema = z
     action: z.enum(workspaceAdminClosureActionOptions),
     note: z.string().trim().max(500).optional().default(""),
     confirmationText: z.string().trim().max(120).optional().default(""),
-    restoreState: z.enum(["trial", "active"]).optional()
+    restoreState: z.enum(["trial", "active"]).optional(),
+    confirmedTestData: z.boolean().optional().default(false)
   })
   .superRefine((value, ctx) => {
     if (value.action === "restore_access" && !value.restoreState) {
@@ -662,12 +668,26 @@ export const workspaceAdminClosureActionSchema = z
         message: "Choose the state to restore this workspace into."
       });
     }
+
+    if (value.action === "delete_test_workspace" && !value.confirmedTestData) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmedTestData"],
+        message: "Confirm that this workspace is test or demo data before deleting it."
+      });
+    }
   });
 
 export const workspaceAdminMutationSchema = z.union([
   workspaceAdminSettingsMutationSchema,
   workspaceAdminClosureActionSchema
 ]);
+
+export const adminUserDeleteSchema = z.object({
+  note: z.string().trim().max(500).optional().default(""),
+  confirmationText: z.string().trim().max(120, "Confirmation text is too long."),
+  confirmedTestData: z.boolean().optional().default(false)
+});
 
 const optionalProfileText = (max = 500) =>
   z
@@ -1107,7 +1127,8 @@ export function isDestructiveWorkspaceAdminAction(
   return [
     "suspend_access",
     "archive_workspace",
-    "mark_deletion_review"
+    "mark_deletion_review",
+    "delete_test_workspace"
   ].includes(action);
 }
 
@@ -1121,6 +1142,8 @@ export function getWorkspaceAdminConfirmationPhrase(
       return "ARCHIVE WORKSPACE";
     case "mark_deletion_review":
       return "MARK FOR DELETION";
+    case "delete_test_workspace":
+      return "DELETE TEST WORKSPACE";
     default:
       return "";
   }
@@ -1140,7 +1163,66 @@ export function formatWorkspaceAdminClosureAction(
       return "Mark for deletion review";
     case "cancel_deletion_mark":
       return "Cancel deletion mark";
+    case "delete_test_workspace":
+      return "Delete test workspace";
   }
+}
+
+const testDataMarkers = [
+  "test",
+  "smoke",
+  "demo",
+  "qa",
+  "preview",
+  "sandbox",
+  "dummy",
+  "codex",
+  "fixture"
+];
+
+function normalizeTestSignal(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+export function isClearlyTestLikeValue(value: string | null | undefined) {
+  const normalized = normalizeTestSignal(value);
+
+  if (!normalized) {
+    return false;
+  }
+
+  if (normalized.includes("example.com") || normalized.includes("localhost")) {
+    return true;
+  }
+
+  return testDataMarkers.some((marker) => normalized.includes(marker));
+}
+
+export function isClearlyTestLikeUser(
+  user: Pick<AppUser, "email" | "fullName">
+) {
+  return (
+    isClearlyTestLikeValue(user.email) || isClearlyTestLikeValue(user.fullName)
+  );
+}
+
+export function isClearlyTestLikeWorkspace(
+  workspace: Pick<WorkspaceRecord, "name" | "slug">,
+  owner?: Pick<AppUser, "email" | "fullName"> | null
+) {
+  return (
+    isClearlyTestLikeValue(workspace.name) ||
+    isClearlyTestLikeValue(workspace.slug) ||
+    (owner ? isClearlyTestLikeUser(owner) : false)
+  );
+}
+
+export function getDeleteTestAccountConfirmationPhrase() {
+  return "DELETE TEST ACCOUNT";
+}
+
+export function getDeleteWorkspaceConfirmationPhrase(workspaceSlug: string) {
+  return `DELETE WORKSPACE ${workspaceSlug}`;
 }
 
 export function getDeletionConfirmationPhrase(

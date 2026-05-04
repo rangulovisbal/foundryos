@@ -776,9 +776,9 @@ export const adminAuditLogs = pgTable(
     adminUserId: uuid("admin_user_id")
       .notNull()
       .references(() => appUsers.id, { onDelete: "cascade" }),
-    workspaceId: uuid("workspace_id")
-      .notNull()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id").references(() => workspaces.id, {
+      onDelete: "set null"
+    }),
     action: varchar("action", { length: 64 }).notNull(),
     previousPlan: varchar("previous_plan", { length: 32 }),
     nextPlan: varchar("next_plan", { length: 32 }),

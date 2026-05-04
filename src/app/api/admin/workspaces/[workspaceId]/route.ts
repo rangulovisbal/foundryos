@@ -1,13 +1,18 @@
 import { getCurrentUserSession, logWorkspaceAdminChange } from "@/lib/auth";
 import {
   createDeletionRequest,
+  deleteWorkspaceById,
   findLatestOpenDeletionRequestForWorkspace,
+  findUserById,
   findWorkspaceById,
+  listOwnedWorkspaces,
   updateDeletionRequest,
   updateWorkspace
 } from "@/db/foundation";
 import {
+  getDeleteWorkspaceConfirmationPhrase,
   getWorkspaceAdminConfirmationPhrase,
+  isClearlyTestLikeWorkspace,
   isDestructiveWorkspaceAdminAction,
   workspaceAdminClosureActionSchema,
   workspaceAdminUpdateSchema
@@ -25,6 +30,22 @@ function mergeAdminNotes(existing: string | null, next: string | null) {
   }
 
   return [existing?.trim(), next].filter(Boolean).join("\n\n");
+}
+
+function buildWorkspaceAuditMetadata(input: {
+  workspace: { id: string; name: string; slug: string };
+  note: string | null;
+  confirmationText?: string | null;
+  extra?: Record<string, unknown>;
+}) {
+  return {
+    workspaceId: input.workspace.id,
+    workspaceName: input.workspace.name,
+    workspaceSlug: input.workspace.slug,
+    note: input.note,
+    confirmationText: input.confirmationText ?? null,
+    ...(input.extra ?? {})
+  };
 }
 
 export async function PATCH(
@@ -50,9 +71,13 @@ export async function PATCH(
     if (body.mode === "closure_action") {
       const payload = workspaceAdminClosureActionSchema.parse(body);
       const note = normalizeAdminNote(payload.note);
+      const ownerUser = await findUserById(existing.ownerUserId);
 
       if (isDestructiveWorkspaceAdminAction(payload.action)) {
-        const phrase = getWorkspaceAdminConfirmationPhrase(payload.action);
+        const phrase =
+          payload.action === "delete_test_workspace"
+            ? getDeleteWorkspaceConfirmationPhrase(existing.slug)
+            : getWorkspaceAdminConfirmationPhrase(payload.action);
 
         if (payload.confirmationText !== phrase) {
           throw new Error(`Type "${phrase}" to confirm this admin action.`);
@@ -76,9 +101,11 @@ export async function PATCH(
           previousAccountState: existing.accountState,
           nextAccountState: workspace.accountState,
           action: "workspace.access.suspended",
-          metadata: {
-            note
-          }
+          metadata: buildWorkspaceAuditMetadata({
+            workspace: existing,
+            note,
+            confirmationText: payload.confirmationText
+          })
         });
 
         return noStoreJson({ ok: true, workspace });
@@ -101,10 +128,13 @@ export async function PATCH(
           previousAccountState: existing.accountState,
           nextAccountState: workspace.accountState,
           action: "workspace.access.restored",
-          metadata: {
+          metadata: buildWorkspaceAuditMetadata({
+            workspace: existing,
             note,
-            restoreState: payload.restoreState
-          }
+            extra: {
+              restoreState: payload.restoreState
+            }
+          })
         });
 
         return noStoreJson({ ok: true, workspace });
@@ -127,9 +157,11 @@ export async function PATCH(
           previousAccountState: existing.accountState,
           nextAccountState: workspace.accountState,
           action: "workspace.archived",
-          metadata: {
-            note
-          }
+          metadata: buildWorkspaceAuditMetadata({
+            workspace: existing,
+            note,
+            confirmationText: payload.confirmationText
+          })
         });
 
         return noStoreJson({ ok: true, workspace });
@@ -185,11 +217,15 @@ export async function PATCH(
           previousAccountState: existing.accountState,
           nextAccountState: existing.accountState,
           action: "workspace.deletion_review.marked",
-          metadata: {
+          metadata: buildWorkspaceAuditMetadata({
+            workspace: existing,
             note,
-            deletionRequestId,
-            origin: "internal_admin"
-          }
+            confirmationText: payload.confirmationText,
+            extra: {
+              deletionRequestId,
+              origin: "internal_admin"
+            }
+          })
         });
 
         return noStoreJson({
@@ -199,52 +235,123 @@ export async function PATCH(
         });
       }
 
-      const existingOpenRequest = await findLatestOpenDeletionRequestForWorkspace({
-        workspaceId,
-        requestType: "workspace_deletion"
-      });
+      if (payload.action === "cancel_deletion_mark") {
+        const existingOpenRequest = await findLatestOpenDeletionRequestForWorkspace({
+          workspaceId,
+          requestType: "workspace_deletion"
+        });
 
-      if (!existingOpenRequest) {
+        if (!existingOpenRequest) {
+          return noStoreJson(
+            { error: "No open deletion review exists for this workspace." },
+            { status: 400 }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const adminNote = mergeAdminNotes(
+          existingOpenRequest.adminNotes,
+          note
+            ? `Admin canceled the deletion review. Reason: ${note}`
+            : "Admin canceled the deletion review."
+        );
+
+        await updateDeletionRequest(existingOpenRequest.id, {
+          status: "rejected",
+          adminNotes: adminNote,
+          reviewedByUserId: current.user.id,
+          reviewedAt: now,
+          completedAt: null
+        });
+
+        await logWorkspaceAdminChange({
+          adminUserId: current.user.id,
+          workspaceId: existing.id,
+          previousPlan: existing.plan,
+          nextPlan: existing.plan,
+          previousAccountState: existing.accountState,
+          nextAccountState: existing.accountState,
+          action: "workspace.deletion_review.canceled",
+          metadata: buildWorkspaceAuditMetadata({
+            workspace: existing,
+            note,
+            extra: {
+              deletionRequestId: existingOpenRequest.id
+            }
+          })
+        });
+
+        return noStoreJson({
+          ok: true,
+          workspace: existing,
+          deletionRequestId: existingOpenRequest.id
+        });
+      }
+
+      if (payload.action !== "delete_test_workspace") {
+        return noStoreJson({ error: "Unsupported workspace admin action." }, { status: 400 });
+      }
+
+      if (!ownerUser) {
+        return noStoreJson({ error: "Workspace owner could not be resolved." }, { status: 400 });
+      }
+
+      if (!payload.confirmedTestData) {
         return noStoreJson(
-          { error: "No open deletion review exists for this workspace." },
+          { error: "Confirm that this workspace is test or demo data before deleting it." },
           { status: 400 }
         );
       }
 
-      const now = new Date().toISOString();
-      const adminNote = mergeAdminNotes(
-        existingOpenRequest.adminNotes,
-        note
-          ? `Admin canceled the deletion review. Reason: ${note}`
-          : "Admin canceled the deletion review."
-      );
+      if (!isClearlyTestLikeWorkspace(existing, ownerUser)) {
+        return noStoreJson(
+          {
+            error:
+              "Direct delete is only available for clearly marked test or demo workspaces. Use deletion review for real client data."
+          },
+          { status: 400 }
+        );
+      }
 
-      await updateDeletionRequest(existingOpenRequest.id, {
-        status: "rejected",
-        adminNotes: adminNote,
-        reviewedByUserId: current.user.id,
-        reviewedAt: now,
-        completedAt: null
-      });
+      if (ownerUser.id === current.user.id) {
+        const ownedWorkspaces = await listOwnedWorkspaces(current.user.id);
+
+        if (ownedWorkspaces.length <= 1) {
+          return noStoreJson(
+            {
+              error:
+                "You cannot directly delete your own last workspace from internal admin. Keep one recovery path available."
+            },
+            { status: 400 }
+          );
+        }
+      }
 
       await logWorkspaceAdminChange({
         adminUserId: current.user.id,
         workspaceId: existing.id,
         previousPlan: existing.plan,
-        nextPlan: existing.plan,
+        nextPlan: null,
         previousAccountState: existing.accountState,
-        nextAccountState: existing.accountState,
-        action: "workspace.deletion_review.canceled",
-        metadata: {
+        nextAccountState: null,
+        action: "workspace.test.deleted",
+        metadata: buildWorkspaceAuditMetadata({
+          workspace: existing,
           note,
-          deletionRequestId: existingOpenRequest.id
-        }
+          confirmationText: payload.confirmationText,
+          extra: {
+            confirmedTestData: payload.confirmedTestData,
+            ownerUserId: ownerUser.id,
+            ownerEmail: ownerUser.email
+          }
+        })
       });
+
+      await deleteWorkspaceById(existing.id);
 
       return noStoreJson({
         ok: true,
-        workspace: existing,
-        deletionRequestId: existingOpenRequest.id
+        deletedWorkspaceId: existing.id
       });
     }
 

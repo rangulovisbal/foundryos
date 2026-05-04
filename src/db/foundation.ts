@@ -88,7 +88,7 @@ export type AdminPendingInvitationRow = {
 export type AdminAuditLogRow = {
   log: AdminAuditLogRecord;
   adminUser: Pick<AppUser, "id" | "email" | "fullName">;
-  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug">;
+  workspace: Pick<WorkspaceRecord, "id" | "name" | "slug"> | null;
 };
 
 export type AdminOutputFeedbackRow = {
@@ -804,6 +804,17 @@ export async function findWorkspaceById(workspaceId: string) {
   const db = await requireDb("workspace lookup");
   const rows = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).limit(1);
   return rows[0] ? mapWorkspace(rows[0]) : null;
+}
+
+export async function listOwnedWorkspaces(ownerUserId: string) {
+  const db = await requireDb("owned workspace lookup");
+  const rows = await db
+    .select()
+    .from(workspaces)
+    .where(eq(workspaces.ownerUserId, ownerUserId))
+    .orderBy(desc(workspaces.createdAt));
+
+  return rows.map(mapWorkspace);
 }
 
 export async function listUserWorkspaceMemberships(userId: string) {
@@ -1883,6 +1894,16 @@ export async function updateWorkspace(workspaceId: string, patch: Partial<Worksp
   return findWorkspaceById(workspaceId);
 }
 
+export async function deleteWorkspaceById(workspaceId: string) {
+  const db = await requireDb("workspace deletion");
+  await db.delete(workspaces).where(eq(workspaces.id, workspaceId));
+}
+
+export async function deleteUserById(userId: string) {
+  const db = await requireDb("user deletion");
+  await db.delete(appUsers).where(eq(appUsers.id, userId));
+}
+
 export async function listWorkspaces() {
   const db = await requireDb("workspace listing");
   const rows = await db.select().from(workspaces).orderBy(desc(workspaces.createdAt));
@@ -1924,7 +1945,7 @@ export async function listAdminAuditLogs(limit = 20) {
     })
     .from(adminAuditLogs)
     .innerJoin(appUsers, eq(adminAuditLogs.adminUserId, appUsers.id))
-    .innerJoin(workspaces, eq(adminAuditLogs.workspaceId, workspaces.id))
+    .leftJoin(workspaces, eq(adminAuditLogs.workspaceId, workspaces.id))
     .orderBy(desc(adminAuditLogs.createdAt))
     .limit(limit);
 
@@ -1936,11 +1957,13 @@ export async function listAdminAuditLogs(limit = 20) {
         email: row.adminUser.email,
         fullName: row.adminUser.fullName
       },
-      workspace: {
-        id: row.workspace.id,
-        name: row.workspace.name,
-        slug: row.workspace.slug
-      }
+      workspace: row.workspace
+        ? {
+            id: row.workspace.id,
+            name: row.workspace.name,
+            slug: row.workspace.slug
+          }
+        : null
     })
   );
 }

@@ -1,4 +1,5 @@
 import { ConfigurationRequiredPanel } from "@/components/configuration-required-panel";
+import { AdminUserCleanupControls } from "@/components/admin-user-cleanup-controls";
 import { AdminRequestStatusControls } from "@/components/admin-request-status-controls";
 import { AdminTabsShell } from "@/components/admin-tabs-shell";
 import { AdminWorkspaceControls } from "@/components/admin-workspace-controls";
@@ -13,6 +14,8 @@ import {
   formatSupportIssueType,
   formatSupportRequestStatus,
   getAccountStateMeta,
+  isClearlyTestLikeUser,
+  isClearlyTestLikeWorkspace,
   supportRequestStatusOptions,
   type AppUser,
   type WorkspaceRecord
@@ -83,6 +86,9 @@ type RecentJobIssue = {
 type AdminWorkspaceViewRow = {
   workspace: WorkspaceRecord;
   owner: AppUser | undefined;
+  isTestLike: boolean;
+  directDeleteEligible: boolean;
+  directDeleteBlockedReason: string | null;
   supportCounts: RequestCounts;
   deletionCounts: RequestCounts;
   openDeletionRequest: AdminDeletionRequestRow | undefined;
@@ -173,6 +179,20 @@ function firstByWorkspace<T extends { workspace: { id: string } }>(rows: T[]) {
     if (!latest.has(row.workspace.id)) {
       latest.set(row.workspace.id, row);
     }
+  }
+
+  return latest;
+}
+
+function latestAdminActionByWorkspace(rows: AdminAuditLogRow[]) {
+  const latest = new Map<string, AdminAuditLogRow>();
+
+  for (const row of rows) {
+    if (!row.workspace || latest.has(row.workspace.id)) {
+      continue;
+    }
+
+    latest.set(row.workspace.id, row);
   }
 
   return latest;
@@ -339,6 +359,13 @@ export default async function AdminPage() {
     ].filter(Boolean) as string[];
 
     const usersById = new Map(users.map((user) => [user.id, user]));
+    const ownedWorkspaceCounts = new Map<string, number>();
+    for (const workspace of workspaces) {
+      ownedWorkspaceCounts.set(
+        workspace.ownerUserId,
+        (ownedWorkspaceCounts.get(workspace.ownerUserId) ?? 0) + 1
+      );
+    }
     const internalAdmins = users.filter((user) => user.globalRole === "internal_admin");
     const openSupportRequests = supportRequests.filter(
       (entry) => !["resolved", "closed"].includes(entry.request.status)
@@ -372,7 +399,7 @@ export default async function AdminPage() {
 
     const latestOpenDeletionRequestByWorkspace =
       latestDeletionRequestByWorkspace(openDeletionRequests);
-    const latestAdminActionByWorkspace = firstByWorkspace(auditLogs);
+    const latestAdminActionMap = latestAdminActionByWorkspace(auditLogs);
     const latestFeedbackByWorkspace = firstByWorkspace(outputFeedbackEntries);
     const latestDiagnosticByWorkspace = firstByWorkspace(diagnosticJobs);
     const latestRoadmapByWorkspace = firstByWorkspace(
@@ -390,27 +417,44 @@ export default async function AdminPage() {
       }))
     );
 
-    const workspaceRows: AdminWorkspaceViewRow[] = workspaces.map((workspace) => ({
-      workspace,
-      owner: usersById.get(workspace.ownerUserId),
-      supportCounts: supportCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
-      deletionCounts: deletionCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
-      openDeletionRequest: latestOpenDeletionRequestByWorkspace.get(workspace.id),
-      latestAdminAction: latestAdminActionByWorkspace.get(workspace.id),
-      feedbackCounts: feedbackCountsByWorkspace.get(workspace.id) ?? {
-        total: 0,
-        useful: 0,
-        partial: 0,
-        generic: 0
-      },
-      latestFeedback: latestFeedbackByWorkspace.get(workspace.id),
-      latestDiagnostic: latestDiagnosticByWorkspace.get(workspace.id),
-      latestRoadmap: latestRoadmapByWorkspace.get(workspace.id),
-      latestThirtyDay: latestThirtyDayByWorkspace.get(workspace.id),
-      latestAsset: latestAssetByWorkspace.get(workspace.id),
-      latestSop: latestSopByWorkspace.get(workspace.id),
-      latestIssue: latestIssueByWorkspace.get(workspace.id)?.issue
-    }));
+    const workspaceRows: AdminWorkspaceViewRow[] = workspaces.map((workspace) => {
+      const owner = usersById.get(workspace.ownerUserId);
+      const isTestLike = isClearlyTestLikeWorkspace(workspace, owner ?? null);
+      const deletingOwnLastWorkspace =
+        workspace.ownerUserId === currentUser.id &&
+        (ownedWorkspaceCounts.get(currentUser.id) ?? 0) <= 1;
+
+      return {
+        workspace,
+        owner,
+        isTestLike,
+        directDeleteEligible: Boolean(owner) && isTestLike && !deletingOwnLastWorkspace,
+        directDeleteBlockedReason: !owner
+          ? "Workspace owner could not be resolved, so direct test cleanup is blocked."
+          : !isTestLike
+            ? "Direct delete stays disabled unless the workspace is clearly marked as test, smoke, demo, or sandbox data."
+            : deletingOwnLastWorkspace
+              ? "You cannot delete your own last owned workspace from internal admin. Keep one recovery path available."
+              : null,
+        supportCounts: supportCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
+        deletionCounts: deletionCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
+        openDeletionRequest: latestOpenDeletionRequestByWorkspace.get(workspace.id),
+        latestAdminAction: latestAdminActionMap.get(workspace.id),
+        feedbackCounts: feedbackCountsByWorkspace.get(workspace.id) ?? {
+          total: 0,
+          useful: 0,
+          partial: 0,
+          generic: 0
+        },
+        latestFeedback: latestFeedbackByWorkspace.get(workspace.id),
+        latestDiagnostic: latestDiagnosticByWorkspace.get(workspace.id),
+        latestRoadmap: latestRoadmapByWorkspace.get(workspace.id),
+        latestThirtyDay: latestThirtyDayByWorkspace.get(workspace.id),
+        latestAsset: latestAssetByWorkspace.get(workspace.id),
+        latestSop: latestSopByWorkspace.get(workspace.id),
+        latestIssue: latestIssueByWorkspace.get(workspace.id)?.issue
+      };
+    });
 
     const tabCounts = {
       "needs-attention":
@@ -505,10 +549,12 @@ export default async function AdminPage() {
           tabCounts={tabCounts}
           usersAccess={
             <UsersAccessPanel
+              currentUserId={currentUser.id}
               internalAdmins={internalAdmins}
               overviewMetrics={overviewMetrics}
               pendingInvitations={pendingInvitations}
               users={users}
+              workspaces={workspaces}
               workspaceMembers={workspaceMembers}
             />
           }
@@ -903,6 +949,7 @@ function NeedsAttentionPanel({
                     <td className="px-4 py-4">
                       <p className="font-semibold">{row.workspace.name}</p>
                       <p className="text-muted">{row.workspace.slug}</p>
+                      {row.isTestLike ? <TestDataBadge label="Test / demo" /> : null}
                     </td>
                     <td className="px-4 py-4">
                       <p className="font-semibold">
@@ -939,13 +986,16 @@ function NeedsAttentionPanel({
                     </td>
                     <td className="px-4 py-4">
                       <AdminWorkspaceControls
+                        directDeleteBlockedReason={row.directDeleteBlockedReason}
                         hasOpenDeletionRequest={Boolean(row.openDeletionRequest)}
+                        isDirectDeleteEligible={row.directDeleteEligible}
                         initialPlan={row.workspace.plan}
                         initialState={row.workspace.accountState}
                         openDeletionRequestStatus={
                           row.openDeletionRequest?.request.status ?? null
                         }
                         workspaceId={row.workspace.id}
+                        workspaceSlug={row.workspace.slug}
                       />
                     </td>
                   </tr>
@@ -1130,13 +1180,16 @@ function WorkspacesPanel({
                     </td>
                     <td className="px-4 py-4">
                       <AdminWorkspaceControls
+                        directDeleteBlockedReason={row.directDeleteBlockedReason}
                         hasOpenDeletionRequest={Boolean(row.openDeletionRequest)}
+                        isDirectDeleteEligible={row.directDeleteEligible}
                         initialPlan={row.workspace.plan}
                         initialState={row.workspace.accountState}
                         openDeletionRequestStatus={
                           row.openDeletionRequest?.request.status ?? null
                         }
                         workspaceId={row.workspace.id}
+                        workspaceSlug={row.workspace.slug}
                       />
                     </td>
                   </tr>
@@ -1217,7 +1270,7 @@ function JobsPanel({
             <table className="foundry-table min-w-[980px]">
               <thead className="bg-white/90 text-muted">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">Workspace</th>
+                  <th className="px-4 py-3 font-semibold">Target</th>
                   <th className="px-4 py-3 font-semibold">Requested by</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Score</th>
@@ -1497,18 +1550,38 @@ function JobsPanel({
 }
 
 function UsersAccessPanel({
+  currentUserId,
   overviewMetrics,
   internalAdmins,
   pendingInvitations,
   workspaceMembers,
-  users
+  users,
+  workspaces
 }: {
+  currentUserId: string;
   overviewMetrics: AdminOverviewMetrics;
   internalAdmins: AppUser[];
   pendingInvitations: AdminPendingInvitationRow[];
   workspaceMembers: AdminWorkspaceMemberRow[];
   users: AppUser[];
+  workspaces: WorkspaceRecord[];
 }) {
+  const membershipCounts = new Map<string, number>();
+  for (const entry of workspaceMembers) {
+    membershipCounts.set(
+      entry.user.id,
+      (membershipCounts.get(entry.user.id) ?? 0) + 1
+    );
+  }
+
+  const ownedWorkspaceCounts = new Map<string, number>();
+  for (const workspace of workspaces) {
+    ownedWorkspaceCounts.set(
+      workspace.ownerUserId,
+      (ownedWorkspaceCounts.get(workspace.ownerUserId) ?? 0) + 1
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="surface p-6 md:p-8">
@@ -1568,6 +1641,9 @@ function UsersAccessPanel({
                     <td className="px-4 py-4">
                       <p className="font-semibold">{user.fullName}</p>
                       <p className="text-muted">{user.email}</p>
+                      {user.id === currentUserId ? (
+                        <TestDataBadge label="Current session" tone="neutral" />
+                      ) : null}
                     </td>
                     <td className="px-4 py-4">{formatRoleLabel(user.globalRole)}</td>
                     <td className="px-4 py-4 text-muted">
@@ -1722,30 +1798,74 @@ function UsersAccessPanel({
                 <tr>
                   <th className="px-4 py-3 font-semibold">User</th>
                   <th className="px-4 py-3 font-semibold">Global role</th>
+                  <th className="px-4 py-3 font-semibold">Workspace footprint</th>
+                  <th className="px-4 py-3 font-semibold">Test / demo</th>
                   <th className="px-4 py-3 font-semibold">Email verification</th>
                   <th className="px-4 py-3 font-semibold">Created</th>
+                  <th className="px-4 py-3 font-semibold">Cleanup</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length > 0 ? (
-                  users.map((user) => (
-                    <tr
-                      key={user.id}
-                      className="border-t border-[color:var(--border)] align-top"
-                    >
-                      <td className="px-4 py-4">
-                        <p className="font-semibold">{user.fullName}</p>
-                        <p className="text-muted">{user.email}</p>
-                      </td>
-                      <td className="px-4 py-4">{formatRoleLabel(user.globalRole)}</td>
-                      <td className="px-4 py-4 text-muted">
-                        {user.emailVerifiedAt ? formatAdminDate(user.emailVerifiedAt) : "pending"}
-                      </td>
-                      <td className="px-4 py-4 text-muted">{formatAdminDate(user.createdAt)}</td>
-                    </tr>
-                  ))
+                  users.map((user) => {
+                    const membershipCount = membershipCounts.get(user.id) ?? 0;
+                    const ownedWorkspaceCount = ownedWorkspaceCounts.get(user.id) ?? 0;
+                    const isTestLike = isClearlyTestLikeUser(user);
+                    const isCurrentUser = user.id === currentUserId;
+                    const cleanupBlockedReason = isCurrentUser
+                      ? "You cannot delete your own internal admin account."
+                      : user.globalRole === "internal_admin"
+                        ? "Internal admin accounts are protected from direct test cleanup."
+                        : ownedWorkspaceCount > 0 || membershipCount > 0
+                          ? "Delete the user's test workspace first. Direct test account cleanup only works once the account has no owned workspaces or memberships."
+                          : !isTestLike
+                            ? "Direct delete stays disabled unless the account is clearly marked as test, smoke, demo, or sandbox data."
+                            : null;
+
+                    return (
+                      <tr
+                        key={user.id}
+                        className="border-t border-[color:var(--border)] align-top"
+                      >
+                        <td className="px-4 py-4">
+                          <p className="font-semibold">{user.fullName}</p>
+                          <p className="text-muted">{user.email}</p>
+                          {isCurrentUser ? (
+                            <TestDataBadge label="Current session" tone="neutral" />
+                          ) : null}
+                        </td>
+                        <td className="px-4 py-4">{formatRoleLabel(user.globalRole)}</td>
+                        <td className="px-4 py-4 text-muted">
+                          <p>{ownedWorkspaceCount} owned workspaces</p>
+                          <p>{membershipCount} memberships</p>
+                        </td>
+                        <td className="px-4 py-4">
+                          {isTestLike ? (
+                            <TestDataBadge label="Test / demo" />
+                          ) : (
+                            <span className="text-muted">No explicit marker</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-muted">
+                          {user.emailVerifiedAt
+                            ? formatAdminDate(user.emailVerifiedAt)
+                            : "pending"}
+                        </td>
+                        <td className="px-4 py-4 text-muted">
+                          {formatAdminDate(user.createdAt)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <AdminUserCleanupControls
+                            blockedReason={cleanupBlockedReason}
+                            isDeletable={cleanupBlockedReason === null}
+                            userId={user.id}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
-                  <EmptyTableRow colSpan={4} message="No users created yet." />
+                  <EmptyTableRow colSpan={7} message="No users created yet." />
                 )}
               </tbody>
             </table>
@@ -1770,6 +1890,10 @@ function formatAuditAction(action: string) {
       return "Mark for deletion review";
     case "workspace.deletion_review.canceled":
       return "Cancel deletion mark";
+    case "workspace.test.deleted":
+      return "Delete test workspace";
+    case "user.test.deleted":
+      return "Delete test account";
     default:
       return humanize(action);
   }
@@ -1780,6 +1904,42 @@ function extractAuditNote(metadata: Record<string, unknown> | null) {
   return typeof note === "string" && note.trim().length > 0 ? note : null;
 }
 
+function formatAuditWorkspaceTarget(entry: AdminAuditLogRow) {
+  if (entry.log.action === "user.test.deleted") {
+    const targetUserFullName = entry.log.metadata?.targetUserFullName;
+    const targetUserEmail = entry.log.metadata?.targetUserEmail;
+
+    return {
+      name:
+        typeof targetUserFullName === "string" && targetUserFullName.trim().length > 0
+          ? targetUserFullName
+          : "Deleted test account",
+      slug:
+        typeof targetUserEmail === "string" && targetUserEmail.trim().length > 0
+          ? targetUserEmail
+          : "user removed"
+    };
+  }
+
+  if (entry.workspace) {
+    return entry.workspace;
+  }
+
+  const workspaceName = entry.log.metadata?.workspaceName;
+  const workspaceSlug = entry.log.metadata?.workspaceSlug;
+
+  return {
+    name:
+      typeof workspaceName === "string" && workspaceName.trim().length > 0
+        ? workspaceName
+        : "Deleted workspace",
+    slug:
+      typeof workspaceSlug === "string" && workspaceSlug.trim().length > 0
+        ? workspaceSlug
+        : "workspace removed"
+  };
+}
+
 function LogsPanel({
   auditLogs,
   outputFeedbackEntries
@@ -1787,7 +1947,9 @@ function LogsPanel({
   auditLogs: AdminAuditLogRow[];
   outputFeedbackEntries: AdminOutputFeedbackRow[];
 }) {
-  const affectedWorkspaceCount = new Set(auditLogs.map((entry) => entry.workspace.id)).size;
+  const affectedWorkspaceCount = new Set(
+    auditLogs.map((entry) => entry.workspace?.id ?? String(entry.log.metadata?.workspaceId ?? entry.log.id))
+  ).size;
   const feedbackWorkspaceCount = new Set(
     outputFeedbackEntries.map((entry) => entry.workspace.id)
   ).size;
@@ -1829,7 +1991,7 @@ function LogsPanel({
         <SectionLead
           eyebrow="Available log families"
           title="What exists today"
-          body="The admin currently records workspace plan/account-state changes and pilot output feedback history."
+          body="The admin currently records workspace state changes, deletion review actions, direct test cleanup actions, and pilot output feedback history."
         />
       </section>
 
@@ -1873,39 +2035,43 @@ function LogsPanel({
               </thead>
               <tbody>
                 {auditLogs.length > 0 ? (
-                  auditLogs.map((entry) => (
-                    <tr
-                      key={entry.log.id}
-                      className="border-t border-[color:var(--border)] align-top"
-                    >
-                      <td className="px-4 py-4 text-muted">
-                        {formatAdminDate(entry.log.createdAt)}
-                      </td>
-                      <td className="px-4 py-4">
-                        <p className="font-semibold">{entry.adminUser.fullName}</p>
-                        <p className="text-muted">{entry.adminUser.email}</p>
-                      </td>
-                      <td className="px-4 py-4">
-                        <p className="font-semibold">{entry.workspace.name}</p>
-                        <p className="text-muted">{entry.workspace.slug}</p>
-                      </td>
-                      <td className="px-4 py-4">
-                        <p className="font-semibold">
-                          {formatAuditAction(entry.log.action)}
-                        </p>
-                      </td>
-                      <td className="px-4 py-4 text-muted">
-                        {extractAuditNote(entry.log.metadata) ?? "No note"}
-                      </td>
-                      <td className="px-4 py-4 text-muted">
-                        {entry.log.previousPlan ?? "n/a"} → {entry.log.nextPlan ?? "n/a"}
-                      </td>
-                      <td className="px-4 py-4 text-muted">
-                        {entry.log.previousAccountState ?? "n/a"} →{" "}
-                        {entry.log.nextAccountState ?? "n/a"}
-                      </td>
-                    </tr>
-                  ))
+                  auditLogs.map((entry) => {
+                    const workspaceTarget = formatAuditWorkspaceTarget(entry);
+
+                    return (
+                      <tr
+                        key={entry.log.id}
+                        className="border-t border-[color:var(--border)] align-top"
+                      >
+                        <td className="px-4 py-4 text-muted">
+                          {formatAdminDate(entry.log.createdAt)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <p className="font-semibold">{entry.adminUser.fullName}</p>
+                          <p className="text-muted">{entry.adminUser.email}</p>
+                        </td>
+                        <td className="px-4 py-4">
+                          <p className="font-semibold">{workspaceTarget.name}</p>
+                          <p className="text-muted">{workspaceTarget.slug}</p>
+                        </td>
+                        <td className="px-4 py-4">
+                          <p className="font-semibold">
+                            {formatAuditAction(entry.log.action)}
+                          </p>
+                        </td>
+                        <td className="px-4 py-4 text-muted">
+                          {extractAuditNote(entry.log.metadata) ?? "No note"}
+                        </td>
+                        <td className="px-4 py-4 text-muted">
+                          {entry.log.previousPlan ?? "n/a"} → {entry.log.nextPlan ?? "n/a"}
+                        </td>
+                        <td className="px-4 py-4 text-muted">
+                          {entry.log.previousAccountState ?? "n/a"} →{" "}
+                          {entry.log.nextAccountState ?? "n/a"}
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <EmptyTableRow
                     colSpan={7}
@@ -1953,6 +2119,27 @@ function FeedbackLabelBadge({
   return (
     <span
       className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${classes}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function TestDataBadge({
+  label,
+  tone = "accent"
+}: {
+  label: string;
+  tone?: "accent" | "neutral";
+}) {
+  const classes =
+    tone === "neutral"
+      ? "border-[color:var(--border)] bg-white/80 text-muted"
+      : "border-[color:var(--gold)]/30 bg-[color:var(--gold)]/10 text-ink";
+
+  return (
+    <span
+      className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${classes}`}
     >
       {label}
     </span>
