@@ -132,10 +132,10 @@ function buildActionMeta(action: WorkspaceAction) {
       };
     case "delete_test_workspace":
       return {
-        title: "Delete test workspace",
-        submitLabel: "Delete test workspace",
+        title: "Delete workspace now",
+        submitLabel: "Delete workspace now",
         noteLabel: "Cleanup note",
-        notePlaceholder: "Optional founder note for why this test workspace is being deleted.",
+        notePlaceholder: "Optional founder note for why this workspace is being deleted.",
         confirmationPhrase: getDeleteWorkspaceConfirmationPhrase(),
         tone: "danger" as const
       };
@@ -148,16 +148,14 @@ export function AdminWorkspaceControls({
   initialState,
   hasOpenDeletionRequest,
   openDeletionRequestStatus,
-  isDirectDeleteEligible,
-  directDeleteBlockedReason
+  directCleanupWarning
 }: {
   workspaceId: string;
   initialPlan: WorkspacePlan;
   initialState: WorkspaceAccountState;
   hasOpenDeletionRequest: boolean;
   openDeletionRequestStatus: string | null;
-  isDirectDeleteEligible: boolean;
-  directDeleteBlockedReason: string | null;
+  directCleanupWarning: string | null;
 }) {
   const router = useRouter();
   const [plan, setPlan] = useState<WorkspacePlan>(initialPlan);
@@ -182,9 +180,7 @@ export function AdminWorkspaceControls({
   const actionDisabledReason =
     activeAction === "cancel_deletion_mark" && !hasOpenDeletionRequest
       ? "No open deletion review to cancel."
-      : activeAction === "delete_test_workspace"
-        ? directDeleteBlockedReason
-        : null;
+      : null;
 
   async function patchWorkspace(body: Record<string, unknown>) {
     const response = await fetch(`/api/admin/workspaces/${workspaceId}`, {
@@ -297,8 +293,8 @@ export function AdminWorkspaceControls({
               tone={hasOpenDeletionRequest ? "warning" : "neutral"}
             />
             <SummaryPill
-              label={isDirectDeleteEligible ? "Test cleanup available" : "Test cleanup blocked"}
-              tone={isDirectDeleteEligible ? "success" : "neutral"}
+              label="Direct cleanup available"
+              tone="success"
             />
           </div>
         </div>
@@ -366,20 +362,21 @@ export function AdminWorkspaceControls({
 
         <section className="rounded-2xl border border-[color:var(--border)] bg-white/75 p-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-            Test data cleanup
+            Direct admin cleanup
           </p>
           <p className="mt-2 text-xs text-muted">
-            Only available for test, demo, smoke, or sandbox data.
+            Use this when you intentionally want to remove the workspace now. If it
+            should stay on a review path, use deletion review instead.
           </p>
-          {directDeleteBlockedReason ? (
-            <div className="mt-3 rounded-xl border border-[color:var(--border)] bg-white/85 px-3 py-2 text-xs text-muted">
-              {directDeleteBlockedReason}
+          {directCleanupWarning ? (
+            <div className="mt-3 rounded-xl border border-[color:var(--gold)]/30 bg-[color:var(--gold)]/10 px-3 py-2 text-xs text-ink">
+              {directCleanupWarning}
             </div>
           ) : null}
           <div className="mt-3 flex flex-wrap gap-2">
             <WorkspaceActionButton
-              disabled={loadingMode !== null || !isDirectDeleteEligible}
-              label="Delete test workspace"
+              disabled={loadingMode !== null}
+              label="Delete workspace now"
               onClick={() => openAction("delete_test_workspace")}
               tone="danger"
             />
@@ -435,8 +432,8 @@ export function AdminWorkspaceControls({
                     type="checkbox"
                   />
                   <span>
-                    I confirm this is test, demo, smoke, or sandbox data and not real
-                    client data.
+                    I understand this will delete the workspace from the product now.
+                    I have reviewed whether this data should be kept or removed.
                   </span>
                 </label>
               ) : null}

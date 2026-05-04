@@ -1,8 +1,6 @@
 import {
   deleteUserById,
   findUserById,
-  listOwnedWorkspaces,
-  listUserWorkspaceMemberships,
   listUsers
 } from "@/db/foundation";
 import { getCurrentUserSession, logWorkspaceAdminChange } from "@/lib/auth";
@@ -49,7 +47,9 @@ export async function DELETE(
 
     if (!payload.confirmedTestData) {
       return noStoreJson(
-        { error: "Confirm that this account is test or demo data before deleting it." },
+        {
+          error: "Confirm that you want to delete this account from admin before continuing."
+        },
         { status: 400 }
       );
     }
@@ -75,40 +75,9 @@ export async function DELETE(
           { status: 400 }
         );
       }
-
-      return noStoreJson(
-        {
-          error:
-            "Direct test cleanup is not available for internal admin accounts. Remove internal admin access through a safer manual flow if ever needed."
-        },
-        { status: 400 }
-      );
     }
 
-    if (!isClearlyTestLikeUser(target)) {
-      return noStoreJson(
-        {
-          error:
-            "Direct delete is only available for clearly marked test or demo accounts."
-        },
-        { status: 400 }
-      );
-    }
-
-    const [memberships, ownedWorkspaces] = await Promise.all([
-      listUserWorkspaceMemberships(target.id),
-      listOwnedWorkspaces(target.id)
-    ]);
-
-    if (ownedWorkspaces.length > 0 || memberships.length > 0) {
-      return noStoreJson(
-        {
-          error:
-            "Delete the user’s test workspace first. Direct test account cleanup only works once the account has no owned workspaces or memberships."
-        },
-        { status: 400 }
-      );
-    }
+    const autoMarkedTestLike = isClearlyTestLikeUser(target);
 
     await logWorkspaceAdminChange({
       adminUserId: current.user.id,
@@ -117,7 +86,7 @@ export async function DELETE(
       nextPlan: null,
       previousAccountState: null,
       nextAccountState: null,
-      action: "user.test.deleted",
+      action: "user.admin.deleted",
       metadata: {
         targetUserId: target.id,
         targetUserEmail: target.email,
@@ -126,6 +95,7 @@ export async function DELETE(
         newDisposition: "deleted",
         confirmationText: payload.confirmationText,
         confirmedTestData: payload.confirmedTestData,
+        autoMarkedTestLike,
         note
       }
     });
@@ -134,6 +104,6 @@ export async function DELETE(
 
     return noStoreJson({ ok: true, deletedUserId: target.id });
   } catch (error) {
-    return publicErrorJson(error, "Test account could not be deleted.");
+    return publicErrorJson(error, "Account could not be deleted.");
   }
 }

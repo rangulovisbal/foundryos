@@ -87,8 +87,7 @@ type AdminWorkspaceViewRow = {
   workspace: WorkspaceRecord;
   owner: AppUser | undefined;
   isTestLike: boolean;
-  directDeleteEligible: boolean;
-  directDeleteBlockedReason: string | null;
+  directCleanupWarning: string | null;
   supportCounts: RequestCounts;
   deletionCounts: RequestCounts;
   openDeletionRequest: AdminDeletionRequestRow | undefined;
@@ -428,22 +427,34 @@ export default async function AdminPage() {
     const workspaceRows: AdminWorkspaceViewRow[] = workspaces.map((workspace) => {
       const owner = usersById.get(workspace.ownerUserId);
       const isTestLike = isClearlyTestLikeWorkspace(workspace, owner ?? null);
-      const deletingOwnLastWorkspace =
+      const cleanupWarnings: string[] = [];
+
+      if (!isTestLike) {
+        cleanupWarnings.push(
+          "No explicit test/demo marker was found on this workspace. You can still delete it from admin if that is your intention."
+        );
+      }
+
+      if (!owner) {
+        cleanupWarnings.push(
+          "The owner record could not be resolved. Delete is still available from admin."
+        );
+      }
+
+      if (
         workspace.ownerUserId === currentUser.id &&
-        (ownedWorkspaceCounts.get(currentUser.id) ?? 0) <= 1;
+        (ownedWorkspaceCounts.get(currentUser.id) ?? 0) <= 1
+      ) {
+        cleanupWarnings.push(
+          "This is your last owned workspace, but internal admin access no longer depends on workspace ownership."
+        );
+      }
 
       return {
         workspace,
         owner,
         isTestLike,
-        directDeleteEligible: Boolean(owner) && isTestLike && !deletingOwnLastWorkspace,
-        directDeleteBlockedReason: !owner
-          ? "Workspace owner could not be resolved."
-          : !isTestLike
-            ? "Only available for test/demo data."
-            : deletingOwnLastWorkspace
-              ? "Cannot delete current internal admin recovery workspace."
-              : null,
+        directCleanupWarning: cleanupWarnings.length > 0 ? cleanupWarnings.join(" ") : null,
         supportCounts: supportCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
         deletionCounts: deletionCountsByWorkspace.get(workspace.id) ?? { total: 0, open: 0 },
         openDeletionRequest: latestOpenDeletionRequestByWorkspace.get(workspace.id),
@@ -995,9 +1006,8 @@ function NeedsAttentionPanel({
                     </td>
                     <td className="px-4 py-4">
                       <AdminWorkspaceControls
-                        directDeleteBlockedReason={row.directDeleteBlockedReason}
+                        directCleanupWarning={row.directCleanupWarning}
                         hasOpenDeletionRequest={Boolean(row.openDeletionRequest)}
-                        isDirectDeleteEligible={row.directDeleteEligible}
                         initialPlan={row.workspace.plan}
                         initialState={row.workspace.accountState}
                         openDeletionRequestStatus={
@@ -1188,9 +1198,8 @@ function WorkspacesPanel({
                     </td>
                     <td className="px-4 py-4">
                       <AdminWorkspaceControls
-                        directDeleteBlockedReason={row.directDeleteBlockedReason}
+                        directCleanupWarning={row.directCleanupWarning}
                         hasOpenDeletionRequest={Boolean(row.openDeletionRequest)}
-                        isDirectDeleteEligible={row.directDeleteEligible}
                         initialPlan={row.workspace.plan}
                         initialState={row.workspace.accountState}
                         openDeletionRequestStatus={
@@ -1808,7 +1817,7 @@ function UsersAccessPanel({
                   <th className="px-4 py-3 font-semibold">User</th>
                   <th className="px-4 py-3 font-semibold">Global role</th>
                   <th className="px-4 py-3 font-semibold">Workspace footprint</th>
-                  <th className="px-4 py-3 font-semibold">Test / demo</th>
+                  <th className="px-4 py-3 font-semibold">Auto marker</th>
                   <th className="px-4 py-3 font-semibold">Email verification</th>
                   <th className="px-4 py-3 font-semibold">Created</th>
                   <th className="px-4 py-3 font-semibold">Cleanup</th>
@@ -1824,20 +1833,39 @@ function UsersAccessPanel({
                     const isTestLike = isClearlyTestLikeUser(user);
                     const isCurrentUser = user.id === currentUserId;
                     const cleanupBlockedReason = isCurrentUser
-                      ? "Cannot delete current internal admin."
-                      : user.globalRole === "internal_admin"
-                        ? internalAdmins.length <= 1
-                          ? "Cannot delete last internal admin."
-                          : "Cannot delete internal admin from test cleanup."
-                        : ownedActiveWorkspaceCount > 0
-                          ? "User owns active workspace."
-                          : ownedWorkspaceCount > 0
-                            ? "User still owns workspace data."
-                          : membershipCount > 0
-                            ? "User still belongs to a workspace."
-                          : !isTestLike
-                            ? "Only available for test/demo data."
-                            : null;
+                      ? "Cannot delete the internal admin account in your current session."
+                      : user.globalRole === "internal_admin" && internalAdmins.length <= 1
+                        ? "Cannot delete the last internal admin account."
+                        : null;
+                    const cleanupWarnings: string[] = [];
+
+                    if (!isTestLike) {
+                      cleanupWarnings.push(
+                        "No explicit test/demo marker was found on this account. You can still delete it from admin if that is your intention."
+                      );
+                    }
+
+                    if (ownedActiveWorkspaceCount > 0) {
+                      cleanupWarnings.push(
+                        `This account currently owns ${ownedActiveWorkspaceCount} active workspace${ownedActiveWorkspaceCount === 1 ? "" : "s"}. Deleting it will also delete that owned data.`
+                      );
+                    } else if (ownedWorkspaceCount > 0) {
+                      cleanupWarnings.push(
+                        `This account currently owns ${ownedWorkspaceCount} workspace${ownedWorkspaceCount === 1 ? "" : "s"}. Deleting it will also delete that owned data.`
+                      );
+                    }
+
+                    if (membershipCount > 0) {
+                      cleanupWarnings.push(
+                        `This account currently belongs to ${membershipCount} workspace${membershipCount === 1 ? "" : "s"}. Deleting it will also remove those memberships.`
+                      );
+                    }
+
+                    if (user.globalRole === "internal_admin" && !isCurrentUser) {
+                      cleanupWarnings.push(
+                        "This account currently has internal admin access."
+                      );
+                    }
 
                     return (
                       <tr
@@ -1860,7 +1888,7 @@ function UsersAccessPanel({
                           {isTestLike ? (
                             <TestDataBadge label="Test / demo" />
                           ) : (
-                            <span className="text-muted">No explicit marker</span>
+                            <span className="text-muted">No explicit auto marker</span>
                           )}
                         </td>
                         <td className="px-4 py-4 text-muted">
@@ -1876,6 +1904,9 @@ function UsersAccessPanel({
                             blockedReason={cleanupBlockedReason}
                             isDeletable={cleanupBlockedReason === null}
                             userId={user.id}
+                            warningMessage={
+                              cleanupWarnings.length > 0 ? cleanupWarnings.join(" ") : null
+                            }
                           />
                         </td>
                       </tr>
@@ -1907,10 +1938,10 @@ function formatAuditAction(action: string) {
       return "Mark for deletion review";
     case "workspace.deletion_review.canceled":
       return "Cancel deletion mark";
-    case "workspace.test.deleted":
-      return "Delete test workspace";
-    case "user.test.deleted":
-      return "Delete test account";
+    case "workspace.admin.deleted":
+      return "Delete workspace now";
+    case "user.admin.deleted":
+      return "Delete account now";
     default:
       return humanize(action);
   }
@@ -1922,7 +1953,7 @@ function extractAuditNote(metadata: Record<string, unknown> | null) {
 }
 
 function formatAuditWorkspaceTarget(entry: AdminAuditLogRow) {
-  if (entry.log.action === "user.test.deleted") {
+  if (entry.log.action === "user.admin.deleted") {
     const targetUserFullName = entry.log.metadata?.targetUserFullName;
     const targetUserEmail = entry.log.metadata?.targetUserEmail;
 
@@ -1930,7 +1961,7 @@ function formatAuditWorkspaceTarget(entry: AdminAuditLogRow) {
       name:
         typeof targetUserFullName === "string" && targetUserFullName.trim().length > 0
           ? targetUserFullName
-          : "Deleted test account",
+          : "Deleted account",
       slug:
         typeof targetUserEmail === "string" && targetUserEmail.trim().length > 0
           ? targetUserEmail

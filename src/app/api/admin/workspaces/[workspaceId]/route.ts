@@ -5,7 +5,6 @@ import {
   findLatestOpenDeletionRequestForWorkspace,
   findUserById,
   findWorkspaceById,
-  listOwnedWorkspaces,
   updateDeletionRequest,
   updateWorkspace
 } from "@/db/foundation";
@@ -292,40 +291,17 @@ export async function PATCH(
         return noStoreJson({ error: "Unsupported workspace admin action." }, { status: 400 });
       }
 
-      if (!ownerUser) {
-        return noStoreJson({ error: "Workspace owner could not be resolved." }, { status: 400 });
-      }
-
       if (!payload.confirmedTestData) {
-        return noStoreJson(
-          { error: "Confirm that this workspace is test or demo data before deleting it." },
-          { status: 400 }
-        );
-      }
-
-      if (!isClearlyTestLikeWorkspace(existing, ownerUser)) {
         return noStoreJson(
           {
             error:
-              "Direct delete is only available for clearly marked test or demo workspaces. Use deletion review for real client data."
+              "Confirm that you want to delete this workspace from admin before continuing."
           },
           { status: 400 }
         );
       }
 
-      if (ownerUser.id === current.user.id) {
-        const ownedWorkspaces = await listOwnedWorkspaces(current.user.id);
-
-        if (ownedWorkspaces.length <= 1) {
-          return noStoreJson(
-            {
-              error:
-                "You cannot directly delete your own last workspace from internal admin. Keep one recovery path available."
-            },
-            { status: 400 }
-          );
-        }
-      }
+      const autoMarkedTestLike = isClearlyTestLikeWorkspace(existing, ownerUser);
 
       await logWorkspaceAdminChange({
         adminUserId: current.user.id,
@@ -334,15 +310,16 @@ export async function PATCH(
         nextPlan: null,
         previousAccountState: existing.accountState,
         nextAccountState: null,
-        action: "workspace.test.deleted",
+        action: "workspace.admin.deleted",
         metadata: buildWorkspaceAuditMetadata({
           workspace: existing,
           note,
           confirmationText: payload.confirmationText,
           extra: {
             confirmedTestData: payload.confirmedTestData,
-            ownerUserId: ownerUser.id,
-            ownerEmail: ownerUser.email
+            autoMarkedTestLike,
+            ownerUserId: ownerUser?.id ?? null,
+            ownerEmail: ownerUser?.email ?? null
           }
         })
       });

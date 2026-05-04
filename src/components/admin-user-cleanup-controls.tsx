@@ -8,11 +8,13 @@ import { getDeleteTestAccountConfirmationPhrase } from "@/lib/foundation";
 export function AdminUserCleanupControls({
   userId,
   isDeletable,
-  blockedReason
+  blockedReason,
+  warningMessage
 }: {
   userId: string;
   isDeletable: boolean;
   blockedReason: string | null;
+  warningMessage: string | null;
 }) {
   const router = useRouter();
   const [note, setNote] = useState("");
@@ -43,17 +45,17 @@ export function AdminUserCleanupControls({
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Delete test account failed.");
+        throw new Error(payload.error ?? "Account deletion failed.");
       }
 
-      setMessage("Test account deleted.");
+      setMessage("Account deleted.");
       setNote("");
       setConfirmationText("");
       setConfirmedTestData(false);
       router.refresh();
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "Delete test account could not be completed."
+        error instanceof Error ? error.message : "Account deletion could not be completed."
       );
     } finally {
       setLoading(false);
@@ -67,8 +69,8 @@ export function AdminUserCleanupControls({
           <div>
             <p className="text-sm font-semibold text-ink">Manage account cleanup</p>
             <p className="mt-1 text-xs text-muted">
-              Test data cleanup only. Permanent deletion for real client data is not
-              available yet.
+              Direct admin cleanup. You decide whether this account should be removed
+              now.
             </p>
           </div>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
@@ -80,14 +82,21 @@ export function AdminUserCleanupControls({
       <div className="grid gap-3 border-t border-[color:var(--border)] px-3 py-3">
         <section className="rounded-2xl border border-[color:var(--border)] bg-white/75 p-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-            Test data cleanup
+            Direct admin cleanup
           </p>
           <p className="mt-2 text-xs text-muted">
-            Delete test account only after related test workspaces have been cleaned up.
+            Use this when you intentionally want to remove the account now. If it
+            should stay review-only, leave it in place.
           </p>
 
+          {warningMessage ? (
+            <div className="mt-3 rounded-xl border border-[color:var(--gold)]/30 bg-[color:var(--gold)]/10 px-3 py-2 text-xs text-ink">
+              {warningMessage}
+            </div>
+          ) : null}
+
           {blockedReason ? (
-            <div className="mt-3 rounded-xl border border-[color:var(--border)] bg-white/85 px-3 py-2 text-xs text-muted">
+            <div className="mt-3 rounded-xl border border-coral/25 bg-coral/10 px-3 py-2 text-xs text-coral">
               {blockedReason}
             </div>
           ) : null}
@@ -111,8 +120,8 @@ export function AdminUserCleanupControls({
                 type="checkbox"
               />
               <span>
-                I confirm this account is test, demo, smoke, or sandbox data and does
-                not belong to a real client.
+                I understand this will delete the account from the product now. I have
+                reviewed whether this data should be kept or removed.
               </span>
             </label>
 
@@ -140,7 +149,7 @@ export function AdminUserCleanupControls({
               onClick={handleDelete}
               type="button"
             >
-              {loading ? "Deleting..." : "Delete test account"}
+              {loading ? "Deleting..." : "Delete account now"}
             </button>
           </div>
         </section>

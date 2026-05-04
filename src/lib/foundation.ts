@@ -673,7 +673,7 @@ export const workspaceAdminClosureActionSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["confirmedTestData"],
-        message: "Confirm that this workspace is test or demo data before deleting it."
+        message: "Confirm that you want to delete this workspace from admin."
       });
     }
   });
@@ -1164,7 +1164,7 @@ export function formatWorkspaceAdminClosureAction(
     case "cancel_deletion_mark":
       return "Cancel deletion mark";
     case "delete_test_workspace":
-      return "Delete test workspace";
+      return "Delete workspace now";
   }
 }
 
@@ -1218,11 +1218,11 @@ export function isClearlyTestLikeWorkspace(
 }
 
 export function getDeleteTestAccountConfirmationPhrase() {
-  return "DELETE TEST ACCOUNT";
+  return "DELETE ACCOUNT NOW";
 }
 
 export function getDeleteWorkspaceConfirmationPhrase() {
-  return "DELETE TEST WORKSPACE";
+  return "DELETE WORKSPACE NOW";
 }
 
 export function getDeletionConfirmationPhrase(
