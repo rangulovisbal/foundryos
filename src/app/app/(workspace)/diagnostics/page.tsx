@@ -51,32 +51,32 @@ function resolveDisabledReason(
   if (!hasProfile) {
     return copyForLanguage(
       language,
-      "Complete and save the business profile before running diagnostics.",
-      "Completa y guarda el perfil del negocio antes de ejecutar el diagnóstico."
+      "Complete and save the marketing profile before running the diagnosis.",
+      "Completa y guarda el perfil de marketing antes de ejecutar el diagnóstico."
     );
   }
 
   if (isLockedState(context.workspace.accountState)) {
     return copyForLanguage(
       language,
-      "Diagnostics are locked for this workspace account state.",
-      "El diagnóstico está bloqueado para el estado actual de esta cuenta."
+      "Marketing diagnosis is locked for this workspace account state.",
+      "El diagnóstico de marketing está bloqueado para el estado actual de esta cuenta."
     );
   }
 
   if (isReadOnlyState(context.workspace.accountState)) {
     return copyForLanguage(
       language,
-      "Diagnostics are read-only while this workspace account state is limited.",
-      "El diagnóstico queda en solo lectura mientras el estado de la cuenta sea limitado."
+      "Marketing diagnosis is read-only while this workspace account state is limited.",
+      "El diagnóstico de marketing queda en solo lectura mientras el estado de la cuenta sea limitado."
     );
   }
 
   if (!canManageWorkspace(context.membership.role, context.workspace.accountState)) {
     return copyForLanguage(
       language,
-      "Only workspace owners and admins can run diagnostics in this MVP.",
-      "Solo los owners y admins pueden ejecutar diagnósticos en este MVP."
+      "Only workspace owners and admins can run the marketing diagnosis in this MVP.",
+      "Solo los owners y admins pueden ejecutar el diagnóstico de marketing en este MVP."
     );
   }
 
@@ -84,23 +84,23 @@ function resolveDisabledReason(
   if (!counter) {
     return copyForLanguage(
       language,
-      "This workspace does not have a diagnostic run entitlement configured.",
-      "Este espacio no tiene configurado un cupo de ejecuciones de diagnóstico."
+      "This workspace does not have a marketing diagnosis entitlement configured.",
+      "Este espacio no tiene configurado un cupo de diagnóstico de marketing."
     );
   }
 
   if (counter.usedCount >= counter.limitCount) {
     return copyForLanguage(
       language,
-      `Diagnostic run limit reached: ${counter.usedCount}/${counter.limitCount}.`,
-      `Se alcanzó el límite de diagnósticos: ${counter.usedCount}/${counter.limitCount}.`
+      `Marketing diagnosis run limit reached: ${counter.usedCount}/${counter.limitCount}.`,
+      `Se alcanzó el límite del diagnóstico de marketing: ${counter.usedCount}/${counter.limitCount}.`
     );
   }
 
   return copyForLanguage(
     language,
-    "Diagnostic runs are unavailable.",
-    "Las ejecuciones de diagnóstico no están disponibles."
+    "Marketing diagnosis runs are unavailable.",
+    "Las ejecuciones del diagnóstico de marketing no están disponibles."
   );
 }
 
@@ -187,8 +187,8 @@ function trustNote(result: DiagnosticResultRecord, language: OutputLanguage) {
 function maturityNarrative(result: DiagnosticResultRecord, language: OutputLanguage) {
   if (result.overallMaturityScore >= 75) {
     return language === "es"
-      ? "La base operativa ya tiene forma y las mejoras son más de enfoque que de supervivencia."
-      : "The operating foundation is taking shape, so improvement is more about focus than basic survival.";
+      ? "La base de marketing ya tiene forma y las mejoras son más de enfoque que de supervivencia."
+      : "The marketing foundation is taking shape, so improvement is more about focus than basic survival.";
   }
 
   if (result.overallMaturityScore >= 50) {
@@ -367,7 +367,7 @@ export default async function DiagnosticsPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_460px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              {copyForLanguage(language, "Diagnostics", "Diagnóstico")}
+              {copyForLanguage(language, "Marketing diagnosis", "Diagnóstico de marketing")}
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
               {language === "es" ? (
@@ -389,10 +389,10 @@ export default async function DiagnosticsPage() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
               {copyForLanguage(
                 language,
-                "The diagnostic remains deterministic, but the presentation now separates score, evidence quality, uncertainty, and validation needs before anything feels like strong truth.",
-                "El diagnóstico sigue siendo determinista, pero la presentación separa puntuación, calidad de evidencia, incertidumbre y validaciones pendientes antes de tratar algo como verdad fuerte."
-              )}
-            </p>
+                  "The diagnosis remains deterministic, but the presentation now separates score, evidence quality, uncertainty, and validation needs before anything feels like strong truth.",
+                  "El diagnóstico sigue siendo determinista, pero la presentación separa puntuación, calidad de evidencia, incertidumbre y validaciones pendientes antes de tratar algo como verdad fuerte."
+                )}
+              </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <div className="rounded-[28px] border border-white/10 bg-white/[0.08] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
@@ -425,7 +425,7 @@ export default async function DiagnosticsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
-                      {copyForLanguage(language, "Latest diagnostic", "Último diagnóstico")}
+                      {copyForLanguage(language, "Latest marketing diagnosis", "Último diagnóstico de marketing")}
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
                       {localizeConfidence(latestResult.confidence, language)}{" "}
@@ -500,8 +500,8 @@ export default async function DiagnosticsPage() {
                 <h2 className="text-2xl font-semibold tracking-[-0.04em] text-white">
                   {copyForLanguage(
                     language,
-                    "No diagnostic has been saved yet.",
-                    "Todavía no se ha guardado ningún diagnóstico."
+                    "No marketing diagnosis has been saved yet.",
+                    "Todavía no se ha guardado ningún diagnóstico de marketing."
                   )}
                 </h2>
                 <p className="text-sm leading-7 text-white/68">
@@ -534,20 +534,20 @@ export default async function DiagnosticsPage() {
         <FoundrySectionCard
           description={copyForLanguage(
             language,
-            "Diagnostics are intentionally grounded in saved workspace data, so the profile needs to exist first.",
-            "El diagnóstico se apoya de forma intencional en los datos guardados del espacio, así que el perfil debe existir primero."
-          )}
-          title={copyForLanguage(
-            language,
-            "Profile required before running diagnostics.",
-            "Se necesita el perfil antes de ejecutar el diagnóstico."
-          )}
+                "The marketing diagnosis is intentionally grounded in saved workspace data, so the profile needs to exist first.",
+                "El diagnóstico de marketing se apoya de forma intencional en los datos guardados del espacio, así que el perfil debe existir primero."
+              )}
+              title={copyForLanguage(
+                language,
+                "Profile required before running the diagnosis.",
+                "Se necesita el perfil antes de ejecutar el diagnóstico."
+              )}
         >
           <Link
             className="inline-flex items-center gap-2 rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
             href="/app/profile"
           >
-            {copyForLanguage(language, "Complete profile", "Completar perfil")}
+            {copyForLanguage(language, "Complete marketing profile", "Completar perfil de marketing")}
           </Link>
         </FoundrySectionCard>
       ) : null}
@@ -571,8 +571,8 @@ export default async function DiagnosticsPage() {
           <p className="mt-2 text-sm text-muted">
             {copyForLanguage(
               language,
-              "Expand to review earlier diagnostic runs and failure states.",
-              "Despliega para revisar ejecuciones anteriores y estados fallidos."
+              "Expand to review earlier marketing-diagnosis runs and failure states.",
+              "Despliega para revisar ejecuciones anteriores del diagnóstico de marketing y estados fallidos."
             )}
           </p>
         </summary>
@@ -618,8 +618,8 @@ export default async function DiagnosticsPage() {
                     <td className="px-4 py-6 text-muted" colSpan={5}>
                       {copyForLanguage(
                         language,
-                        "No diagnostic runs yet.",
-                        "Todavía no hay ejecuciones de diagnóstico."
+                        "No marketing diagnosis runs yet.",
+                        "Todavía no hay ejecuciones del diagnóstico de marketing."
                       )}
                     </td>
                   </tr>

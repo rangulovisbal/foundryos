@@ -39,7 +39,7 @@ export function DiagnosticsRunButton({
       if (!response.ok) {
         throw new Error(
           payload.error ??
-            copyForLanguage(language, "Diagnostic run failed.", "El diagnóstico falló.")
+            copyForLanguage(language, "Marketing diagnosis failed.", "El diagnóstico de marketing falló.")
         );
       }
 
@@ -47,8 +47,8 @@ export function DiagnosticsRunButton({
       setMessage(
         copyForLanguage(
           language,
-          "Diagnostic run completed and saved.",
-          "El diagnóstico se completó y quedó guardado."
+          "Marketing diagnosis completed and saved.",
+          "El diagnóstico de marketing se completó y quedó guardado."
         )
       );
       router.refresh();
@@ -57,7 +57,7 @@ export function DiagnosticsRunButton({
       setMessage(
         error instanceof Error
           ? error.message
-          : copyForLanguage(language, "Diagnostic run failed.", "El diagnóstico falló.")
+          : copyForLanguage(language, "Marketing diagnosis failed.", "El diagnóstico de marketing falló.")
       );
     } finally {
       setLoading(false);
@@ -73,8 +73,8 @@ export function DiagnosticsRunButton({
         type="button"
       >
         {loading
-          ? copyForLanguage(language, "Running diagnostic...", "Ejecutando diagnóstico...")
-          : copyForLanguage(language, "Run diagnostic", "Ejecutar diagnóstico")}
+          ? copyForLanguage(language, "Running marketing diagnosis...", "Ejecutando diagnóstico de marketing...")
+          : copyForLanguage(language, "Run marketing diagnosis", "Ejecutar diagnóstico de marketing")}
       </button>
       {!canRun ? <p className="text-sm text-muted">{disabledReason}</p> : null}
       {message ? (

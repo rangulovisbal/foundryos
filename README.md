@@ -1,12 +1,13 @@
 # FoundryOS
 
-MVP B2B SaaS for operational diagnostics, prioritization, and 30-day action plans for small businesses.
+MVP B2B SaaS for marketing diagnosis, evidence-backed prioritization, and
+30-day marketing action plans for early-stage businesses.
 
 ## Local development
 
 ```bash
 cp .env.example .env.local
-# Fill in values from Supabase, Neon, OpenAI, Resend, Cloudflare, PostHog
+# Fill in values from Supabase/Postgres, OpenAI, Resend, Cloudflare, PostHog
 npm install
 npm run dev
 ```

@@ -21,22 +21,22 @@ export function buildEmptyReport(companyName: string): SnapshotReport {
   return {
     score: 0,
     maturity: "Early",
-    headline: "Snapshot could not be generated.",
-    summary: `${companyName} needs a retry. Check the API route or environment configuration.`,
+    headline: "The marketing snapshot could not be generated.",
+    summary: `${companyName} needs a retry. Check the API route or environment configuration before generating the marketing diagnosis again.`,
     recommendedPlan: "AI Snapshot",
     quickWins: ["Retry the intake request after validating the API route."],
-    risks: ["The diagnostic engine is unavailable until the request succeeds."],
+    risks: ["The diagnosis engine is unavailable until the request succeeds."],
     suggestedStack: ["Check local environment variables and API route status."],
-    automationOpportunities: ["Connect the route to OpenAI or keep heuristic mode."],
+    automationOpportunities: ["Reconnect the report route or keep the current heuristic marketing mode."],
     monthlyFocus: ["Validate the request payload and route response."],
     priorities: [
       {
-        title: "Restore snapshot generation",
+        title: "Restore marketing snapshot generation",
         impact: "High",
         effort: "Low",
         owner: "Product / Dev",
         rationale:
-          "The product needs a functioning intake-to-report flow before sales."
+          "The product needs a functioning intake-to-report flow before the marketing diagnosis can be used reliably."
       }
     ]
   };

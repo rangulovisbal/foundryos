@@ -6,22 +6,22 @@ import { isPlanCheckoutConfigured, pricingPlans } from "@/lib/pricing";
 
 const planIncludes: Record<string, string[]> = {
   snapshot: [
-    "1 business scorecard",
-    "1 diagnostic summary",
-    "1 priority roadmap for the next 30 days",
+    "1 marketing diagnosis",
+    "1 evidence-backed diagnostic summary",
+    "1 marketing priorities map for the next 30 days",
     "1 quick-wins list",
-    "1 recommended starter stack"
+    "1 starter channel and measurement checklist"
   ],
   "growth-os": [
-    "Monthly refreshed roadmap",
-    "Execution dashboard",
-    "Asset generation",
-    "SOP builder and operating templates",
-    "Automation recommendations"
+    "Monthly refreshed marketing priorities",
+    "30-day marketing plan tracking",
+    "Marketing asset drafting",
+    "Marketing workflow support",
+    "Measurement and reporting prompts"
   ],
   operator: [
     "Integrations and connectors",
-    "Active workflows",
+    "Active implementation support",
     "Role-specific agents",
     "Deeper reporting",
     "Priority support"
@@ -57,11 +57,11 @@ export default function PricingPage() {
     },
     {
       title: "Complete the intake",
-      body: "Once access starts, you provide the business context needed to score the account and build the plan."
+      body: "Once access starts, you provide the business and marketing context needed to diagnose what is missing and build the plan."
     },
     {
       title: "Receive your first outputs",
-      body: "Snapshot customers receive a scorecard and roadmap. FoundryOS Core customers move into recurring refreshes once those workflows are enabled for the workspace."
+      body: "Snapshot customers receive a marketing diagnosis and 30-day marketing plan. FoundryOS Core customers move into recurring refreshes once those workflows are enabled for the workspace."
     }
   ] as const;
 
@@ -70,12 +70,13 @@ export default function PricingPage() {
       <section className="surface p-6 md:p-8">
         <span className="eyebrow">Pricing</span>
         <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em]">
-          Clear plans, clear deliverables, clear next step.
+          Clear plans, clear deliverables, clear next marketing step.
         </h1>
         <p className="mt-4 max-w-3xl body-lg">
-          Start with Snapshot if you need a diagnostic and a 30-day plan.
-          Choose FoundryOS Core if you want a recurring operating layer. Use
-          Operator when the work includes deeper implementation and integrations.
+          Start with Snapshot if you need clarity on what is missing in your
+          marketing and what to do in the next 30 days. Choose FoundryOS Core if
+          you want recurring marketing planning support. Use Operator when the
+          work includes deeper implementation and integrations.
         </p>
         {!hasLiveCheckout ? (
           <p className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">

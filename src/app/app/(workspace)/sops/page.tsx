@@ -28,26 +28,26 @@ function resolveDisabledReason(
   hasDiagnostic: boolean
 ) {
   if (!hasProfile) {
-    return "Complete and save the business profile before generating SOPs.";
+    return "Complete and save the marketing profile before generating marketing workflows.";
   }
 
   if (!hasDiagnostic) {
-    return "Run diagnostics before generating SOPs.";
+    return "Run the marketing diagnosis before generating marketing workflows.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
-    return "SOP generation is locked for this workspace account state.";
+    return "Marketing workflow generation is locked for this workspace account state.";
   }
 
   if (isReadOnlyState(context.workspace.accountState)) {
-    return "SOP generation is read-only while this workspace account state is limited.";
+    return "Marketing workflow generation is read-only while this workspace account state is limited.";
   }
 
   if (!canGenerateSops(context)) {
-    return "Only workspace owners and admins on growth-os or operator plans can generate SOPs in this MVP.";
+    return "Only workspace owners and admins on growth-os or operator plans can generate marketing workflows in this MVP.";
   }
 
-  return "SOP generation is unavailable.";
+  return "Marketing workflow generation is unavailable.";
 }
 
 function formatOutputLanguageLabel(language: "en" | "es") {
@@ -86,32 +86,32 @@ export default async function SopsPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              SOPs
+              Marketing workflows
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
               Turn context into{" "}
-              <span className="font-serif-display text-[#F4F2EC]">repeatable operating steps.</span>
+              <span className="font-serif-display text-[#F4F2EC]">repeatable marketing workflows.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              SOPs use the saved profile and diagnostic findings to draft lead handling,
+              Marketing workflows use the saved profile and diagnostic findings to draft lead handling,
               reporting, campaign setup, content workflow, and internal approval procedures.
-              They are preview operating drafts, not live integrations.
+              They are preview workflow drafts, not live integrations.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {latestArtifacts.length > 0 ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#sop-set">
-                  View latest SOPs
+                  View latest workflows
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
-                Source diagnostic
+                Source marketing diagnosis
               </Link>
             </div>
           </div>
 
           <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
-              Latest SOP set
+              Latest workflow set
             </p>
             <p className="mt-4 text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
               {latestArtifacts.length > 0 ? latestArtifacts.length : "--"}
@@ -119,7 +119,7 @@ export default async function SopsPage() {
             <p className="mt-4 text-sm leading-6 text-white/68">
               {latestArtifacts.length > 0
                 ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
-                : "Generate after the profile and diagnostics exist."}
+                : "Generate after the profile and marketing diagnosis exist."}
             </p>
             <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
@@ -130,9 +130,9 @@ export default async function SopsPage() {
                   canGenerate={canGenerate}
                   disabledReason={disabledReason}
                   endpoint="/api/app/sops/generate"
-                  idleLabel="Generate SOPs"
-                  loadingLabel="Generating SOPs..."
-                  successLabel="SOPs generated and saved."
+                  idleLabel="Generate workflows"
+                  loadingLabel="Generating workflows..."
+                  successLabel="Marketing workflows generated and saved."
                 />
               </div>
             </div>
@@ -144,18 +144,18 @@ export default async function SopsPage() {
         <PageSummaryGrid
           items={[
             {
-              label: "Latest SOP set",
+              label: "Latest workflow set",
               value:
                 latestArtifacts.length > 0 ? `${latestArtifacts.length} saved` : "Missing",
               detail:
                 latestArtifacts.length > 0
                   ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
-                  : "Generate after the profile and diagnostics exist."
+                  : "Generate after the profile and marketing diagnosis exist."
             },
             {
               label: "Latest status",
               value: history[0]?.job.status ?? "none",
-              detail: "The newest SOP generation state for this workspace."
+              detail: "The newest marketing-workflow generation state for this workspace."
             },
             {
               label: "Procedure types",
@@ -166,13 +166,13 @@ export default async function SopsPage() {
               label: "Output language",
               value: formatOutputLanguageLabel(context.workspace.outputLanguage),
               detail:
-                "The workspace language drives generated SOP content and the core app experience."
+                "The workspace language drives generated marketing-workflow content and the core app experience."
             }
           ]}
         />
         <PageSectionLinks
           links={[
-            ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest SOPs" }] : []),
+            ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest workflows" }] : []),
             { href: "#sop-history", label: "History" }
           ]}
         />
@@ -188,12 +188,12 @@ export default async function SopsPage() {
         <LatestSopsSection artifacts={latestArtifacts} />
       ) : (
         <section className="surface p-5 md:p-7">
-          <span className="eyebrow">No SOPs yet</span>
+          <span className="eyebrow">No workflows yet</span>
           <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Generate the first SOP set after the profile and diagnostics are complete.
+            Generate the first marketing workflow set after the profile and diagnosis are complete.
           </h2>
           <p className="mt-4 body-lg">
-            The first MVP SOP set includes lead handling, reporting cadence,
+            The first MVP workflow set includes lead handling, reporting cadence,
             campaign setup, content workflow, and internal approval procedures.
           </p>
         </section>
@@ -224,12 +224,12 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        SOPs need a saved business profile and diagnostic result.
+        Marketing workflows need a saved marketing profile and diagnostic result.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
-        {!hasProfile ? <PrimaryLink href="/app/profile" label="Complete profile" /> : null}
+        {!hasProfile ? <PrimaryLink href="/app/profile" label="Complete marketing profile" /> : null}
         {!hasDiagnostic ? (
-          <SecondaryLink href="/app/diagnostics" label="Run diagnostics" />
+          <SecondaryLink href="/app/diagnostics" label="Run marketing diagnosis" />
         ) : null}
       </div>
     </section>
@@ -262,9 +262,9 @@ function LatestSopsSection({ artifacts }: { artifacts: SopArtifactRecord[] }) {
   return (
     <section className="space-y-6" id="sop-set">
       <div className="surface p-5 md:p-7">
-        <span className="eyebrow">Latest SOP set</span>
+        <span className="eyebrow">Latest workflow set</span>
         <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-          {artifacts.length} operating procedures are saved.
+          {artifacts.length} marketing workflows are saved.
         </h2>
         <p className="mt-4 text-sm text-muted">
           Last generated {new Date(artifacts[0].createdAt).toLocaleString()}
@@ -336,7 +336,7 @@ function SopHistoryTable({ history }: { history: SopJobWithArtifacts[] }) {
       <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
         <p className="text-sm uppercase tracking-[0.18em] text-muted">Generation history</p>
         <p className="mt-2 text-sm text-muted">
-          Expand to review older SOP runs and failure states.
+          Expand to review older workflow runs and failure states.
         </p>
       </summary>
       <div className="px-6 pb-6 md:px-8 md:pb-8">
@@ -346,7 +346,7 @@ function SopHistoryTable({ history }: { history: SopJobWithArtifacts[] }) {
               <tr>
                 <th className="px-4 py-3 font-semibold">Created</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">SOPs</th>
+                <th className="px-4 py-3 font-semibold">Workflows</th>
                 <th className="px-4 py-3 font-semibold">Types</th>
                 <th className="px-4 py-3 font-semibold">Error</th>
               </tr>
@@ -375,7 +375,7 @@ function SopHistoryTable({ history }: { history: SopJobWithArtifacts[] }) {
               ) : (
                 <tr>
                   <td className="px-4 py-6 text-muted" colSpan={5}>
-                    No SOP generation jobs have been created yet.
+                    No marketing-workflow generation jobs have been created yet.
                   </td>
                 </tr>
               )}

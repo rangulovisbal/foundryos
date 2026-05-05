@@ -9,7 +9,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: `${siteConfig.name} | AI-first operating system for small teams`,
+  title: `${siteConfig.name} | Marketing diagnosis and 30-day planning`,
   description: siteConfig.description,
   icons: {
     icon: "/icon"

@@ -1,7 +1,7 @@
 # Session Script: Intake (60-90 min)
 
 ## Objective
-Guide [Susana] through the business profile and evidence intake in FoundryOS, capturing enough real information to generate a high-quality diagnostic. Ricardo drives the session; the client talks.
+Guide [Susana] through the business profile and evidence intake in FoundryOS, capturing enough real information to generate a high-quality marketing diagnostic. Ricardo drives the session; the client talks.
 
 ---
 
@@ -9,7 +9,7 @@ Guide [Susana] through the business profile and evidence intake in FoundryOS, ca
 
 **What Ricardo says:**
 
-> "Gracias por dedicarme este rato. Lo que vamos a hacer es sencillo: yo te voy a ir haciendo preguntas sobre tu negocio — como funciona hoy, no como te gustaria que funcionara — y voy completando el perfil en la herramienta. No hay respuestas correctas ni incorrectas. Lo que me interesa es lo que pasa de verdad, con toda la honestidad que puedas. Si algo no lo sabes o no lo tienes claro, me dices 'no lo se' y seguimos. Al final de esta sesion, la herramienta va a generar un diagnostico basado en lo que me cuentes. En unos dias nos vemos otra vez y te lo presento."
+> "Gracias por dedicarme este rato. Lo que vamos a hacer es sencillo: yo te voy a ir haciendo preguntas sobre tu negocio y sobre como se presenta hoy tu marketing — no como te gustaria que funcionara, sino como funciona de verdad — y voy completando el perfil en la herramienta. No hay respuestas correctas ni incorrectas. Lo que me interesa es lo que pasa de verdad, con toda la honestidad que puedas. Si algo no lo sabes o no lo tienes claro, me dices 'no lo se' y seguimos. Al final de esta sesion, la herramienta va a generar un diagnostico de marketing basado en lo que me cuentes. En unos dias nos vemos otra vez y te lo presento."
 
 **Key points to communicate:**
 - This is not a sales call. You're building a product and she's helping you test it.
@@ -76,7 +76,7 @@ This is the core of the intake. Go through each evidence category in the busines
 
 **If she gives vague answers:** "Puedes darme un ejemplo concreto? Algo que haya pasado la semana pasada o el mes pasado."
 
-**If she doesn't know something:** Mark it honestly in the tool. Say: "Perfecto, lo dejo como 'no disponible'. Eso le dice al diagnostico que aqui hay un punto ciego, que es informacion util en si misma."
+**If she doesn't know something:** Mark it honestly in the tool. Say: "Perfecto, lo dejo como 'no disponible'. Eso le dice al diagnostico que aqui hay un punto ciego de marketing, que es informacion util en si misma."
 
 ---
 
@@ -89,7 +89,7 @@ This is the core of the intake. Go through each evidence category in the busines
 
 **What Ricardo says to close:**
 
-> "Ya tenemos todo lo que necesito. Ahora la herramienta va a procesar esto y generar el diagnostico, el plan de acciones, y los materiales. En [X dias] nos vemos otra vez y te lo presento todo. Esa sesion es para ti: yo te lo enseno, tu me dices que te sirve y que no. Muchas gracias por tu tiempo."
+> "Ya tenemos todo lo que necesito. Ahora la herramienta va a procesar esto y generar el diagnostico de marketing, el plan de marketing de 30 dias, y los materiales y flujos de trabajo de apoyo. En [X dias] nos vemos otra vez y te lo presento todo. Esa sesion es para ti: yo te lo enseno, tu me dices que te sirve y que no. Muchas gracias por tu tiempo."
 
 **Agree on the date for the review session before hanging up.**
 

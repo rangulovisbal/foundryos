@@ -18,8 +18,8 @@ export function SiteFooter({ language }: { language: OutputLanguage }) {
             <p className="mt-2 max-w-2xl text-sm text-muted">
               {copyForLanguage(
                 language,
-                "AI-first operating system for startups and lean teams that need a clearer growth plan, better execution and less operational drag.",
-                "Sistema operativo AI-first para startups y equipos pequeños que necesitan un plan de crecimiento más claro, mejor ejecución y menos fricción operativa."
+                "Marketing diagnosis and 30-day planning for early-stage businesses that need a clearer offer, message, channel focus, and next step.",
+                "Diagnóstico de marketing y planificación a 30 días para negocios en fase inicial que necesitan una oferta más clara, mejor mensaje, foco de canal y un siguiente paso concreto."
               )}
             </p>
           </div>

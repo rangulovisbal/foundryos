@@ -111,7 +111,7 @@ export function AuthShell({
 
         <aside className="foundry-dark-panel m-4 hidden rounded-[28px] p-8 text-[#E0EBF0] lg:flex lg:flex-col lg:justify-between">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
-            FoundryOS · operating system
+            FoundryOS · marketing diagnosis
           </div>
           <div>
             <p className="font-serif-display text-5xl leading-[0.98] text-white">

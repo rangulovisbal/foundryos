@@ -35,30 +35,30 @@ function resolveDisabledReason(
   hasThirtyDayPlan: boolean
 ) {
   if (!hasProfile) {
-    return "Complete and save the business profile before generating assets.";
+    return "Complete and save the marketing profile before generating marketing assets.";
   }
 
   if (!hasDiagnostic) {
-    return "Run diagnostics before generating assets.";
+    return "Run the marketing diagnosis before generating marketing assets.";
   }
 
   if (!hasRoadmap || !hasActionPlan || !hasThirtyDayPlan) {
-    return "Generate roadmap, actions, and a 30-day plan before generating assets.";
+    return "Generate marketing priorities and the 30-day plan before generating marketing assets.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
-    return "Asset generation is locked for this workspace account state.";
+    return "Marketing asset generation is locked for this workspace account state.";
   }
 
   if (isReadOnlyState(context.workspace.accountState)) {
-    return "Asset generation is read-only while this workspace account state is limited.";
+    return "Marketing asset generation is read-only while this workspace account state is limited.";
   }
 
   if (!canGenerateAssets(context)) {
-    return "Only workspace owners and admins with remaining asset usage can generate assets in this MVP.";
+    return "Only workspace owners and admins with remaining asset usage can generate marketing assets in this MVP.";
   }
 
-  return "Asset generation is unavailable.";
+  return "Marketing asset generation is unavailable.";
 }
 
 function formatOutputLanguageLabel(language: "en" | "es") {
@@ -116,24 +116,24 @@ export default async function AssetsPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              Assets
+              Marketing assets
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
-              Package the plan into{" "}
-              <span className="font-serif-display text-[#F4F2EC]">usable artifacts.</span>
+              Turn the plan into{" "}
+              <span className="font-serif-display text-[#F4F2EC]">reusable marketing assets.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              Assets use the saved profile, diagnostic, roadmap, action list, and 30-day plan.
-              They remain structured preview artifacts, not automated fulfillment or live billing.
+              Marketing assets use the saved profile, diagnosis, priorities, action list, and 30-day plan.
+              They remain structured preview artifacts, not automated fulfillment or autonomous publishing.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {latestAssets.length > 0 ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#asset-set">
-                  View latest assets
+                  View latest marketing assets
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/actions">
-                Source plan
+                Source 30-day plan
               </Link>
             </div>
           </div>
@@ -157,9 +157,9 @@ export default async function AssetsPage() {
                   canGenerate={canGenerate}
                   disabledReason={disabledReason}
                   endpoint="/api/app/assets/generate"
-                  idleLabel="Generate assets"
-                  loadingLabel="Generating assets..."
-                  successLabel="Assets generated and saved."
+                  idleLabel="Generate marketing assets"
+                  loadingLabel="Generating marketing assets..."
+                  successLabel="Marketing assets generated and saved."
                 />
               </div>
             </div>
@@ -176,7 +176,7 @@ export default async function AssetsPage() {
               detail:
                 latestAssets.length > 0
                   ? `Latest run saved ${new Date(latestAssets[0].createdAt).toLocaleString()}.`
-                  : "Generate after profile, diagnostics, roadmap, and actions exist."
+                  : "Generate after the profile, diagnosis, priorities, and plan exist."
             },
             {
               label: "Asset runs",
@@ -188,20 +188,20 @@ export default async function AssetsPage() {
             {
               label: "Latest status",
               value: history[0]?.job.status ?? "none",
-              detail: "The newest asset job state across this workspace."
+              detail: "The newest marketing-asset job state across this workspace."
             },
             {
               label: "Output language",
               value: formatOutputLanguageLabel(context.workspace.outputLanguage),
               detail:
-                "The workspace language drives generated asset content and the core app experience."
+                "The workspace language drives generated marketing-asset content and the core app experience."
             }
           ]}
         />
         <PageSectionLinks
           links={[
             ...(latestAssets.length > 0
-              ? [{ href: "#asset-set", label: "Latest assets" }]
+              ? [{ href: "#asset-set", label: "Latest marketing assets" }]
               : []),
             { href: "#asset-history", label: "History" }
           ]}
@@ -228,9 +228,9 @@ export default async function AssetsPage() {
         <LatestAssetsSection assets={latestAssets} />
       ) : (
         <section className="surface p-5 md:p-7">
-          <span className="eyebrow">No assets yet</span>
+          <span className="eyebrow">No marketing assets yet</span>
           <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Generate the first asset set after planning is complete.
+            Generate the first marketing asset set after planning is complete.
           </h2>
           <p className="mt-4 body-lg">
             The first MVP asset set includes positioning, messaging, channel,
@@ -270,16 +270,16 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Assets need saved profile, diagnostics, roadmap, and planning inputs.
+        Marketing assets need saved profile, diagnosis, priorities, and planning inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
-        {!hasProfile ? <PrimaryLink href="/app/profile" label="Complete profile" /> : null}
+        {!hasProfile ? <PrimaryLink href="/app/profile" label="Complete marketing profile" /> : null}
         {!hasDiagnostic ? (
-          <SecondaryLink href="/app/diagnostics" label="Run diagnostics" />
+          <SecondaryLink href="/app/diagnostics" label="Run marketing diagnosis" />
         ) : null}
-        {!hasRoadmap ? <SecondaryLink href="/app/roadmap" label="Generate roadmap" /> : null}
+        {!hasRoadmap ? <SecondaryLink href="/app/roadmap" label="Generate priorities" /> : null}
         {!hasActionPlan || !hasThirtyDayPlan ? (
-          <SecondaryLink href="/app/actions" label="Generate actions" />
+          <SecondaryLink href="/app/actions" label="Generate 30-day plan" />
         ) : null}
       </div>
     </section>
@@ -314,9 +314,9 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
   return (
     <section className="space-y-6" id="asset-set">
       <div className="surface p-5 md:p-7">
-        <span className="eyebrow">Latest asset set</span>
+        <span className="eyebrow">Latest marketing asset set</span>
         <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-          {assets.length} structured assets are saved.
+          {assets.length} structured marketing assets are saved.
         </h2>
         <p className="mt-4 text-sm text-muted">
           Last generated {new Date(assets[0].createdAt).toLocaleString()}
@@ -330,7 +330,7 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
           </article>
           <article className="metric-card">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-              Saved artifacts
+              Saved assets
             </p>
             <p className="mt-3 text-2xl font-semibold">{assets.length}</p>
           </article>

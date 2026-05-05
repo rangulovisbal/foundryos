@@ -36,10 +36,10 @@ const labelMap: Record<string, string> = {
   "increase-demand": "Increase demand",
   "improve-conversion": "Improve conversion",
   "launch-offers": "Launch offers",
-  "reduce-ops-load": "Reduce ops load",
-  "build-system": "Build an operating system",
+  "reduce-ops-load": "Make execution lighter",
+  "build-system": "Build a repeatable marketing engine",
   "growth-clarity": "Growth clarity",
-  "manual-operations": "Manual operations",
+  "manual-operations": "No repeatable marketing workflow",
   messaging: "Messaging and positioning",
   "funnel-conversion": "Funnel conversion",
   analytics: "Analytics visibility",
@@ -107,12 +107,12 @@ export function OnboardingForm() {
             <div>
               <span className="eyebrow">Snapshot intake</span>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-                Turn a messy business picture into one operating plan.
+                Turn a messy marketing picture into one clear 30-day plan.
               </h1>
               <p className="mt-3 max-w-2xl body-lg">
-                This intake produces a structured diagnostic even without live
-                API keys. Once OpenAI is connected, the same flow can be
-                upgraded with richer analysis.
+                This intake produces a structured marketing diagnosis from the
+                profile you provide. It uses founder-entered context and visible
+                evidence, not fake autonomous business understanding.
               </p>
             </div>
 
@@ -223,7 +223,7 @@ export function OnboardingForm() {
               <textarea
                 className="min-h-36 w-full rounded-[24px] border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none ring-0"
                 onChange={(event) => updateField("notes", event.target.value)}
-                placeholder="Add any relevant context: weak funnel, manual onboarding, founder bottleneck, product complexity, etc."
+                placeholder="Add any relevant context: unclear offer, weak message, low conversion, missing proof, channel confusion, or reporting gaps."
                 value={form.notes}
               />
             </label>
@@ -232,25 +232,25 @@ export function OnboardingForm() {
           <div className="space-y-5">
             <div className="surface-strong p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted">
-                Operating signals
+                Marketing signals
               </p>
               <div className="mt-4 space-y-4">
                 <CheckboxRow
                   checked={form.hasDocumentedSOPs}
-                  description="If not, the product will prioritize SOP creation and async handoffs."
-                  label="Documented SOPs already exist"
+                  description="If not, the product will prioritize repeatable marketing workflows and handoffs."
+                  label="Documented marketing workflows already exist"
                   onChange={(value) => updateField("hasDocumentedSOPs", value)}
                 />
                 <CheckboxRow
                   checked={form.hasAnalytics}
-                  description="This influences score, dashboard guidance and monthly review cadence."
-                  label="Basic analytics are already in place"
+                  description="This influences the diagnosis, dashboard guidance, and weekly review cadence."
+                  label="Basic measurement is already in place"
                   onChange={(value) => updateField("hasAnalytics", value)}
                 />
                 <CheckboxRow
                   checked={form.openToAutomation}
-                  description="Automation readiness affects the plan recommendation and workflow ideas."
-                  label="The team is open to automation"
+                  description="Workflow readiness affects the suggested path and execution support ideas."
+                  label="The team is open to workflow tooling"
                   onChange={(value) => updateField("openToAutomation", value)}
                 />
               </div>
@@ -262,16 +262,16 @@ export function OnboardingForm() {
               </p>
               <ul className="mt-4 space-y-3 text-sm text-muted">
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Business score and maturity reading
+                  Marketing clarity score and maturity reading
                 </li>
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  30-day priorities with impact and effort
+                  30-day marketing priorities with impact and effort
                 </li>
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Quick wins, risks and suggested stack
+                  Quick wins, risks, and a suggested channel and measurement stack
                 </li>
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Automation backlog and plan recommendation
+                  Execution support ideas and a suggested next plan
                 </li>
               </ul>
             </div>
@@ -281,7 +281,7 @@ export function OnboardingForm() {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? "Generating snapshot..." : "Generate snapshot"}
+              {isSubmitting ? "Generating marketing snapshot..." : "Generate marketing snapshot"}
             </button>
 
             {error ? (
@@ -296,7 +296,7 @@ export function OnboardingForm() {
       {report ? (
         <SnapshotReportView
           report={report}
-          title={`${form.companyName} diagnostic`}
+          title={`${form.companyName} marketing diagnosis`}
         />
       ) : null}
     </div>

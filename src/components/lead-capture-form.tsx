@@ -35,10 +35,10 @@ type LeadCaptureFormProps = {
 
 export function LeadCaptureForm({
   id = "snapshot-request",
-  eyebrow = "Request your Snapshot",
-  title = "Get your AI Snapshot and receive first outputs in 24 hours.",
-  description = "Use this form to request the Snapshot or tell us if you need a deeper Operator rollout. Payments are handled securely by Stripe once checkout is enabled for your plan.",
-  buttonLabel = "Request Snapshot"
+  eyebrow = "Request your marketing Snapshot",
+  title = "Get a marketing diagnosis and first 30-day plan.",
+  description = "Use this form to request the Snapshot or tell us if you need a deeper implementation rollout. FoundryOS starts from founder-entered context and visible evidence you share; it does not claim live autonomous business analysis.",
+  buttonLabel = "Request marketing Snapshot"
 }: LeadCaptureFormProps) {
   const [form, setForm] = useState<LeadState>(defaultState);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -170,7 +170,7 @@ export function LeadCaptureForm({
               onChange={(event) =>
                 setForm((current) => ({ ...current, message: event.target.value }))
               }
-              placeholder="Tell us what is blocking growth or operations right now."
+              placeholder="Tell us what feels unclear or missing in your marketing right now: offer, audience, message, channels, conversion, proof, or measurement."
               value={form.message}
             />
           </label>
@@ -185,8 +185,8 @@ export function LeadCaptureForm({
               type="checkbox"
             />
             <span>
-              I agree to be contacted about FoundryOS and understand payment
-              and future subscription processing is handled directly by Stripe.
+              I agree to be contacted about FoundryOS. If paid plans are enabled
+              later, payment processing will be handled directly by Stripe.
             </span>
           </label>
 

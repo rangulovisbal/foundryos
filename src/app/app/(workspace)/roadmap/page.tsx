@@ -29,26 +29,26 @@ function resolveDisabledReason(
   hasDiagnostic: boolean
 ) {
   if (!hasProfile) {
-    return "Complete and save the business profile before generating a roadmap.";
+    return "Complete and save the marketing profile before generating marketing priorities.";
   }
 
   if (!hasDiagnostic) {
-    return "Run diagnostics before generating a roadmap.";
+    return "Run the marketing diagnosis before generating marketing priorities.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
-    return "Roadmap generation is locked for this workspace account state.";
+    return "Marketing priorities generation is locked for this workspace account state.";
   }
 
   if (isReadOnlyState(context.workspace.accountState)) {
-    return "Roadmap generation is read-only while this workspace account state is limited.";
+    return "Marketing priorities generation is read-only while this workspace account state is limited.";
   }
 
   if (!canGenerateRoadmap(context)) {
-    return "Only workspace owners and admins can generate roadmap outputs in this MVP.";
+    return "Only workspace owners and admins can generate marketing priorities in this MVP.";
   }
 
-  return "Roadmap generation is unavailable.";
+  return "Marketing priorities generation is unavailable.";
 }
 
 function formatOutputLanguageLabel(language: "en" | "es") {
@@ -90,23 +90,23 @@ export default async function RoadmapPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              Roadmap
+              Marketing priorities
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
-              Stage the work before it becomes{" "}
-              <span className="font-serif-display text-[#F4F2EC]">operating noise.</span>
+              Stage the marketing work before it becomes{" "}
+              <span className="font-serif-display text-[#F4F2EC]">marketing noise.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              Roadmap items stay grounded in the latest diagnostic and remain grouped by now,
+              Marketing priorities stay grounded in the latest diagnosis and remain grouped by now,
               next, and later with visible effort, impact, dependencies, and reasoning.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
-                Source diagnostic
+                Source marketing diagnosis
               </Link>
               {latestRoadmap ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#roadmap-result">
-                  View latest roadmap
+                  View latest priorities
                 </Link>
               ) : null}
             </div>
@@ -114,7 +114,7 @@ export default async function RoadmapPage() {
 
           <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
-              Source diagnostic
+              Source marketing diagnosis
             </p>
             <div className="mt-4 flex items-end gap-3">
               <span className="text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
@@ -127,7 +127,7 @@ export default async function RoadmapPage() {
             <p className="mt-4 text-sm leading-6 text-white/68">
               {latestDiagnostic
                 ? `Confidence: ${latestDiagnostic.confidence}.`
-                : "Run diagnostics first before generating a staged roadmap."}
+                : "Run the marketing diagnosis first before generating staged priorities."}
             </p>
             <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
@@ -138,9 +138,9 @@ export default async function RoadmapPage() {
                   canGenerate={canGenerate}
                   disabledReason={disabledReason}
                   endpoint="/api/app/roadmap/generate"
-                  idleLabel="Generate roadmap"
-                  loadingLabel="Generating roadmap..."
-                  successLabel="Roadmap generated and saved."
+                  idleLabel="Generate marketing priorities"
+                  loadingLabel="Generating marketing priorities..."
+                  successLabel="Marketing priorities generated and saved."
                 />
               </div>
             </div>
@@ -152,35 +152,35 @@ export default async function RoadmapPage() {
         <PageSummaryGrid
           items={[
             {
-              label: "Latest roadmap",
+              label: "Latest priorities",
               value: latestRoadmap ? `${latestRoadmap.items.length} items` : "Missing",
               detail: latestRoadmap
                 ? latestRoadmap.summary
-                : "Generate after diagnostics are complete."
+                : "Generate after the marketing diagnosis is complete."
             },
             {
               label: "Now / next / later",
               value: latestRoadmap
                 ? `${latestRoadmap.items.filter((item) => item.phase === "now").length} / ${latestRoadmap.items.filter((item) => item.phase === "next").length} / ${latestRoadmap.items.filter((item) => item.phase === "later").length}`
                 : "0 / 0 / 0",
-              detail: "Stage distribution from the latest roadmap."
+              detail: "Stage distribution from the latest set of marketing priorities."
             },
             {
               label: "Latest status",
               value: history[0]?.job.status ?? "none",
-              detail: "The newest roadmap job state for this workspace."
+              detail: "The newest marketing-priorities job state for this workspace."
             },
             {
               label: "Output language",
               value: formatOutputLanguageLabel(context.workspace.outputLanguage),
               detail:
-                "The workspace language drives generated roadmap content and the core app experience."
+                "The workspace language drives generated marketing-priority content and the core app experience."
             }
           ]}
         />
         <PageSectionLinks
           links={[
-            ...(latestRoadmap ? [{ href: "#roadmap-result", label: "Latest roadmap" }] : []),
+            ...(latestRoadmap ? [{ href: "#roadmap-result", label: "Latest priorities" }] : []),
             ...(latestRoadmap ? [{ href: "#roadmap-now", label: "Now" }] : []),
             ...(latestRoadmap ? [{ href: "#roadmap-next", label: "Next" }] : []),
             ...(latestRoadmap ? [{ href: "#roadmap-later", label: "Later" }] : []),
@@ -199,13 +199,13 @@ export default async function RoadmapPage() {
         <RoadmapResult roadmap={latestRoadmap} />
       ) : (
         <section className="surface p-5 md:p-7">
-          <span className="eyebrow">No roadmap yet</span>
+          <span className="eyebrow">No marketing priorities yet</span>
           <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Generate the first roadmap after diagnostics are complete.
+            Generate the first set of marketing priorities after the diagnosis is complete.
           </h2>
           <p className="mt-4 body-lg">
-            The roadmap stays structured and reviewable before it becomes the
-            input for assets, SOPs, or automation work.
+            This layer keeps marketing priorities structured and reviewable before they
+            become the input for assets, workflows, or deeper execution support.
           </p>
         </section>
       )}
@@ -235,7 +235,7 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Roadmap generation needs saved inputs.
+        Marketing priorities need saved inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
         {!hasProfile ? (
@@ -243,7 +243,7 @@ function PrerequisitePanel({
             className="rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
             href="/app/profile"
           >
-            Complete profile
+            Complete marketing profile
           </Link>
         ) : null}
         {!hasDiagnostic ? (
@@ -251,7 +251,7 @@ function PrerequisitePanel({
             className="rounded-[24px] border border-[color:var(--border)] bg-white/80 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink"
             href="/app/diagnostics"
           >
-            Run diagnostics
+            Run marketing diagnosis
           </Link>
         ) : null}
       </div>
@@ -269,7 +269,7 @@ function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
   return (
     <section className="space-y-6" id="roadmap-result">
       <div className="surface p-5 md:p-7">
-        <span className="eyebrow">Latest roadmap</span>
+        <span className="eyebrow">Latest marketing priorities</span>
         <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {roadmap.summary}
         </h2>
@@ -340,7 +340,7 @@ function RoadmapPhaseGroup({
           </h3>
           <p className="mt-3 text-sm text-muted">
             {items.length > 0
-              ? `${items.length} saved roadmap items in this phase.`
+              ? `${items.length} saved marketing priorities in this phase.`
               : `No ${label.toLowerCase()} items saved.`}
           </p>
         </div>
@@ -398,7 +398,7 @@ function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[]
           Generation history
         </p>
         <p className="mt-2 text-sm text-muted">
-          Expand to review earlier roadmap runs and failure states.
+          Expand to review earlier marketing-priority runs and failure states.
         </p>
       </summary>
       <div className="px-6 pb-6 md:px-8 md:pb-8">
@@ -408,7 +408,7 @@ function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[]
               <tr>
                 <th className="px-4 py-3 font-semibold">Created</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Roadmap</th>
+                <th className="px-4 py-3 font-semibold">Priorities</th>
                 <th className="px-4 py-3 font-semibold">Actions</th>
                 <th className="px-4 py-3 font-semibold">Error</th>
               </tr>
@@ -429,7 +429,7 @@ function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[]
               ) : (
                 <tr>
                   <td className="px-4 py-6 text-muted" colSpan={5}>
-                    No roadmap generation jobs yet.
+                    No marketing-priority generation jobs yet.
                   </td>
                 </tr>
               )}

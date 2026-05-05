@@ -32,26 +32,26 @@ function resolveDisabledReason(
   hasDiagnostic: boolean
 ) {
   if (!hasProfile) {
-    return "Complete and save the business profile before generating actions.";
+    return "Complete and save the marketing profile before generating the 30-day plan.";
   }
 
   if (!hasDiagnostic) {
-    return "Run diagnostics before generating actions and a 30-day plan.";
+    return "Run the marketing diagnosis before generating the 30-day plan.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
-    return "Actions and 30-day plan generation are locked for this workspace account state.";
+    return "30-day plan generation is locked for this workspace account state.";
   }
 
   if (isReadOnlyState(context.workspace.accountState)) {
-    return "Actions and 30-day plan generation are read-only while this workspace account state is limited.";
+    return "30-day plan generation is read-only while this workspace account state is limited.";
   }
 
   if (!canGenerateThirtyDayPlan(context)) {
-    return "Only workspace owners and admins can generate actions in this MVP.";
+    return "Only workspace owners and admins can generate the 30-day plan in this MVP.";
   }
 
-  return "Actions and 30-day plan generation are unavailable.";
+  return "30-day plan generation is unavailable.";
 }
 
 function formatOutputLanguageLabel(language: "en" | "es") {
@@ -95,21 +95,20 @@ export default async function ActionsPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              Actions and 30-day plan
+              30-day plan
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
-              Turn the read into{" "}
-              <span className="font-serif-display text-[#F4F2EC]">executable work.</span>
+              Turn the diagnosis into a{" "}
+              <span className="font-serif-display text-[#F4F2EC]">practical month of marketing.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              The action layer stores priorities, owner suggestions, reasoning, weekly
-              sequencing, and success signals without claiming live delivery or billing
-              automation.
+              This layer turns the diagnosis into weekly priorities, owner suggestions,
+              reasoning, and success signals without claiming live delivery or autonomous execution.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {latestActionPlan ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#action-list">
-                  View actions
+                  View action list
                 </Link>
               ) : null}
               {latestThirtyDayPlan ? (
@@ -141,9 +140,9 @@ export default async function ActionsPage() {
                   canGenerate={canGenerate}
                   disabledReason={disabledReason}
                   endpoint="/api/app/actions/generate"
-                  idleLabel="Generate actions"
-                  loadingLabel="Generating plan..."
-                  successLabel="Actions and 30-day plan generated and saved."
+                  idleLabel="Generate 30-day plan"
+                  loadingLabel="Generating 30-day plan..."
+                  successLabel="30-day marketing plan generated and saved."
                 />
               </div>
             </div>
@@ -158,7 +157,7 @@ export default async function ActionsPage() {
               label: "Action cards",
               value: String(latestActionPlan?.actions.length ?? 0),
               detail: latestActionPlan
-                ? "Saved action list from the latest planning run."
+                ? "Saved action list from the latest marketing-planning run."
                 : "No persisted action list yet."
             },
             {
@@ -166,18 +165,18 @@ export default async function ActionsPage() {
               value: latestThirtyDayPlan ? "Saved" : "Missing",
               detail: latestThirtyDayPlan
                 ? latestThirtyDayPlan.monthObjective
-                : "Generate after diagnostics."
+                : "Generate after the marketing diagnosis."
             },
             {
               label: "Quick wins",
               value: String(latestThirtyDayPlan?.quickWins.length ?? 0),
-              detail: "Fast execution items surfaced from the latest plan."
+              detail: "Fast marketing execution items surfaced from the latest plan."
             },
             {
               label: "Output language",
               value: formatOutputLanguageLabel(context.workspace.outputLanguage),
               detail:
-                "The workspace language drives generated planning content and the core app experience."
+                "The workspace language drives generated 30-day planning content and the core app experience."
             }
           ]}
         />
@@ -202,13 +201,13 @@ export default async function ActionsPage() {
         <ActionPlanSection actionPlan={latestActionPlan} />
       ) : (
         <section className="surface p-5 md:p-7">
-          <span className="eyebrow">No actions yet</span>
+          <span className="eyebrow">No 30-day plan yet</span>
           <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Generate actions after diagnostics are complete.
+            Generate the first 30-day marketing plan after the diagnosis is complete.
           </h2>
           <p className="mt-4 body-lg">
-            Actions are persisted as structured cards so they can later become
-            status-tracked work without changing the public preview.
+            Actions are persisted as structured cards so the marketing plan stays
+            concrete without pretending the product is already managing execution for you.
           </p>
         </section>
       )}
@@ -242,7 +241,7 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Actions need profile and diagnostic inputs.
+        The 30-day plan needs profile and diagnostic inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
         {!hasProfile ? (
@@ -250,7 +249,7 @@ function PrerequisitePanel({
             className="rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
             href="/app/profile"
           >
-            Complete profile
+            Complete marketing profile
           </Link>
         ) : null}
         {!hasDiagnostic ? (
@@ -258,7 +257,7 @@ function PrerequisitePanel({
             className="rounded-[24px] border border-[color:var(--border)] bg-white/80 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-ink"
             href="/app/diagnostics"
           >
-            Run diagnostics
+            Run marketing diagnosis
           </Link>
         ) : null}
       </div>
@@ -276,7 +275,7 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
     <section className="surface p-5 md:p-7" id="action-list">
       <span className="eyebrow">Action list</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Prioritized actions from the latest planning run.
+        Prioritized marketing actions from the latest planning run.
       </h2>
       <p className="mt-4 text-sm text-muted">
         Saved {new Date(actionPlan.createdAt).toLocaleString()}

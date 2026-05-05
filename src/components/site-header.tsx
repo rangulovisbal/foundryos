@@ -24,8 +24,8 @@ export function SiteHeader({ language }: { language: OutputLanguage }) {
             <p className="text-sm text-muted">
               {copyForLanguage(
                 language,
-                "Growth + operations for lean teams",
-                "Crecimiento + operaciones para equipos pequeños"
+                "Marketing diagnosis + planning for early-stage teams",
+                "Diagnóstico y planificación de marketing para equipos en etapa inicial"
               )}
             </p>
           </div>

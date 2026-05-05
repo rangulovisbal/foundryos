@@ -2,14 +2,15 @@
 
 ## What FoundryOS does today
 
-FoundryOS currently turns a saved business profile and user-entered business
-evidence into a deterministic operating read for the workspace. Today that includes:
+FoundryOS v1 currently turns a saved business profile and user-entered business
+evidence into a deterministic marketing diagnosis for the workspace. Today that
+includes:
 
-- a workspace-scoped business profile
+- a workspace-scoped business and marketing profile
 - evidence intake for website URL, channel URLs, positioning, CTA, pricing, acquisition method, sales process, and founder notes
 - deterministic diagnostics from saved profile inputs and user-entered evidence
-- persisted scorecards, risks, opportunities, and next actions
-- roadmap, action-plan, asset, and SOP generation built on the saved workspace truth layer
+- persisted diagnostic scores, risks, opportunities, and next actions
+- marketing-priority, 30-day action-plan, asset, and workflow generation built on the saved workspace truth layer
 - usage gating, account-state handling, and admin visibility for internal control
 
 The current system is strongest when the profile is complete, specific, internally
@@ -47,22 +48,22 @@ AI-assisted behavior may be added later for drafting, synthesis, or variant gene
 
 FoundryOS should currently claim:
 
-- deterministic profile-based operating diagnostics
+- deterministic profile-based marketing diagnosis
 - evidence-backed initial diagnostics when the founder has entered concrete website, positioning, channel, CTA, pricing, acquisition, and sales-process evidence
 - explainable scores with visible evidence references
 - explicit validation needs when evidence is weak, missing, or contradictory
-- directional planning support grounded in saved workspace context
+- directional marketing planning support grounded in saved workspace context
 
 FoundryOS should not currently claim:
 
 - autonomous business understanding
-- live operational truth across external systems
+- live business truth across external systems
 - verified website, CRM, analytics, sales, or channel truth
 - authoritative certainty when the profile is vague or contradictory
 
 ## Current confidence standard
 
-- `high` confidence means the profile is complete, specific, consistent, supported by meaningful operating evidence, and includes enough visible/CTA/acquisition evidence for stronger claims.
+- `high` confidence means the profile is complete, specific, consistent, supported by meaningful marketing evidence, and includes enough visible/CTA/acquisition evidence for stronger claims.
 - `medium` confidence means the profile is usable, but some gaps, ambiguity, or unverified evidence still limit certainty.
 - `low` confidence means the profile is weak, contradictory, too vague, or missing the business evidence needed for strong conclusions.
 

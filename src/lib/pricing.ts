@@ -3,13 +3,13 @@ export type PlanId = "snapshot" | "growth-os" | "operator";
 export const pricingPlans = [
   {
     id: "snapshot" as const,
-    name: "AI Snapshot",
+    name: "Marketing Snapshot",
     price: "€99",
     cadence: "one-off",
     description:
-      "A paid diagnostic with score, roadmap and first operating priorities for teams that need clarity fast.",
+      "A paid marketing diagnosis with clear gaps, priorities, and a first 30-day marketing plan for teams that need clarity fast.",
     checkoutEnabled: true,
-    ctaLabel: "Buy AI Snapshot"
+    ctaLabel: "Buy Marketing Snapshot"
   },
   {
     id: "growth-os" as const,
@@ -17,17 +17,17 @@ export const pricingPlans = [
     price: "€199",
     cadence: "per month",
     description:
-      "Recurring operating layer with monthly refresh, dashboard, SOPs and automation backlog.",
+      "Recurring marketing planning layer with refreshed priorities, asset drafting, workflow support, and monthly follow-through.",
     checkoutEnabled: true,
     ctaLabel: "Start FoundryOS"
   },
   {
     id: "operator" as const,
-    name: "AI Operator",
+    name: "Marketing Operator",
     price: "Custom",
     cadence: "contact sales",
     description:
-      "Custom rollout for teams that need integrations, active workflows and deeper implementation support.",
+      "Custom rollout for teams that need deeper marketing implementation, integrations, and active workflow support.",
     checkoutEnabled: false,
     ctaLabel: "Talk to us"
   }

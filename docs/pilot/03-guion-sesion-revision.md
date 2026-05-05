@@ -1,18 +1,18 @@
 # Session Script: Review (60 min)
 
 ## Objective
-Present the FoundryOS-generated outputs to [Susana], collect structured feedback on each module, and capture willingness-to-pay signal. Ricardo presents; the client reacts.
+Present the FoundryOS-generated outputs to [Susana], collect structured feedback on each module, and capture willingness-to-pay signal. Ricardo presents; the client reacts. The session should feel centered on marketing clarity and the first 30 days of execution.
 
 ---
 
 ## Before the session
 
 1. Make sure all 5 modules have been generated from her profile:
-   - Diagnostic (scorecard, risks, opportunities, next actions)
-   - Roadmap
-   - 30-day action plan
-   - Assets
-   - SOPs
+   - Marketing diagnosis (score, risks, opportunities, next actions)
+   - Marketing priorities
+   - 30-day marketing plan
+   - Marketing assets
+   - Marketing workflows
 2. Review the outputs yourself first. Flag anything that looks obviously wrong or generic — you'll want to watch her reaction on those specific points.
 3. Have the feedback template (`04-plantilla-feedback-piloto.md`) open so you can take notes in real time.
 
@@ -26,9 +26,9 @@ Present the FoundryOS-generated outputs to [Susana], collect structured feedback
 
 ---
 
-## Block 2 — Diagnostic (12-15 min)
+## Block 2 — Marketing diagnosis (12-15 min)
 
-Present the diagnostic scorecard, risks, opportunities, and next actions.
+Present the diagnosis score, risks, opportunities, and next actions.
 
 **How to present:**
 1. Start with the overall score/confidence level. Explain: "Esto mide cuanto la herramienta entiende tu negocio basandose en lo que me diste."
@@ -44,10 +44,10 @@ Present the diagnostic scorecard, risks, opportunities, and next actions.
 
 ---
 
-## Block 3 — Roadmap (5-7 min)
+## Block 3 — Marketing priorities (5-7 min)
 
 **How to present:**
-> "Esto es una vista de las prioridades a medio plazo. No es un plan detallado todavia — es el 'que' antes del 'como'."
+> "Esto es una vista de las prioridades de marketing. No es un plan detallado todavia — es el 'que' antes del 'como'."
 
 Walk through the top 3-5 priorities. For each:
 - "Esto te parece la prioridad correcta?"
@@ -55,7 +55,7 @@ Walk through the top 3-5 priorities. For each:
 
 ---
 
-## Block 4 — 30-day action plan (10-12 min)
+## Block 4 — 30-day marketing plan (10-12 min)
 
 **How to present:**
 > "Esto ya es concreto. Son las acciones que la herramienta dice que deberias hacer en los proximos 30 dias, ordenadas por prioridad."
@@ -72,10 +72,10 @@ Walk through each action:
 
 ---
 
-## Block 5 — Assets (8-10 min)
+## Block 5 — Marketing assets (8-10 min)
 
 **How to present:**
-> "Estos son materiales listos para usar: guiones, plantillas, textos. La idea es que puedas copiar, pegar y adaptar."
+> "Estos son materiales de marketing listos para usar: mensajes, plantillas, textos y checklists. La idea es que puedas copiar, pegar y adaptar."
 
 Show 2-3 of the most relevant assets. For each:
 - "Esto lo usarias tal cual, lo adaptarias, o no te sirve?"
@@ -85,12 +85,12 @@ Don't go through ALL assets — pick the ones most relevant to her situation.
 
 ---
 
-## Block 6 — SOPs (8-10 min)
+## Block 6 — Marketing workflows (8-10 min)
 
 **How to present:**
-> "Estos son procesos paso a paso. Son para que tu o alguien de tu equipo pueda seguirlos sin tener que pensar cada vez."
+> "Estos son flujos de trabajo de marketing paso a paso. Son para que tu o alguien de tu equipo pueda seguirlos sin tener que pensar cada vez."
 
-Show 1-2 SOPs. For each:
+Show 1-2 workflows. For each:
 - "Los pasos tienen sentido? Falta alguno?"
 - "Esto lo podria seguir alguien de tu equipo sin tu ayuda?"
 
@@ -127,10 +127,10 @@ If she struggles with a number:
 | Block | Duration |
 |-------|----------|
 | 1. Opening | 3 min |
-| 2. Diagnostic | 12-15 min |
-| 3. Roadmap | 5-7 min |
+| 2. Marketing diagnosis | 12-15 min |
+| 3. Marketing priorities | 5-7 min |
 | 4. Plan 30d | 10-12 min |
-| 5. Assets | 8-10 min |
-| 6. SOPs | 8-10 min |
+| 5. Marketing assets | 8-10 min |
+| 6. Marketing workflows | 8-10 min |
 | 7. Closing questions | 5-7 min |
 | **Total** | 50-65 min |

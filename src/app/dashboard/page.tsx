@@ -1,7 +1,67 @@
 import { SnapshotReportView } from "@/components/snapshot-report";
 import { generateSnapshotReport, sampleIntake } from "@/lib/snapshot";
+import type { SnapshotReport } from "@/lib/types";
 
 const report = generateSnapshotReport(sampleIntake);
+const displayReport: SnapshotReport = {
+  ...report,
+  summary:
+    "This sample shows how FoundryOS turns founder-entered business and marketing context into a structured diagnosis, marketing priorities, and a practical first 30-day plan.",
+  headline:
+    "The business has real traction, but the marketing still needs clearer message, stronger proof, and a tighter conversion path.",
+  recommendedPlan: "AI Snapshot" as const,
+  monthlyFocus: [
+    "Clarify the offer and headline so the right buyer understands it quickly.",
+    "Strengthen proof, CTA, and channel consistency across the main touchpoints.",
+    "Track one simple weekly rhythm for traffic, leads, and conversion."
+  ],
+  priorities: [
+    {
+      title: "Sharpen the homepage promise and primary CTA",
+      impact: "High",
+      effort: "Low",
+      owner: "Founder / Marketing",
+      rationale:
+        "A clearer promise and CTA improve first-impression clarity before more traffic is added."
+    },
+    {
+      title: "Make proof visible in the places prospects already look",
+      impact: "High",
+      effort: "Medium",
+      owner: "Founder / Marketing",
+      rationale:
+        "Trust signals reduce friction when the audience is still deciding whether the offer is credible."
+    },
+    {
+      title: "Choose one main channel and one weekly measurement rhythm",
+      impact: "Medium",
+      effort: "Low",
+      owner: "Founder / Marketing",
+      rationale:
+        "A narrower channel focus makes it easier to see what message and conversion changes are actually working."
+    }
+  ],
+  quickWins: [
+    "Add two visible proof elements above the fold.",
+    "Rewrite the founder intro so the audience and offer are obvious.",
+    "Track one conversion action consistently across site and outreach."
+  ],
+  automationOpportunities: [
+    "Route lead capture into one shared follow-up pipeline.",
+    "Create a lightweight follow-up sequence for inbound interest.",
+    "Use one weekly reporting template for traffic, leads, and conversion."
+  ],
+  risks: [
+    "The current message may still be too broad for the best-fit buyer.",
+    "Traffic can keep arriving without stronger proof and CTA alignment.",
+    "Too many channels at once can hide what is actually converting."
+  ],
+  suggestedStack: [
+    "Simple analytics dashboard for traffic and conversion",
+    "One CRM or pipeline for inbound follow-up",
+    "Shared content and campaign planning workspace"
+  ]
+};
 
 const metrics = [
   {
@@ -11,8 +71,8 @@ const metrics = [
   },
   {
     label: "Visible value",
-    value: "Score + roadmap",
-    note: "The sample output combines diagnosis, priorities and action logic in one view."
+    value: "Diagnosis + plan",
+    note: "The sample output combines a marketing diagnosis, priorities, and action logic in one view."
   },
   {
     label: "Support model",
@@ -22,12 +82,12 @@ const metrics = [
 ];
 
 const modules = [
-  "Intake and score engine",
-  "Operating roadmap",
-  "SOP library",
-  "Automation backlog",
-  "Metrics layer",
-  "Monthly refresh loop"
+  "Marketing intake",
+  "Marketing diagnosis",
+  "Marketing priorities",
+  "30-day plan",
+  "Marketing assets",
+  "Marketing workflows"
 ];
 
 export default function DashboardPage() {
@@ -38,13 +98,14 @@ export default function DashboardPage() {
           <div>
             <span className="eyebrow">Sample output</span>
             <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em]">
-              See the kind of operating view the product is designed to deliver.
+              See the kind of marketing diagnosis and 30-day plan the product is designed to deliver.
             </h1>
           </div>
           <p className="max-w-2xl body-lg">
-            This view is seeded from a sample account and the same scoring engine
-            used by the intake flow. The goal is to make priorities, quick wins
-            and automation opportunities visible at a glance.
+            This view is seeded from a sample account and the same structured
+            intake logic used by the product. The goal is to make what is
+            missing in the current marketing, and what to do next, visible at a
+            glance.
           </p>
         </div>
 
@@ -78,8 +139,8 @@ export default function DashboardPage() {
       </section>
 
       <SnapshotReportView
-        report={report}
-        title={`${sampleIntake.companyName} operating snapshot`}
+        report={displayReport}
+        title={`${sampleIntake.companyName} marketing snapshot`}
       />
     </div>
   );

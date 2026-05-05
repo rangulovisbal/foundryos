@@ -17,42 +17,75 @@ import { generateSnapshotReport, sampleIntake } from "@/lib/snapshot";
 const report = generateSnapshotReport(sampleIntake);
 
 const heroBullets = [
-  "Built for startups and lean teams already selling something real",
-  "Structured first outputs after intake review",
-  "No need to hire a full senior growth and ops team"
+  "Built for early-stage businesses already trying to sell something real",
+  "Founder-entered evidence first, not fake autonomous certainty",
+  "Clear diagnosis and a practical 30-day marketing plan"
 ];
 
 const firstValue = [
   {
     icon: Sparkles,
-    title: "1 business scorecard",
-    body: "A maturity read, primary bottleneck and business score that tells you where the drag really is."
+    title: "1 marketing diagnosis",
+    body: "A structured read of what is missing in your offer clarity, audience, message, channels, conversion path, proof, and measurement."
   },
   {
     icon: Workflow,
-    title: "1 roadmap for the next 30 days",
-    body: "A focused execution plan with concrete priorities instead of a vague strategy document."
+    title: "1 set of marketing priorities",
+    body: "A focused set of marketing priorities for the next 30 days instead of a vague strategy document."
   },
   {
     icon: Wrench,
-    title: "SOP and automation opportunities",
-    body: "A shortlist of the repeated tasks that should become systems before you add more people."
+    title: "Marketing assets and workflows",
+    body: "Reusable messaging, channel, checklist, and execution workflows that support the plan without pretending to run the business for you."
   },
   {
     icon: LayoutDashboard,
-    title: "A structured operating view",
-    body: "Priority cards, risks, quick wins and dashboard logic that make the next move obvious."
+    title: "A visible plan you can actually use",
+    body: "Priorities, quick wins, risks, and weekly actions that make the next move obvious."
   }
+];
+
+const sampleMarketingNarrative =
+  "The business has a real offer and visible traction, but the current marketing still lacks a sharper message, clearer proof, and a more reliable conversion path.";
+
+const sampleMarketingPriorities = [
+  "Sharpen the homepage promise and primary CTA",
+  "Turn proof into visible trust signals across site and outreach",
+  "Set one weekly measurement rhythm for traffic, leads, and conversion"
+];
+
+const sampleImmediateFocus = [
+  "Rewrite the core offer so a first-time visitor understands it in one pass.",
+  "Align one main channel and one CTA instead of spreading effort everywhere.",
+  "Make the next 30 days measurable with a small set of marketing signals."
+];
+
+const sampleQuickWins = [
+  "Add two proof elements above the fold on the homepage.",
+  "Publish one clear founder intro post that explains the offer and who it is for.",
+  "Track one conversion action consistently across site and outreach."
+];
+
+const sampleWorkflowStarter = [
+  "Weekly marketing review cadence",
+  "Lead follow-up checklist",
+  "Content and campaign review template"
+];
+
+const sampleExecutionSupport = [
+  "Lead capture form routed into one shared pipeline.",
+  "Simple follow-up sequence after inbound inquiries.",
+  "Weekly reporting template for traffic, leads, and conversion."
 ];
 
 const steps = [
   {
-    title: "Tell us how the business runs today",
-    body: "You complete a structured intake covering offer, channel mix, team size, goals and bottlenecks."
+    title: "Show how your marketing looks today",
+    body: "You complete a structured intake covering offer, audience, message, channels, CTA, proof, and measurement."
   },
   {
-    title: "FoundryOS scores and structures the work",
-    body: "The system translates your inputs into a scorecard, roadmap, automation backlog and execution priorities."
+    title: "FoundryOS turns that into a diagnosis",
+    body: "The system translates your saved inputs into a marketing diagnosis, clear priorities, and a practical first plan."
   },
   {
     title: "You receive outputs that are usable immediately",
@@ -62,28 +95,24 @@ const steps = [
 
 const dashboardBlocks = [
   {
-    title: "Business scorecard",
+    title: "Marketing diagnosis",
     items: [
-      `${report.score}/100 operating score`,
+      `${report.score}/100 marketing clarity score`,
       `${report.maturity} maturity stage`,
-      report.headline
+      sampleMarketingNarrative
     ]
   },
   {
-    title: "Priority roadmap",
-    items: report.priorities.slice(0, 3).map((priority) => priority.title)
+    title: "Marketing priorities",
+    items: sampleMarketingPriorities
   },
   {
-    title: "SOP starter",
-    items: [
-      "Weekly growth review cadence",
-      "Lead-to-onboarding handoff checklist",
-      "Async operating review template"
-    ]
+    title: "Marketing workflow starter",
+    items: sampleWorkflowStarter
   },
   {
-    title: "Automation shortlist",
-    items: report.automationOpportunities.slice(0, 3)
+    title: "Execution support",
+    items: sampleExecutionSupport
   }
 ];
 
@@ -101,7 +130,7 @@ const evidenceSignals = [
   {
     label: "Tools",
     value: sampleIntake.currentTools,
-    detail: "Shows the current operating stack"
+    detail: "Shows the current measurement and execution stack"
   },
   {
     label: "Revenue band",
@@ -110,19 +139,19 @@ const evidenceSignals = [
   }
 ];
 
-const operatingSignals = [
+const marketingSignals = [
   {
     label: "Analytics",
     value: sampleIntake.hasAnalytics ? "Present" : "Missing",
     status: sampleIntake.hasAnalytics ? "usable signal" : "needs validation"
   },
   {
-    label: "SOPs",
+    label: "Workflows",
     value: sampleIntake.hasDocumentedSOPs ? "Documented" : "Not documented",
-    status: sampleIntake.hasDocumentedSOPs ? "stable" : "priority gap"
+    status: sampleIntake.hasDocumentedSOPs ? "repeatable" : "needs structure"
   },
   {
-    label: "Automation",
+    label: "Execution support",
     value: sampleIntake.openToAutomation ? "Open" : "Not ready",
     status: sampleIntake.openToAutomation ? "implementation path" : "manual first"
   }
@@ -130,10 +159,10 @@ const operatingSignals = [
 
 const fit = {
   yes: [
-    "Startups and digital businesses with validated demand",
-    "Lean teams that need a clearer operating system",
-    "Founders who want structure before adding headcount",
-    "Teams open to workflows, dashboards and async execution"
+    "Early-stage businesses that need clarity on what is missing in their marketing",
+    "Lean teams that need better offer, audience, message, and channel focus",
+    "Founders who want a practical next 30 days instead of generic advice",
+    "Teams open to structured planning, reusable assets, and repeatable workflows"
   ],
   no: [
     "Businesses that need a fully custom agency relationship",
@@ -152,15 +181,15 @@ const trustPoints = [
 
 const beforeAfter = {
   before: [
-    "Priorities live in the founder's head",
-    "Tasks keep moving without one operating model",
-    "Manual work grows faster than the team",
-    "Strategy exists, but execution stays fragmented"
+    "The offer is hard to explain clearly",
+    "Audience, message, and channels keep shifting",
+    "Traffic or outreach exists, but conversion stays fuzzy",
+    "The founder knows something is off, but not what to fix first"
   ],
   after: [
-    "One scorecard tells the team what matters now",
-    "The next 30 days are turned into visible priorities",
-    "SOP and automation opportunities become obvious",
+    "One diagnosis shows what is missing in the current marketing setup",
+    "The next 30 days become visible marketing priorities",
+    "Message, channel, and workflow gaps become easier to act on",
     "The product creates a clearer path from diagnosis to execution"
   ]
 };
@@ -169,7 +198,7 @@ const faqs = [
   {
     question: "What do I get first?",
     answer:
-      "The first deliverable is AI Snapshot: a business scorecard, 30-day roadmap, quick wins, key risks and a recommended starter stack."
+      "The first deliverable is Snapshot: a marketing diagnosis, 30-day priorities, quick wins, key risks, and a practical first action plan."
   },
   {
     question: "How fast is the first value?",
@@ -184,7 +213,7 @@ const faqs = [
   {
     question: "Who should start with Snapshot?",
     answer:
-      "Teams that need clarity first. Snapshot is the fastest way to understand whether the next step should be a one-off diagnostic, FoundryOS Core or a custom Operator rollout."
+      "Teams that need clarity first. Snapshot is the fastest way to understand what is missing in their marketing before deciding whether they need a one-off diagnosis, recurring planning, or deeper implementation support."
   },
   {
     question: "Is everything fully automated?",
@@ -201,7 +230,7 @@ export default function HomePage() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description:
-      "AI-first operating system for small businesses and startups that need a 30-day plan, better execution and cleaner operations without hiring a full senior team.",
+      "Marketing diagnosis and 30-day marketing planning software for early-stage businesses that need clearer priorities without pretending to run the business autonomously.",
     offers: {
       "@type": "AggregateOffer",
       lowPrice: "99",
@@ -222,20 +251,20 @@ export default function HomePage() {
           <div className="grid-lines absolute inset-0 rounded-[32px] opacity-40" />
           <div className="relative z-10 mx-auto max-w-5xl space-y-7 text-center">
             <span className="eyebrow justify-center">
-              AI-first operating system for startups and lean teams
+              Marketing diagnosis and 30-day planning for early-stage businesses
             </span>
             <div className="space-y-4">
               <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
                 Get a 30-day{" "}
                 <span className="font-serif-display tracking-[-0.03em]">
-                  operating plan
+                  marketing plan
                 </span>{" "}
-                and execution roadmap without hiring a full team.
+                after seeing what your marketing is missing.
               </h1>
               <p className="mx-auto max-w-3xl body-lg">
-                FoundryOS gives you a business scorecard, roadmap, SOP
-                starters and automation opportunities in a structured AI-first
-                workflow built for lean teams.
+                FoundryOS helps early-stage businesses diagnose what is missing
+                in their marketing and turn that into clear priorities,
+                reusable assets, and a practical 30-day plan.
               </p>
             </div>
 
@@ -244,7 +273,7 @@ export default function HomePage() {
                 className="foundry-primary-button rounded-full"
                 href="/pricing#plans"
               >
-                Get your AI Snapshot <ArrowRight className="h-4 w-4" />
+                Get your marketing Snapshot <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 className="text-sm font-semibold uppercase tracking-[0.18em] text-ink underline-offset-4 hover:underline"
@@ -277,7 +306,7 @@ export default function HomePage() {
               <div className="flex flex-col gap-3 border-b border-[color:var(--border)] pb-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
-                    FoundryOS diagnostic
+                    FoundryOS marketing diagnosis
                   </p>
                   <h2 className="mt-2 text-left text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
                     {sampleIntake.companyName}
@@ -289,7 +318,7 @@ export default function HomePage() {
               <div className="mt-5 grid gap-4 lg:grid-cols-[0.75fr_1.25fr]">
                 <article className="rounded-[24px] border border-[color:var(--border)] bg-sand/55 p-5 text-left">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                    Operating score
+                    Marketing clarity score
                   </p>
                   <div className="mt-4 flex items-end justify-between gap-4">
                     <p className="text-6xl font-semibold tracking-[-0.08em]">
@@ -304,7 +333,9 @@ export default function HomePage() {
                       style={{ width: `${report.score}%` }}
                     />
                   </div>
-                  <p className="mt-4 text-sm leading-7 text-muted">{report.headline}</p>
+                  <p className="mt-4 text-sm leading-7 text-muted">
+                    {sampleMarketingNarrative}
+                  </p>
                 </article>
 
                 <article className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5 text-left">
@@ -312,12 +343,12 @@ export default function HomePage() {
                     Next 30 days
                   </p>
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    {report.priorities.slice(0, 3).map((priority) => (
+                    {sampleMarketingPriorities.map((priority) => (
                       <div
                         className="rounded-2xl border border-[color:var(--border)] bg-[#fbfaf7] p-4"
-                        key={priority.title}
+                        key={priority}
                       >
-                        <p className="text-sm font-semibold leading-6">{priority.title}</p>
+                        <p className="text-sm font-semibold leading-6">{priority}</p>
                       </div>
                     ))}
                   </div>
@@ -325,7 +356,7 @@ export default function HomePage() {
               </div>
 
               <div className="mt-4 grid gap-3 md:grid-cols-3">
-                {operatingSignals.map((signal) => (
+                {marketingSignals.map((signal) => (
                   <div
                     className="rounded-[20px] border border-[color:var(--border)] bg-white/75 p-4 text-left"
                     key={signal.label}
@@ -356,8 +387,9 @@ export default function HomePage() {
             not conceptual.
           </h2>
           <p className="mt-4 body-lg">
-            The product should show value immediately: a scorecard, next actions,
-            system recommendations and a clearer operating view.
+            The product should show value immediately: a diagnosis, next
+            actions, reusable marketing support, and a clearer picture of what
+            to fix first.
           </p>
         </div>
 
@@ -407,14 +439,15 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center">
           <span className="eyebrow justify-center">What the dashboard includes</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
-            Scorecards, roadmap cards, SOP starters and{" "}
+            Diagnosis, priorities, assets and{" "}
             <span className="font-serif-display tracking-[-0.02em]">
-              automation queue.
+              reusable workflows.
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl body-lg">
             This is the kind of output the system is designed to deliver:
-            visible priorities, next steps and operating logic in one place.
+            visible marketing priorities, next steps, and execution support in
+            one place.
           </p>
         </div>
 
@@ -431,7 +464,7 @@ export default function HomePage() {
               </div>
               <div className="rounded-[22px] border border-white/10 bg-white/5 px-5 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-sand/70">
-                  Operating score
+                  Marketing clarity score
                 </p>
                 <p className="mt-2 text-5xl font-semibold">{report.score}</p>
               </div>
@@ -443,7 +476,7 @@ export default function HomePage() {
                   Immediate focus
                 </p>
                 <ul className="mt-3 space-y-3 text-sm text-sand/85">
-                  {report.monthlyFocus.slice(0, 3).map((item) => (
+                  {sampleImmediateFocus.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -453,7 +486,7 @@ export default function HomePage() {
                   Quick wins
                 </p>
                 <ul className="mt-3 space-y-3 text-sm text-sand/85">
-                  {report.quickWins.slice(0, 3).map((item) => (
+                  {sampleQuickWins.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -514,7 +547,7 @@ export default function HomePage() {
         <div className="surface p-6 md:p-8">
           <span className="eyebrow">Before FoundryOS</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
-            The usual starting point is operational noise.
+            The usual starting point is marketing ambiguity.
           </h2>
           <ul className="mt-6 space-y-3 text-sm text-muted">
             {beforeAfter.before.map((item) => (
@@ -531,7 +564,7 @@ export default function HomePage() {
         <div className="surface p-6 md:p-8">
           <span className="eyebrow">After FoundryOS</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
-            The goal is a business that knows what to do next.
+            The goal is a business that knows what to fix next.
           </h2>
           <ul className="mt-6 space-y-3 text-sm text-muted">
             {beforeAfter.after.map((item) => (
@@ -550,7 +583,7 @@ export default function HomePage() {
         <div className="surface p-6 md:p-8">
           <span className="eyebrow">Who it is for</span>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em]">
-            Best fit for teams that need structure before scale.
+            Best fit for teams that need marketing clarity before scale.
           </h2>
           <ul className="mt-6 space-y-3 text-sm text-muted">
             {fit.yes.map((item) => (
@@ -588,12 +621,12 @@ export default function HomePage() {
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
             Start with the right level of{" "}
             <span className="font-serif-display tracking-[-0.02em]">
-              operating support.
+              marketing support.
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl body-lg">
             Snapshot is the main starting point. FoundryOS Core is the recurring
-            layer. Operator is for teams that need deeper implementation.
+            planning layer. Operator is for teams that need deeper implementation.
           </p>
         </div>
 

@@ -879,8 +879,8 @@ type PlanDefinition = {
 
 export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
   snapshot: {
-    label: "AI Snapshot",
-    description: "Paid diagnostic and 30-day operating plan.",
+    label: "Marketing Snapshot",
+    description: "Paid marketing diagnosis and first 30-day plan.",
     features: {
       dashboard: true,
       profile: true,
@@ -906,7 +906,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
   },
   "growth-os": {
     label: "FoundryOS Core",
-    description: "Recurring operating layer for lean teams.",
+    description: "Recurring marketing planning layer for lean teams.",
     features: {
       dashboard: true,
       profile: true,
@@ -931,8 +931,8 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
     }
   },
   operator: {
-    label: "Operator",
-    description: "Premium implementation and integration support.",
+    label: "Marketing Operator",
+    description: "Premium marketing implementation and integration support.",
     features: {
       dashboard: true,
       profile: true,
@@ -979,14 +979,14 @@ export function formatPlanDescription(
     case "snapshot":
       return copyForLanguage(
         language,
-        "Paid diagnostic and 30-day operating plan.",
-        "Diagnóstico de pago y plan operativo de 30 días."
+        "Paid marketing diagnosis and first 30-day plan.",
+        "Diagnóstico de marketing de pago y primer plan de 30 días."
       );
     case "growth-os":
       return copyForLanguage(
         language,
-        "Recurring operating layer for lean teams.",
-        "Capa operativa recurrente para equipos pequeños."
+        "Recurring marketing planning layer for lean teams.",
+        "Capa recurrente de planificación de marketing para equipos pequeños."
       );
     default:
       return getPlanDefinition(plan).description;

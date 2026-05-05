@@ -200,11 +200,11 @@ function topAttentionGap(
       ),
       body: copyForLanguage(
         language,
-        "The dashboard can look polished, but the diagnostic layer only becomes trustworthy once the guided intake is complete.",
+        "The dashboard can look polished, but the diagnosis layer only becomes trustworthy once the guided intake is complete.",
         "El panel puede verse mejor, pero la capa de diagnóstico solo gana confianza cuando la captura guiada está completa."
       ),
       href: "/app/profile",
-      cta: copyForLanguage(language, "Complete profile", "Completar perfil")
+      cta: copyForLanguage(language, "Complete marketing profile", "Completar perfil de marketing")
     };
   }
 
@@ -213,16 +213,16 @@ function topAttentionGap(
       tone: "info" as const,
       title: copyForLanguage(
         language,
-        "No diagnostic yet",
-        "Todavía no hay diagnóstico"
+        "No marketing diagnosis yet",
+        "Todavía no hay diagnóstico de marketing"
       ),
       body: copyForLanguage(
         language,
-        "Run diagnostics to turn the saved profile into visible maturity, gaps, and next-step priorities.",
-        "Ejecuta el diagnóstico para convertir el perfil guardado en madurez, brechas y prioridades visibles."
+        "Run the marketing diagnosis to turn the saved profile into visible maturity, gaps, and next-step priorities.",
+        "Ejecuta el diagnóstico de marketing para convertir el perfil guardado en madurez, brechas y prioridades visibles."
       ),
       href: "/app/diagnostics",
-      cta: copyForLanguage(language, "Open diagnostics", "Abrir diagnóstico")
+      cta: copyForLanguage(language, "Open marketing diagnosis", "Abrir diagnóstico de marketing")
     };
   }
 
@@ -329,14 +329,14 @@ export default async function WorkspaceDashboardPage() {
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
               {language === "es" ? (
                 <>
-                  Vista operativa real para{" "}
+                  Vista real del marketing para{" "}
                   <span className="font-serif-display text-[#F4F2EC]">
                     {context.workspace.name}.
                   </span>
                 </>
               ) : (
                 <>
-                  Real operating snapshot for{" "}
+                  Real marketing snapshot for{" "}
                   <span className="font-serif-display text-[#F4F2EC]">
                     {context.workspace.name}.
                   </span>
@@ -346,14 +346,14 @@ export default async function WorkspaceDashboardPage() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
               {copyForLanguage(
                 language,
-                "A summary-first view of the latest saved profile, deterministic diagnostic, planning artifacts, and evidence basis. No mock data, no hidden integrations.",
-                "Una vista primero-resumen del perfil guardado, diagnóstico determinista, artefactos de planificación y base de evidencia. Sin datos simulados ni integraciones ocultas."
+                "A summary-first view of the latest saved profile, deterministic marketing diagnosis, planning artifacts, and evidence basis. No mock data, no hidden integrations.",
+                "Una vista primero-resumen del perfil guardado, diagnóstico de marketing determinista, artefactos de planificación y base de evidencia. Sin datos simulados ni integraciones ocultas."
               )}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="/app/diagnostics">
                 <Stethoscope className="h-4 w-4" />
-                {copyForLanguage(language, "Open diagnostics", "Abrir diagnóstico")}
+                {copyForLanguage(language, "Open marketing diagnosis", "Abrir diagnóstico de marketing")}
               </Link>
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/profile">
                 <FileText className="h-4 w-4" />
@@ -380,8 +380,8 @@ export default async function WorkspaceDashboardPage() {
                   ? maturityLabel(maturityScore, language)
                   : copyForLanguage(
                       language,
-                      "Run the first diagnostic to create the baseline.",
-                      "Ejecuta el primer diagnóstico para crear la línea base."
+                      "Run the first marketing diagnosis to create the baseline.",
+                      "Ejecuta el primer diagnóstico de marketing para crear la línea base."
                     )}
               </p>
             </article>
@@ -429,8 +429,8 @@ export default async function WorkspaceDashboardPage() {
           }
           detail={copyForLanguage(
             language,
-            "Overall maturity reflects the latest deterministic diagnostic.",
-            "La madurez general refleja el último diagnóstico determinista."
+            "Overall maturity reflects the latest deterministic marketing diagnosis.",
+            "La madurez general refleja el último diagnóstico de marketing determinista."
           )}
           icon={Activity}
           label={copyForLanguage(language, "Health score", "Puntuación general")}
@@ -463,8 +463,8 @@ export default async function WorkspaceDashboardPage() {
         <FoundryMetricCard
           detail={copyForLanguage(
             language,
-            "Saved asset outputs already available for the workspace.",
-            "Activos guardados que ya están disponibles en el espacio."
+                  "Saved marketing asset outputs already available for the workspace.",
+                  "Activos de marketing guardados que ya están disponibles en el espacio."
           )}
           icon={FolderOpen}
           label={copyForLanguage(language, "Assets ready", "Activos listos")}
@@ -489,7 +489,7 @@ export default async function WorkspaceDashboardPage() {
             "A quick scan of the latest category scores, based on the current saved profile and evidence layer.",
             "Un escaneo rápido de las últimas puntuaciones por categoría, basado en el perfil guardado y la capa de evidencia."
           )}
-          title={copyForLanguage(language, "Diagnostic overview", "Resumen del diagnóstico")}
+          title={copyForLanguage(language, "Marketing diagnosis overview", "Resumen del diagnóstico de marketing")}
         >
           {latestDiagnostic ? (
             <div className="space-y-4">
@@ -514,8 +514,8 @@ export default async function WorkspaceDashboardPage() {
             <p className="text-sm leading-6 text-muted">
               {copyForLanguage(
                 language,
-                "Run diagnostics to see maturity by category and what is driving each score.",
-                "Ejecuta el diagnóstico para ver la madurez por categoría y qué impulsa cada puntuación."
+                "Run the marketing diagnosis to see maturity by category and what is driving each score.",
+                "Ejecuta el diagnóstico de marketing para ver la madurez por categoría y qué impulsa cada puntuación."
               )}
             </p>
           )}
@@ -527,7 +527,7 @@ export default async function WorkspaceDashboardPage() {
               className="inline-flex items-center gap-1 text-sm font-semibold text-ink underline"
               href="/app/actions"
             >
-              {copyForLanguage(language, "Open actions", "Abrir acciones")}
+              {copyForLanguage(language, "Open 30-day plan", "Abrir plan 30 días")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           }
@@ -584,8 +584,8 @@ export default async function WorkspaceDashboardPage() {
             <p className="text-sm leading-6 text-muted">
               {copyForLanguage(
                 language,
-                "Generate actions after diagnostics to turn the read into an execution queue.",
-                "Genera acciones después del diagnóstico para convertir la lectura en una cola de ejecución."
+                "Generate the 30-day plan after the diagnosis to turn the read into an execution queue.",
+                "Genera el plan de 30 días después del diagnóstico para convertir la lectura en una cola de ejecución."
               )}
             </p>
           )}
@@ -631,8 +631,8 @@ export default async function WorkspaceDashboardPage() {
         <FoundrySectionCard
           description={copyForLanguage(
             language,
-            "The current month objective and the week-by-week sequence built from the latest plan.",
-            "El objetivo del mes actual y la secuencia semanal construida desde el último plan."
+            "The current month objective and the week-by-week sequence built from the latest 30-day marketing plan.",
+            "El objetivo del mes actual y la secuencia semanal construida desde el último plan de marketing de 30 días."
           )}
           title={copyForLanguage(language, "Next 30 days", "Próximos 30 días")}
         >
@@ -655,7 +655,7 @@ export default async function WorkspaceDashboardPage() {
               className="inline-flex items-center gap-2 rounded-[24px] border border-[color:var(--border)] bg-white/85 px-4 py-3 text-sm font-semibold text-ink"
               href="/app/actions"
             >
-              {copyForLanguage(language, "Open actions", "Abrir acciones")}
+              {copyForLanguage(language, "Open 30-day plan", "Abrir plan 30 días")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -691,8 +691,8 @@ export default async function WorkspaceDashboardPage() {
             <div className="mt-6 rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5 text-sm text-muted">
               {copyForLanguage(
                 language,
-                "Generate actions to turn the diagnostic into a practical weekly plan.",
-                "Genera acciones para convertir el diagnóstico en un plan semanal práctico."
+                "Generate the 30-day plan to turn the diagnosis into a practical weekly plan.",
+                "Genera el plan de 30 días para convertir el diagnóstico en un plan semanal práctico."
               )}
             </div>
           )}
@@ -701,8 +701,8 @@ export default async function WorkspaceDashboardPage() {
         <FoundrySectionCard
           description={copyForLanguage(
             language,
-            "The saved basis behind the current dashboard read, plus the workspace operating context.",
-            "La base guardada detrás de la lectura actual del panel, junto con el contexto operativo del espacio."
+            "The saved basis behind the current dashboard read, plus the workspace business and marketing context.",
+            "La base guardada detrás de la lectura actual del panel, junto con el contexto de negocio y marketing del espacio."
           )}
           title={copyForLanguage(language, "What this is based on", "En qué se basa")}
         >
@@ -768,14 +768,14 @@ export default async function WorkspaceDashboardPage() {
             profile
               ? copyForLanguage(
                   language,
-                  "Saved profile context is available for every downstream module.",
-                  "El contexto del perfil guardado ya alimenta todos los módulos posteriores."
+                  "Saved marketing profile context is available for every downstream module.",
+                  "El contexto guardado del perfil de marketing ya alimenta todos los módulos posteriores."
                 )
-              : copyForLanguage(language, "Start the guided intake.", "Inicia la captura guiada.")
+              : copyForLanguage(language, "Start the guided marketing intake.", "Inicia la captura guiada de marketing.")
           }
           href="/app/profile"
           icon={FileText}
-          label={copyForLanguage(language, "Profile", "Perfil")}
+          label={copyForLanguage(language, "Marketing profile", "Perfil de marketing")}
           language={language}
           value={moduleValueLabel(Boolean(profile), language, profile ? undefined : {
             en: "Needs setup",
@@ -790,11 +790,11 @@ export default async function WorkspaceDashboardPage() {
                   `Latest score ${latestDiagnostic.overallMaturityScore}/100.`,
                   `Última puntuación ${latestDiagnostic.overallMaturityScore}/100.`
                 )
-              : copyForLanguage(language, "Run the first diagnostic.", "Ejecuta el primer diagnóstico.")
+              : copyForLanguage(language, "Run the first marketing diagnosis.", "Ejecuta el primer diagnóstico de marketing.")
           }
           href="/app/diagnostics"
           icon={Stethoscope}
-          label={copyForLanguage(language, "Diagnostics", "Diagnóstico")}
+          label={copyForLanguage(language, "Marketing diagnosis", "Diagnóstico de marketing")}
           language={language}
           value={moduleValueLabel(Boolean(latestDiagnostic), language)}
         />
@@ -803,18 +803,18 @@ export default async function WorkspaceDashboardPage() {
             latestRoadmap
               ? copyForLanguage(
                   language,
-                  `${latestRoadmap.items.length} roadmap items are saved.`,
-                  `${latestRoadmap.items.length} iniciativas de hoja de ruta están guardadas.`
+                  `${latestRoadmap.items.length} marketing priorities are saved.`,
+                  `${latestRoadmap.items.length} prioridades de marketing están guardadas.`
                 )
               : copyForLanguage(
                   language,
-                  "Generate a staged roadmap next.",
-                  "Genera después una hoja de ruta por etapas."
+                  "Generate marketing priorities next.",
+                  "Genera después las prioridades de marketing."
                 )
           }
           href="/app/roadmap"
           icon={Map}
-          label={copyForLanguage(language, "Roadmap", "Hoja de ruta")}
+          label={copyForLanguage(language, "Marketing priorities", "Prioridades de marketing")}
           language={language}
           value={moduleValueLabel(Boolean(latestRoadmap), language)}
         />
@@ -823,18 +823,18 @@ export default async function WorkspaceDashboardPage() {
             latestActionPlan
               ? copyForLanguage(
                   language,
-                  `${latestActionPlan.actions.length} action cards are saved.`,
-                  `${latestActionPlan.actions.length} tarjetas de acción están guardadas.`
+                  `${latestActionPlan.actions.length} plan actions are saved.`,
+                  `${latestActionPlan.actions.length} acciones del plan están guardadas.`
                 )
               : copyForLanguage(
                   language,
-                  "Generate actions and a 30-day plan.",
-                  "Genera acciones y un plan de 30 días."
+                  "Generate the 30-day marketing plan.",
+                  "Genera el plan de marketing de 30 días."
                 )
           }
           href="/app/actions"
           icon={Zap}
-          label={copyForLanguage(language, "Actions", "Acciones")}
+          label={copyForLanguage(language, "30-day plan", "Plan 30 días")}
           language={language}
           value={moduleValueLabel(Boolean(latestActionPlan), language)}
         />
@@ -848,13 +848,13 @@ export default async function WorkspaceDashboardPage() {
                 )
               : copyForLanguage(
                   language,
-                  "Generate preview artifacts after planning.",
-                  "Genera activos piloto después de planificar."
+                  "Generate preview marketing assets after planning.",
+                  "Genera activos de marketing piloto después de planificar."
                 )
           }
           href="/app/assets"
           icon={FolderOpen}
-          label={copyForLanguage(language, "Assets", "Activos")}
+          label={copyForLanguage(language, "Marketing assets", "Activos de marketing")}
           language={language}
           value={moduleValueLabel(latestAssets.length > 0, language, latestAssets.length > 0
             ? {
