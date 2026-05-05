@@ -31,6 +31,24 @@ function clean(value: string | null | undefined) {
   return value?.trim() ?? "";
 }
 
+function hasAlternativeMarketingEvidence(profile: BusinessProfileRecord | null) {
+  if (!profile) return false;
+
+  const text = [
+    profile.acquisitionMethod,
+    profile.salesProcess,
+    profile.evidenceNotes,
+    ...profile.currentChannels,
+    ...profile.channelUrls,
+    ...profile.biggestBottlenecks
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return /instagram|tiktok|facebook|meta|whatsapp|dm|social|waitlist|newsletter|pop[- ]?up|popup|event|market|tasting|dinner|booking|reservation|customer comment|customer feedback|testimonial|review|stories|followers|attendees|asistentes|comentarios|resenas|testimonios|feria|mercado|evento|cena|reserva/.test(text);
+}
+
 function unique(values: Array<string | null | undefined>, limit = 6) {
   const seen = new Set<string>();
   const result: string[] = [];
@@ -69,7 +87,9 @@ function missingProfileFields(profile: BusinessProfileRecord | null, language: O
   }
 
   const fields: string[] = [];
-  if (!clean(profile.website)) fields.push(sl(language, "primary website URL", "URL principal"));
+  if (!clean(profile.website) && !hasAlternativeMarketingEvidence(profile)) {
+    fields.push(sl(language, "primary website or visible social/event evidence", "website principal o evidencia social/de evento visible"));
+  }
   if (!clean(profile.positioningStatement)) {
     fields.push(sl(language, "one-line positioning statement", "posicionamiento en una linea"));
   }
@@ -80,7 +100,7 @@ function missingProfileFields(profile: BusinessProfileRecord | null, language: O
   if (!clean(profile.acquisitionMethod)) fields.push(sl(language, "current acquisition method", "metodo de adquisicion actual"));
   if (!clean(profile.salesProcess)) fields.push(sl(language, "sales process", "proceso de venta"));
   if (profile.currentChannels.length === 0) fields.push(sl(language, "current channel mix", "mix de canales actual"));
-  if (profile.currentTools.length === 0) fields.push(sl(language, "current operating tools", "herramientas operativas actuales"));
+  if (profile.currentTools.length === 0) fields.push(sl(language, "current marketing measurement tools", "herramientas actuales de medicion de marketing"));
 
   return fields;
 }
@@ -135,11 +155,29 @@ export function resolveDownstreamTrustState({
   const weakCards = weakEvidenceCards(cards);
   const missingCards = cards.filter((card) => card.evidenceQuality === "missing");
   const missingFields = missingProfileFields(profile ?? null, language);
+  const hasAlternativeEvidence = hasAlternativeMarketingEvidence(profile ?? null);
+  const savedProfile = profile ?? null;
+  const hasCoreMarketingInputs =
+    savedProfile !== null &&
+    clean(savedProfile.primaryOffer).length > 0 &&
+    clean(savedProfile.targetAudience).length > 0 &&
+    (clean(savedProfile.conversionAction).length > 0 || hasAlternativeEvidence) &&
+    (savedProfile.currentChannels.length > 0 ||
+      savedProfile.channelUrls.length > 0 ||
+      hasAlternativeEvidence);
   const hasContradiction = contradictoryCards.length > 0;
   const hasWeakEvidence =
     diagnostic.confidence === "low" || weakCards.length > 0 || missingFields.length >= 4;
+  const canUsePracticalMarketingPlan =
+    hasCoreMarketingInputs &&
+    hasAlternativeEvidence &&
+    !hasContradiction &&
+    missingCards.length < 2 &&
+    missingFields.length <= 4;
   const mode: DownstreamTrustMode =
-    hasContradiction || diagnostic.confidence === "low" || missingCards.length >= 2
+    hasContradiction ||
+    (diagnostic.confidence === "low" && !canUsePracticalMarketingPlan) ||
+    missingCards.length >= 2
       ? "validation_first"
       : "operating_plan";
   const level: DownstreamTrustLevel = hasContradiction
@@ -173,8 +211,8 @@ export function resolveDownstreamTrustState({
       ...validationTasksFromGaps(evidenceGaps, language),
       sl(
         language,
-        "Confirm the offer, audience, CTA, channel source, sales process, tools, and reporting evidence before executing the plan.",
-        "Confirmar oferta, audiencia, CTA, fuente de canal, proceso de venta, herramientas y evidencia de reporting antes de ejecutar el plan."
+        "Confirm the offer, audience, CTA, channel source, proof, and basic measurement evidence before executing the plan.",
+        "Confirmar oferta, audiencia, CTA, fuente de canal, prueba y evidencia de medicion basica antes de ejecutar el plan."
       )
     ],
     8
@@ -200,8 +238,8 @@ export function resolveDownstreamTrustState({
       hasWeakEvidence
         ? sl(
             language,
-            "Positioning, channel, conversion, and SOP recommendations are provisional until missing evidence is confirmed.",
-            "Las recomendaciones de posicionamiento, canal, conversion y SOP son provisionales hasta confirmar la evidencia faltante."
+            "Positioning, channel, conversion, and marketing workflow recommendations are provisional until missing evidence is confirmed.",
+            "Las recomendaciones de posicionamiento, canal, conversion y flujos de marketing son provisionales hasta confirmar la evidencia faltante."
           )
         : null,
       sl(
@@ -217,13 +255,13 @@ export function resolveDownstreamTrustState({
     mode === "validation_first"
       ? sl(
           language,
-          `${label}: downstream outputs should repair evidence and validate assumptions before becoming an operating plan.`,
-          `${label}: los outputs posteriores deben reparar evidencia y validar supuestos antes de convertirse en plan operativo.`
+          `${label}: downstream outputs should repair evidence and validate assumptions before becoming a practical marketing plan.`,
+          `${label}: los outputs posteriores deben reparar evidencia y validar supuestos antes de convertirse en plan practico de marketing.`
         )
       : sl(
           language,
-          `${label}: downstream outputs can be used as a planning draft, with the diagnostic confidence set to ${diagnostic.confidence}.`,
-          `${label}: los outputs posteriores pueden usarse como borrador de planificacion, con confianza diagnostica ${diagnostic.confidence}.`
+          `${label}: downstream outputs can be used as a marketing planning draft, with the diagnostic confidence set to ${diagnostic.confidence}.`,
+          `${label}: los outputs posteriores pueden usarse como borrador de planificacion de marketing, con confianza diagnostica ${diagnostic.confidence}.`
         );
 
   return {

@@ -70,6 +70,10 @@ function fallback(value: string | null | undefined, replacement: string) {
   return cleaned && cleaned.length > 0 ? cleaned : replacement;
 }
 
+function inlinePhrase(value: string) {
+  return value.trim().replace(/[.!?。]+$/u, "");
+}
+
 const blockedAssetLabels = [
   "captured operating constraint",
   "captured input signals",
@@ -102,7 +106,7 @@ function localizedCategoryLabel(category: string, language: OutputLanguage): str
     commercial: { en: "commercial", es: "comercial" },
     data: { en: "data", es: "datos" },
     execution: { en: "execution", es: "ejecucion" },
-    operations: { en: "operations", es: "operaciones" },
+    operations: { en: "marketing workflow", es: "flujo de marketing" },
     positioning: { en: "positioning", es: "posicionamiento" }
   };
   return labels[category]?.[language] ?? (language === "es" ? "ejecucion" : "execution");
@@ -147,12 +151,12 @@ function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
     return "subscription";
   }
 
-  if (/(studio|agency|consulting|service|client|retainer|project)/.test(text)) {
-    return "services";
+  if (/(ecommerce|commerce|shop|store|retail|product|inventory|restaurant|food|catering|pop[- ]?up|popup|dinner|tasting|menu|booking|reservation)/.test(text)) {
+    return "commerce";
   }
 
-  if (/(ecommerce|commerce|shop|store|retail|product|inventory)/.test(text)) {
-    return "commerce";
+  if (/(studio|agency|consulting|service|client|retainer|project)/.test(text)) {
+    return "services";
   }
 
   if (/(marketplace|two-sided|supply|demand)/.test(text)) {
@@ -169,8 +173,8 @@ function defaultChannels(type: BusinessType, language: OutputLanguage) {
       es: ["Partners de referidos", "Captura de leads por contenido", "Waitlist de cohortes"]
     },
     commerce: {
-      en: ["Owned email/SMS", "High-intent paid search", "Product-led social proof"],
-      es: ["Email/SMS propio", "Busqueda paga de alta intencion", "Prueba social de producto"]
+      en: ["Instagram or social proof", "Owned follow-up list", "Booking or purchase CTA"],
+      es: ["Instagram o prueba social", "Lista propia de seguimiento", "CTA de reserva o compra"]
     },
     general: {
       en: ["Primary acquisition channel", "Owned follow-up channel", "Referral loop"],
@@ -218,7 +222,7 @@ function assetLabel(type: BusinessAssetType, language: OutputLanguage) {
           thirty_day_action_plan_summary: {
             title: "Resumen del plan de accion de 30 dias",
             purpose:
-              "Condensar el plan operativo en prioridades, semanas, quick wins y metricas revisables."
+              "Condensar el plan de marketing en prioridades, semanas, quick wins y metricas revisables."
           },
           messaging_framework: {
             title: "Framework de mensajes",
@@ -228,12 +232,12 @@ function assetLabel(type: BusinessAssetType, language: OutputLanguage) {
           basic_channel_plan: {
             title: "Plan basico de canales",
             purpose:
-              "Asignar un rol operativo a los canales actuales o recomendados y definir cadencia de revision."
+              "Asignar un rol de marketing a los canales actuales o recomendados y definir cadencia de revision."
           },
           execution_checklist: {
             title: "Checklist de ejecucion",
             purpose:
-              "Convertir acciones y plan semanal en una lista concreta de control operativo."
+              "Convertir acciones y plan semanal en una lista concreta de ejecucion de marketing."
           },
           founder_summary: {
             title: "Resumen para fundador",
@@ -250,7 +254,7 @@ function assetLabel(type: BusinessAssetType, language: OutputLanguage) {
           thirty_day_action_plan_summary: {
             title: "30-day action plan summary",
             purpose:
-              "Condense the operating plan into priorities, weeks, quick wins, and reviewable metrics."
+              "Condense the marketing plan into priorities, weeks, quick wins, and reviewable metrics."
           },
           messaging_framework: {
             title: "Messaging framework",
@@ -260,12 +264,12 @@ function assetLabel(type: BusinessAssetType, language: OutputLanguage) {
           basic_channel_plan: {
             title: "Basic channel plan",
             purpose:
-              "Assign an operating role to current or recommended channels and define review cadence."
+              "Assign a marketing role to current or recommended channels and define review cadence."
           },
           execution_checklist: {
             title: "Execution checklist",
             purpose:
-              "Convert actions and the weekly plan into a concrete operating control list."
+              "Convert actions and the weekly plan into a concrete marketing execution checklist."
           },
           founder_summary: {
             title: "Founder summary",
@@ -305,15 +309,15 @@ function sourceReferences({
   const defaultRoadmapSignals = roadmap.items
     .filter((item) => item.phase === "now")
     .slice(0, 3)
-    .map((item) => `${localizePhase(item.phase, lang)}: ${cleanAssetSignal(item.title, sl("operating move", "movimiento operativo"))}`);
+    .map((item) => `${localizePhase(item.phase, lang)}: ${cleanAssetSignal(item.title, sl("marketing move", "movimiento de marketing"))}`);
   const defaultActionSignals = actionPlan.actions
     .slice(0, 4)
-    .map((action) => `${localizePriority(action.priority, lang)}: ${cleanAssetSignal(action.title, sl("operating action", "accion operativa"))}`);
+    .map((action) => `${localizePriority(action.priority, lang)}: ${cleanAssetSignal(action.title, sl("marketing action", "accion de marketing"))}`);
   const defaultPlanSignals = [
-    `${sl("Objective", "Objetivo")}: ${cleanAssetSignal(thirtyDayPlan.monthObjective, sl("operating objective", "objetivo operativo"))}`,
+    `${sl("Objective", "Objetivo")}: ${cleanAssetSignal(thirtyDayPlan.monthObjective, sl("marketing objective", "objetivo de marketing"))}`,
     `${sl("Metrics", "Metricas")}: ${joinSignals(
       thirtyDayPlan.metricsToWatch.map((metric) =>
-        cleanAssetSignal(metric, sl("operating metric", "metrica operativa"))
+        cleanAssetSignal(metric, sl("marketing metric", "metrica de marketing"))
       ),
       ns
     )}`
@@ -373,7 +377,7 @@ function sourceReferences({
       referenceId: thirtyDayPlan.id,
       detail: joinSignals(
         focus.thirtyDayPlan ?? defaultPlanSignals,
-        cleanAssetSignal(thirtyDayPlan.monthObjective, sl("operating objective", "objetivo operativo"))
+        cleanAssetSignal(thirtyDayPlan.monthObjective, sl("marketing objective", "objetivo de marketing"))
       )
     }
   ];
@@ -439,16 +443,16 @@ function buildValidationFirstAssets(
     ? trustState.validationTasks
     : [
         sl(
-          "Validate offer, audience, CTA, channel, sales process, tools, and reporting evidence.",
-          "Validar oferta, audiencia, CTA, canal, proceso de venta, herramientas y reporting."
+          "Validate offer, audience, CTA, channel, proof, and basic measurement evidence.",
+          "Validar oferta, audiencia, CTA, canal, prueba y medicion basica."
         )
       ];
   const cannotClaim = trustState.cannotClaim.length
     ? trustState.cannotClaim
     : [
         sl(
-          "Do not treat this as final positioning, channel, conversion, or operating advice yet.",
-          "No tratar esto aun como posicionamiento, canal, conversion o consejo operativo final."
+          "Do not treat this as final positioning, channel, conversion, or marketing workflow advice yet.",
+          "No tratar esto aun como posicionamiento, canal, conversion o consejo final de flujos de marketing."
         )
       ];
   const trustSections = [
@@ -596,8 +600,8 @@ function buildValidationFirstAssets(
         ...trustSections,
         section(sl("Founder decision", "Decision del founder"), [
           sl(
-            "Use this run to repair evidence, not to approve a full operating system rollout.",
-            "Usar esta corrida para reparar evidencia, no para aprobar un despliegue operativo completo."
+            "Use this run to repair evidence, not to approve a full marketing rollout.",
+            "Usar esta corrida para reparar evidencia, no para aprobar un despliegue completo de marketing."
           ),
           sl(
             "Regenerate roadmap, actions, assets, and SOPs after the missing or contradictory evidence is resolved.",
@@ -612,7 +616,7 @@ function buildValidationFirstAssets(
 function primaryBottleneck(diagnostic: DiagnosticResultRecord, language: OutputLanguage) {
   return (
     diagnostic.topBottlenecks[0]?.title ??
-    (language === "es" ? "restriccion operativa principal" : "primary operating constraint")
+    (language === "es" ? "restriccion principal de marketing" : "primary marketing constraint")
   );
 }
 
@@ -626,7 +630,7 @@ function primaryRisk(diagnostic: DiagnosticResultRecord, language: OutputLanguag
 function primaryOpportunity(diagnostic: DiagnosticResultRecord, language: OutputLanguage) {
   return (
     diagnostic.topOpportunities[0]?.title ??
-    (language === "es" ? "oportunidad de foco operativo" : "operating focus opportunity")
+    (language === "es" ? "oportunidad de foco de marketing" : "marketing focus opportunity")
   );
 }
 
@@ -636,7 +640,7 @@ function verticalKpi(type: BusinessType, language: OutputLanguage) {
       en: "qualified enrollment conversations",
       es: "conversaciones de enrolamiento calificadas"
     },
-    commerce: { en: "qualified purchases or checkout starts", es: "compras calificadas o inicios de checkout" },
+    commerce: { en: "qualified bookings, purchases, or inquiries", es: "reservas, compras o consultas calificadas" },
     general: { en: "qualified conversion events", es: "eventos de conversion calificados" },
     marketplace: { en: "qualified supply or demand activations", es: "activaciones calificadas de oferta o demanda" },
     services: { en: "qualified sales conversations", es: "conversaciones comerciales calificadas" },
@@ -657,24 +661,24 @@ function verticalBuyerPain(
       es: `${audience} necesitan un camino estructurado hacia un resultado real y verificable, no solo acceso a contenido. Quieren saber que lograran, cuanto tiempo toma y si realmente terminaran.`
     },
     subscription: {
-      en: `${audience} lose time and accuracy to manual or disconnected processes. They need a reliable system that removes operational drag without requiring a large implementation project.`,
-      es: `${audience} pierden tiempo y precision por procesos manuales o desconectados. Necesitan un sistema confiable que elimine friccion operativa sin requerir una implementacion compleja.`
+      en: `${audience} need to understand the value quickly, see a clear next step, and reach a first useful outcome without confusion.`,
+      es: `${audience} necesitan entender el valor rapido, ver un siguiente paso claro y llegar a un primer resultado util sin confusion.`
     },
     services: {
       en: `${audience} struggle to find a partner who delivers on scope and timeline without constant oversight. They want to know exactly what they are getting before they commit.`,
       es: `${audience} no encuentran facilmente un partner que cumpla alcance y timeline sin supervision constante. Quieren saber exactamente que recibiran antes de comprometerse.`
     },
     commerce: {
-      en: `${audience} want to buy the right product with confidence — clear on fit, price, delivery timeline, and what happens if something goes wrong.`,
-      es: `${audience} quieren comprar el producto correcto con confianza: claros en ajuste, precio, plazo de entrega y que pasa si algo falla.`
+      en: `${audience} want to understand the experience, trust the proof, and know exactly how to book, join, or buy without confusion.`,
+      es: `${audience} quieren entender la experiencia, confiar en la prueba y saber exactamente como reservar, apuntarse o comprar sin confusion.`
     },
     marketplace: {
       en: `${audience} cannot reliably find or connect with the right counterpart. The friction of searching, qualifying, and initiating a transaction causes early abandonment.`,
       es: `${audience} no pueden encontrar o conectar confiablemente con la contraparte correcta. La friccion de buscar, calificar e iniciar una transaccion provoca abandono temprano.`
     },
     general: {
-      en: `${audience} need a clear, consistent path to their goal but lack the structure or system to execute it without losing time and momentum.`,
-      es: `${audience} necesitan un camino claro y consistente hacia su objetivo pero les falta la estructura o el sistema para ejecutarlo sin perder tiempo e impulso.`
+      en: `${audience} need to understand the promise, trust the proof, and know the next step before they take action.`,
+      es: `${audience} necesitan entender la promesa, confiar en la prueba y saber el siguiente paso antes de actuar.`
     }
   };
   return pain[type][language];
@@ -692,24 +696,24 @@ function verticalValueProp(
       es: `${offer} da a ${audience} un camino estructurado hacia una habilidad o resultado profesional especifico, con criterios de enrolamiento definidos, hitos de finalizacion y resultados verificables antes de inscribirse.`
     },
     subscription: {
-      en: `${offer} removes the manual and disconnected steps that slow ${audience} down — replacing operational drag with a reliable, measurable system from day one.`,
-      es: `${offer} elimina los pasos manuales y desconectados que frenan a ${audience}, reemplazando la friccion operativa con un sistema confiable y medible desde el primer dia.`
+      en: `${offer} helps ${audience} move from first interest to a useful activation moment with a clearer promise, CTA, and proof of value.`,
+      es: `${offer} ayuda a ${audience} a pasar del primer interes a un momento de activacion util con una promesa, CTA y prueba de valor mas claras.`
     },
     services: {
       en: `${offer} delivers a defined outcome for ${audience} — with clear scope, fixed timeline, and full accountability established before the engagement begins.`,
       es: `${offer} entrega un resultado definido para ${audience}, con alcance claro, timeline fijo y responsabilidad completa establecida antes de iniciar el engagement.`
     },
     commerce: {
-      en: `${offer} gives ${audience} everything needed to buy with confidence: product clarity, reliable delivery, and support that resolves issues without friction.`,
-      es: `${offer} da a ${audience} todo lo necesario para comprar con confianza: claridad de producto, entrega confiable y soporte que resuelve problemas sin friccion.`
+      en: `${offer} gives ${audience} a clear reason to act now: what is available, who it is for, how to book or buy, and what proof makes it worth trusting.`,
+      es: `${offer} da a ${audience} una razon clara para actuar ahora: que esta disponible, para quien es, como reservar o comprar y que prueba lo hace confiable.`
     },
     marketplace: {
       en: `${offer} connects ${audience} with the right counterpart faster — reducing the time and friction between intent and a qualified, completed match.`,
       es: `${offer} conecta a ${audience} con la contraparte correcta mas rapido, reduciendo el tiempo y la friccion entre la intencion y un match calificado y completado.`
     },
     general: {
-      en: `${offer} gives ${audience} a structured, accountable path to their goal — without requiring them to build the system or figure out the sequence themselves.`,
-      es: `${offer} da a ${audience} un camino estructurado y responsable hacia su objetivo, sin requerir que construyan el sistema o descubran la secuencia por su cuenta.`
+      en: `${offer} gives ${audience} one clear promise, one proof point, and one next step so they can decide with less friction.`,
+      es: `${offer} da a ${audience} una promesa clara, una prueba y un siguiente paso para decidir con menos friccion.`
     }
   };
   return props[type][language];
@@ -728,24 +732,24 @@ function verticalPositioningHypothesis(
       es: `${company} se posiciona como el camino de aprendizaje estructurado para ${audience} que necesitan un resultado real y verificable, no solo contenido de curso. La oferta es ${offer}. Se sostiene si el primer ciclo atrae estudiantes que terminan y pueden nombrar un resultado concreto.`
     },
     subscription: {
-      en: `${company} is positioned as the operational system for ${audience} who need to eliminate manual drag and gain measurable visibility. The product is ${offer}. This holds if the first activated users report time savings and can measure an outcome within 30 days.`,
-      es: `${company} se posiciona como el sistema operativo para ${audience} que necesitan eliminar friccion manual y ganar visibilidad medible. El producto es ${offer}. Se sostiene si los primeros usuarios activados reportan ahorro de tiempo y pueden medir un resultado en 30 dias.`
+      en: `${company} is positioned as the clearer path from first interest to activation for ${audience}. The product is ${offer}. This holds if the first activated users understand the promise, click the CTA, and can name the value within 30 days.`,
+      es: `${company} se posiciona como el camino mas claro del primer interes a la activacion para ${audience}. El producto es ${offer}. Se sostiene si los primeros usuarios activados entienden la promesa, hacen click en el CTA y pueden nombrar el valor en 30 dias.`
     },
     services: {
       en: `${company} is positioned as the accountable delivery partner for ${audience} who need defined scope, clear timeline, and a verifiable track record. The service is ${offer}. This holds if buyers can review past outcomes and agree on deliverables before signing.`,
       es: `${company} se posiciona como el partner de entrega responsable para ${audience} que necesitan alcance definido, timeline claro e historial verificable. El servicio es ${offer}. Se sostiene si los compradores pueden revisar resultados anteriores y acordar entregables antes de firmar.`
     },
     commerce: {
-      en: `${company} is positioned as the trusted purchase for ${audience} who need product-fit confidence, reliable delivery, and post-purchase support. The product is ${offer}. This holds if buyers return and cite confidence — not price — as the primary reason.`,
-      es: `${company} se posiciona como la compra de confianza para ${audience} que necesitan seguridad en el ajuste, entrega confiable y soporte post-compra. El producto es ${offer}. Se sostiene si los compradores vuelven y citan confianza, no precio, como razon principal.`
+      en: `${company} is positioned as the trusted choice for ${audience} who need to understand the offer, see proof, and know the next booking or purchase step. The offer is ${offer}. This holds if the next cycle creates bookings, inquiries, purchases, or repeat interest from the intended segment.`,
+      es: `${company} se posiciona como la opcion confiable para ${audience} que necesitan entender la oferta, ver prueba y saber el siguiente paso de reserva o compra. La oferta es ${offer}. Se sostiene si el proximo ciclo crea reservas, consultas, compras o interes repetido del segmento previsto.`
     },
     marketplace: {
       en: `${company} is positioned as the low-friction matching platform for ${audience} who need to find the right counterpart without the cost of manual search. The platform is ${offer}. This holds if match quality, not just match volume, improves each cycle.`,
       es: `${company} se posiciona como la plataforma de match de baja friccion para ${audience} que necesitan encontrar la contraparte correcta sin el costo de la busqueda manual. La plataforma es ${offer}. Se sostiene si la calidad del match, no solo el volumen, mejora en cada ciclo.`
     },
     general: {
-      en: `${company} is positioned as the structured execution system for ${audience} who need a clear path to their goal with built-in accountability. The offer is ${offer}. This holds if the first cycle produces a concrete, measurable outcome the buyer can describe to someone else.`,
-      es: `${company} se posiciona como el sistema de ejecucion estructurado para ${audience} que necesitan un camino claro hacia su objetivo con responsabilidad incorporada. La oferta es ${offer}. Se sostiene si el primer ciclo produce un resultado concreto y medible que el comprador puede describir a otro.`
+      en: `${company} is positioned around one clear promise for ${audience}. The offer is ${offer}. This holds if the next marketing cycle creates response, proof, and a clear reason to continue.`,
+      es: `${company} se posiciona alrededor de una promesa clara para ${audience}. La oferta es ${offer}. Se sostiene si el proximo ciclo de marketing crea respuesta, prueba y una razon clara para continuar.`
     }
   };
   return hyp[type][language];
@@ -764,24 +768,24 @@ function verticalOneLineNarrative(
       es: `${company} da a ${audience} un programa estructurado para desarrollar una habilidad real y alcanzar un resultado profesional definido, con criterios de enrolamiento claros, hitos de finalizacion y resultados verificables.`
     },
     subscription: {
-      en: `${company} gives ${audience} a reliable system to replace manual work and gain measurable operational clarity — from the first week of use.`,
-      es: `${company} da a ${audience} un sistema confiable para reemplazar trabajo manual y ganar claridad operativa medible desde la primera semana de uso.`
+      en: `${company} helps ${audience} move from first interest to activation with a clearer promise, CTA, and proof of value.`,
+      es: `${company} ayuda a ${audience} a pasar del primer interes a la activacion con una promesa, CTA y prueba de valor mas claras.`
     },
     services: {
       en: `${company} delivers defined outcomes for ${audience} — with clear scope, fixed timeline, and full accountability before any engagement begins.`,
       es: `${company} entrega resultados definidos para ${audience}, con alcance claro, timeline fijo y responsabilidad completa antes de iniciar cualquier engagement.`
     },
     commerce: {
-      en: `${company} gives ${audience} the confidence to buy the right product — with clear fit guidance, reliable delivery, and support that removes post-purchase doubt.`,
-      es: `${company} da a ${audience} la confianza para comprar el producto correcto, con orientacion de ajuste clara, entrega confiable y soporte que elimina dudas post-compra.`
+      en: `${company} helps ${audience} understand the offer, trust the proof, and take the next booking or purchase step with less hesitation.`,
+      es: `${company} ayuda a ${audience} a entender la oferta, confiar en la prueba y dar el siguiente paso de reserva o compra con menos dudas.`
     },
     marketplace: {
       en: `${company} connects ${audience} with the right match faster and with less friction — from first search to completed transaction.`,
       es: `${company} conecta a ${audience} con el match correcto mas rapido y con menos friccion, desde la primera busqueda hasta la transaccion completada.`
     },
     general: {
-      en: `${company} gives ${audience} a clear, accountable path to their goal — with the structure to execute it without losing time or momentum.`,
-      es: `${company} da a ${audience} un camino claro y responsable hacia su objetivo, con la estructura para ejecutarlo sin perder tiempo ni impulso.`
+      en: `${company} gives ${audience} one clear promise, one proof point, and one next step so they can decide with less friction.`,
+      es: `${company} da a ${audience} una promesa clara, una prueba y un siguiente paso para decidir con menos friccion.`
     }
   };
   return narratives[type][language];
@@ -807,14 +811,14 @@ function verticalMessagePillars(
     },
     subscription: {
       en: [
-        `Time saved: how ${audience} reduce hours spent on manual or error-prone work each week.`,
-        `Operational reliability: what ${audience} can count on every week without manual intervention or rework.`,
-        `Measurable impact: the operational or financial signal that confirms value within the first 30 days.`
+        `Activation promise: what useful outcome ${audience} should reach after the first CTA or demo.`,
+        `Conversion clarity: why ${audience} should take the next step now instead of waiting.`,
+        `Proof of value: the signal that confirms value within the first 30 days.`
       ],
       es: [
-        `Tiempo ahorrado: como ${audience} reducen las horas dedicadas a trabajo manual o propenso a errores cada semana.`,
-        `Confiabilidad operativa: en que puede confiar ${audience} cada semana sin intervencion manual ni retrabajo.`,
-        `Impacto medible: la senal operativa o financiera que confirma el valor en los primeros 30 dias.`
+        `Promesa de activacion: que resultado util debe alcanzar ${audience} despues del primer CTA o demo.`,
+        `Claridad de conversion: por que ${audience} deberia dar el siguiente paso ahora en vez de esperar.`,
+        `Prueba de valor: la senal que confirma valor en los primeros 30 dias.`
       ]
     },
     services: {
@@ -831,14 +835,14 @@ function verticalMessagePillars(
     },
     commerce: {
       en: [
-        `Product fit confidence: ${audience} can identify the right product for their need without guessing or returning.`,
-        `Purchase clarity: transparent pricing, delivery expectations, and return policy that remove pre-buy hesitation.`,
-        `Post-purchase trust: quality consistency, fast service response, and social proof that bring ${audience} back.`
+        `Offer clarity: ${audience} understand what is available, when it happens, and who it is for.`,
+        `Proof and trust: customer comments, event photos, reviews, or repeat interest make the promise believable.`,
+        `Next step: the booking, DM, waitlist, or purchase action is obvious at the moment interest is created.`
       ],
       es: [
-        `Confianza de ajuste: ${audience} pueden identificar el producto correcto para su necesidad sin adivinar ni devolver.`,
-        `Claridad de compra: precio transparente, expectativas de entrega y politica de devolucion que eliminan dudas pre-compra.`,
-        `Confianza post-compra: consistencia de calidad, respuesta rapida de servicio y prueba social que hacen que ${audience} vuelva.`
+        `Claridad de oferta: ${audience} entienden que esta disponible, cuando ocurre y para quien es.`,
+        `Prueba y confianza: comentarios de clientes, fotos de eventos, resenas o interes repetido hacen creible la promesa.`,
+        `Siguiente paso: la accion de reserva, DM, waitlist o compra es obvia cuando se crea interes.`
       ]
     },
     marketplace: {
@@ -855,14 +859,14 @@ function verticalMessagePillars(
     },
     general: {
       en: [
-        `Outcome clarity: ${audience} know exactly what result they are working toward — and what done looks like.`,
-        `Execution reliability: ${audience} can count on consistent delivery without guessing what comes next.`,
-        `Measurable progress: how ${audience} know it is working within the first cycle.`
+        `Offer clarity: ${audience} understand what is being offered and why it matters now.`,
+        `Trust signal: the proof point that makes the promise believable.`,
+        `Next step: the CTA that tells ${audience} what to do after interest is created.`
       ],
       es: [
-        `Claridad de resultado: ${audience} saben exactamente hacia que resultado trabajan y como se ve el exito.`,
-        `Confiabilidad de ejecucion: ${audience} pueden contar con entrega consistente sin adivinar que viene.`,
-        `Progreso medible: como sabe ${audience} que esta funcionando en el primer ciclo.`
+        `Claridad de oferta: ${audience} entienden que se ofrece y por que importa ahora.`,
+        `Senal de confianza: la prueba que hace creible la promesa.`,
+        `Siguiente paso: el CTA que le dice a ${audience} que hacer despues de crear interes.`
       ]
     }
   };
@@ -876,11 +880,11 @@ function channelIntent(channel: string) {
     return "referral";
   }
 
-  if (/(linkedin|outbound|cold|dm|email)/.test(normalized)) {
+  if (/(linkedin|outbound|cold|email)/.test(normalized)) {
     return "direct";
   }
 
-  if (/(webinar|event|events|evento|eventos|workshop|taller|talleres|cohort|community|comunidad|networking)/.test(normalized)) {
+  if (/(webinar|event|events|evento|eventos|workshop|taller|talleres|cohort|community|comunidad|networking|pop[- ]?up|popup|market|feria|tasting|dinner|cena)/.test(normalized)) {
     return "event";
   }
 
@@ -888,7 +892,7 @@ function channelIntent(channel: string) {
     return "paid";
   }
 
-  if (/(content|seo|blog|youtube|podcast|social|contenido|redes)/.test(normalized)) {
+  if (/(content|seo|blog|youtube|podcast|social|instagram|tiktok|facebook|meta|dm|contenido|redes)/.test(normalized)) {
     return "content";
   }
 
@@ -916,30 +920,6 @@ function normalizeChannelLabel(channel: string, language: OutputLanguage): strin
   return intentLabels[intent]?.[language] ?? channel;
 }
 
-function verticalAudienceDescriptor(type: BusinessType, language: OutputLanguage): string {
-  const descriptors: Record<BusinessType, { en: string; es: string }> = {
-    academy: { en: "qualified program candidates", es: "candidatos calificados al programa" },
-    commerce: { en: "high-intent buyers", es: "compradores de alta intencion" },
-    general: { en: "your priority segment", es: "tu segmento prioritario" },
-    marketplace: { en: "qualified participants", es: "participantes calificados" },
-    services: { en: "qualified prospective clients", es: "clientes potenciales calificados" },
-    subscription: { en: "qualified prospects", es: "prospectos calificados" }
-  };
-  return descriptors[type][language];
-}
-
-function verticalOfferLabel(type: BusinessType, language: OutputLanguage): string {
-  const offerLabels: Record<BusinessType, { en: string; es: string }> = {
-    academy: { en: "this program", es: "este programa" },
-    commerce: { en: "this product", es: "este producto" },
-    general: { en: "this offer", es: "esta oferta" },
-    marketplace: { en: "this platform", es: "esta plataforma" },
-    services: { en: "this service", es: "este servicio" },
-    subscription: { en: "this product", es: "este producto" }
-  };
-  return offerLabels[type][language];
-}
-
 function buildChannelOperatingPlan({
   channel,
   constraint,
@@ -963,7 +943,7 @@ function buildChannelOperatingPlan({
     const common = {
       channel: normalizedChannel,
       primaryKpi: kpi,
-      cadence: "Revision semanal con decision mantener, ajustar, pausar o escalar."
+      cadence: "Revision semanal de marketing con decision mantener, ajustar, pausar o escalar."
     };
     const plans: Record<string, Omit<ChannelOperatingPlan, "channel" | "primaryKpi" | "cadence">> = {
       content: {
@@ -1009,7 +989,7 @@ function buildChannelOperatingPlan({
   const common = {
     channel: normalizedChannel,
     primaryKpi: kpi,
-    cadence: "Weekly review with a keep, adjust, pause, or scale decision."
+    cadence: "Weekly marketing review with a keep, adjust, pause, or scale decision."
   };
   const plans: Record<string, Omit<ChannelOperatingPlan, "channel" | "primaryKpi" | "cadence">> = {
     content: {
@@ -1068,13 +1048,13 @@ function buildChecklistSteps({
     const metric = thirtyDayPlan.metricsToWatch[index] ?? thirtyDayPlan.metricsToWatch[0];
     const safeTitle = cleanAssetSignal(
       action.title,
-      language === "es" ? "Ejecutar accion operativa prioritaria" : "Execute priority operating action"
+      language === "es" ? "Ejecutar accion prioritaria de marketing" : "Execute priority marketing action"
     );
     const safeDescription = cleanAssetSignal(
       action.description,
       language === "es"
-        ? `Completar el trabajo necesario para avanzar "${safeTitle}" y registrar la decision operativa.`
-        : `Complete the work needed to advance "${safeTitle}" and record the operating decision.`
+        ? `Completar el trabajo necesario para avanzar "${safeTitle}" y registrar la decision de marketing.`
+        : `Complete the work needed to advance "${safeTitle}" and record the marketing decision.`
     );
 
     if (language === "es") {
@@ -1143,13 +1123,13 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
   const topActions = actionPlan.actions.slice(0, 5);
   const bottleneckFallback =
     profile.biggestBottlenecks[0] ??
-    (language === "es" ? "restriccion operativa prioritaria" : "priority operating constraint");
+    (language === "es" ? "restriccion prioritaria de marketing" : "priority marketing constraint");
   const riskFallback =
     diagnostic.topRisks[0]?.detail ??
-    (language === "es" ? "riesgo operativo sin resolver" : "unresolved operating risk");
+    (language === "es" ? "riesgo de marketing sin resolver" : "unresolved marketing risk");
   const opportunityFallback =
     profile.primaryGoals[0] ??
-    (language === "es" ? "oportunidad de mejora operativa" : "operating improvement opportunity");
+    (language === "es" ? "oportunidad de mejora de marketing" : "marketing improvement opportunity");
   const mainBottleneck = cleanAssetSignal(
     primaryBottleneck(diagnostic, language),
     bottleneckFallback
@@ -1165,22 +1145,22 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
   const topActionTitles = topActions.map((action) =>
     cleanAssetSignal(
       action.title,
-      language === "es" ? "Accion operativa prioritaria" : "Priority operating action"
+      language === "es" ? "Accion prioritaria de marketing" : "Priority marketing action"
     )
   );
   const cleanDiagnosticSummary = cleanAssetSignal(diagnostic.summary, mainBottleneck);
   const monthObjective = cleanAssetSignal(
     thirtyDayPlan.monthObjective,
     language === "es"
-      ? "Cerrar el gap operativo principal del diagnostico."
-      : "Close the primary operating gap from the diagnostic."
+      ? "Cerrar el gap principal de marketing del diagnostico."
+      : "Close the primary marketing gap from the diagnosis."
   );
   const topPriorities = cleanList(
     thirtyDayPlan.topPriorities.map((priority, index) =>
       cleanAssetSignal(
         priority,
         topActionTitles[index] ??
-          (language === "es" ? "Prioridad operativa" : "Operating priority")
+          (language === "es" ? "Prioridad de marketing" : "Marketing priority")
       )
     ),
     3
@@ -1189,7 +1169,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     thirtyDayPlan.metricsToWatch.map((metric) =>
       cleanAssetSignal(
         metric,
-        language === "es" ? "metrica operativa principal" : "primary operating metric"
+        language === "es" ? "metrica principal de marketing" : "primary marketing metric"
       )
     ),
     6
@@ -1198,7 +1178,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     thirtyDayPlan.quickWins.map((quickWin) =>
       cleanAssetSignal(
         quickWin,
-        language === "es" ? "quick win operativo" : "operating quick win"
+        language === "es" ? "quick win de marketing" : "marketing quick win"
       )
     ),
     6
@@ -1207,7 +1187,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
     thirtyDayPlan.successSignals.map((signal) =>
       cleanAssetSignal(
         signal,
-        language === "es" ? "senal de exito operativa" : "operating success signal"
+        language === "es" ? "senal de exito de marketing" : "marketing success signal"
       )
     ),
     6
@@ -1243,9 +1223,17 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
   const checklistSteps = buildChecklistSteps({ actionPlan, language, thirtyDayPlan });
   const labels = (assetType: BusinessAssetType) => assetLabel(assetType, language);
   const sl = (en: string, es: string) => language === "es" ? es : en;
-  // Language-normalized substitutes for raw profile strings in narrative copy
-  const narrativeAudience = verticalAudienceDescriptor(type, language);
-  const narrativeOffer = verticalOfferLabel(type, language);
+  const narrativeAudience = inlinePhrase(audience);
+  const narrativeOffer = inlinePhrase(offer);
+  const primaryCta = inlinePhrase(
+    fallback(
+      profile.conversionAction,
+      sl(
+        "Choose one CTA: demo request, trial signup, booking, DM, or waitlist join",
+        "Elegir un CTA: solicitud de demo, registro de prueba, reserva, DM o waitlist"
+      )
+    )
+  );
   const ns = sl("not specified", "no especificado");
 
   const positioning = createAsset({
@@ -1379,8 +1367,8 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Evidencia comercial a recolectar: preguntas repetidas en ventas, motivos de no-decision y patron de calidad de lead.`
             ]),
             section("CTA de validacion", [
-              `CTA primario: invitar a ${narrativeAudience} a una revision de fit o diagnostico. Siguiente paso definido: acordar un objetivo medible antes de la llamada.`,
-              `Prueba a recolectar en las proximas 5 conversaciones: objeciones frecuentes, razon de no-decision y si el segmento reconoce el dolor nombrado.`
+              `CTA primario: ${primaryCta}.`,
+              `Prueba a recolectar en las proximas 5 interacciones: objeciones frecuentes, razon de no-decision y si el segmento reconoce el dolor nombrado.`
             ])
           ]
         : [
@@ -1393,8 +1381,8 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
               `Commercial evidence to collect: repeated sales questions, reasons for no-decision, and lead quality patterns.`
             ]),
             section("Validation CTA", [
-              `Primary CTA: invite ${narrativeAudience} to a fit review or diagnostic call. Defined next step: agree on one measurable objective before the call.`,
-              `Proof to collect in the next 5 conversations: frequent objections, reasons for no-decision, and whether the segment recognizes the named pain.`
+              `Primary CTA: ${primaryCta}.`,
+              `Proof to collect in the next 5 interactions: frequent objections, reasons for no-decision, and whether the segment recognizes the named pain.`
             ])
           ]
   });
@@ -1426,7 +1414,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
                 `Regla stop/scale: ${plan.decisionRule}`
               ])
             ),
-            section("Control operativo", [
+            section("Control de marketing", [
               "Asignar un owner por canal antes de iniciar el test.",
               "Revisar calidad, no solo volumen.",
               `Riesgo a evitar: ${mainRisk}`
@@ -1442,7 +1430,7 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
                 `Stop/scale rule: ${plan.decisionRule}`
               ])
             ),
-            section("Operating control", [
+            section("Marketing control", [
               "Assign one owner per channel before the test starts.",
               "Review quality, not just volume.",
               `Risk to avoid: ${mainRisk}`
@@ -1525,25 +1513,25 @@ export function buildBusinessAssets(input: AssetGenerationInput): BusinessAssetR
       : type === "services"
         ? (language === "es"
             ? [
-                `No aceptar proyectos fuera de la oferta principal mientras la carga de entrega no sea predecible.`,
+                `No aceptar conversaciones fuera de la oferta principal mientras el mensaje siga amplio.`,
                 `No escalar ventas sin tener criterios de descalificacion documentados.`,
-                `No trabajar sin margen visible en cada proyecto.`
+                `No publicar promesas sin prueba concreta o ejemplo de cliente.`
               ]
             : [
-                `Do not take on projects outside the primary service offer while delivery load is unpredictable.`,
+                `Do not take on conversations outside the primary service offer while the message is still broad.`,
                 `Do not scale sales without documented disqualification criteria.`,
-                `Do not work without visible margin per project.`
+                `Do not publish promises without concrete proof or a client example.`
               ])
         : (language === "es"
             ? [
                 `No expandir canales sin tener un canal primario con conversion medible.`,
-                `No agregar complejidad operativa antes de que la cadencia de revision sea estable.`,
-                `No comprometer recursos en escala antes de tener evidencia de producto-mercado.`
+                `No agregar mas actividades antes de tener una decision semanal de marketing.`,
+                `No comprometer recursos en escala antes de tener evidencia de respuesta del mercado.`
               ]
             : [
                 `Do not expand channels without a primary channel with measurable conversion.`,
-                `Do not add operational complexity before the review cadence is stable.`,
-                `Do not commit resources to scale before product-market evidence exists.`
+                `Do not add more activity before there is a weekly marketing decision.`,
+                `Do not commit resources to scale before market-response evidence exists.`
               ]);
 
   const founderSummary = createAsset({

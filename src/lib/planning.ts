@@ -49,19 +49,19 @@ type CategoryTag =
 
 const fallbackEnglish = {
   roadmapSummary:
-    "This roadmap converts the latest diagnostic into a staged operating sequence. It is a preview planning artifact, not a guarantee of commercial outcome.",
-  actionFallback: "Define the next operating step with an owner and decision point.",
+    "This roadmap converts the latest marketing diagnosis into staged priorities. It is a preview planning artifact, not a guarantee of commercial outcome.",
+  actionFallback: "Define the next marketing step with an owner and decision point.",
   owner: "Workspace owner or assigned operator",
-  monthObjective: "Close the highest-risk operating gaps found in the diagnostic.",
+  monthObjective: "Close the highest-risk marketing gaps found in the diagnosis.",
   noDependency: "No dependency beyond workspace review."
 };
 
 const fallbackSpanish = {
   roadmapSummary:
-    "Este roadmap convierte el diagnostico mas reciente en una secuencia operativa. Es un artefacto de planificacion en preview, no una garantia de resultado comercial.",
-  actionFallback: "Definir el proximo paso operativo con owner y punto de decision.",
+    "Este roadmap convierte el diagnostico de marketing mas reciente en prioridades por etapas. Es un artefacto de planificacion en preview, no una garantia de resultado comercial.",
+  actionFallback: "Definir el proximo paso de marketing con owner y punto de decision.",
   owner: "Owner del workspace u operador asignado",
-  monthObjective: "Cerrar los gaps operativos de mayor riesgo encontrados en el diagnostico.",
+  monthObjective: "Cerrar los gaps de marketing de mayor riesgo encontrados en el diagnostico.",
   noDependency: "Sin dependencia fuera de la revision del workspace."
 };
 
@@ -91,12 +91,12 @@ function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
     return "subscription";
   }
 
-  if (/(studio|agency|consulting|service|client|retainer|project)/.test(text)) {
-    return "services";
+  if (/(ecommerce|commerce|shop|store|retail|product|inventory|restaurant|food|catering|pop[- ]?up|popup|dinner|tasting|menu|booking|reservation)/.test(text)) {
+    return "commerce";
   }
 
-  if (/(ecommerce|commerce|shop|store|retail|product|inventory)/.test(text)) {
-    return "commerce";
+  if (/(studio|agency|consulting|service|client|retainer|project)/.test(text)) {
+    return "services";
   }
 
   if (/(marketplace|two-sided|supply|demand)/.test(text)) {
@@ -167,12 +167,12 @@ function isBlockedVisibleLabel(value: string) {
 
 function primaryCategory(tags: string[]): CategoryTag {
   const validTags: CategoryTag[] = [
+    "positioning",
     "acquisition",
     "commercial",
     "data",
     "execution",
-    "operations",
-    "positioning"
+    "operations"
   ];
 
   return validTags.find((tag) => tags.includes(tag)) ?? "execution";
@@ -228,12 +228,12 @@ function verticalMove({
         es: "Instalar reporting de merchandising y recompra"
       },
       execution: {
-        en: "Run a focused conversion and retention cycle",
-        es: "Ejecutar un ciclo enfocado de conversion y retencion"
+        en: "Run a focused channel-to-booking conversion test",
+        es: "Ejecutar una prueba enfocada de canal a reserva o compra"
       },
       operations: {
-        en: "Stabilize fulfillment and inventory operating cadence",
-        es: "Estabilizar cadencia operativa de fulfillment e inventario"
+        en: "Clarify booking, inquiry, and follow-up workflow",
+        es: "Clarificar flujo de reserva, consulta y seguimiento"
       },
       positioning: {
         en: "Sharpen the buyer segment and product promise",
@@ -250,16 +250,16 @@ function verticalMove({
         es: "Clarificar oferta y decision de compra"
       },
       data: {
-        en: "Create a weekly operating scorecard",
-        es: "Crear scorecard operativo semanal"
+        en: "Create a simple marketing response scorecard",
+        es: "Crear scorecard simple de respuesta de marketing"
       },
       execution: {
-        en: "Set a focused monthly operating cycle",
-        es: "Definir ciclo operativo mensual enfocado"
+        en: "Run one focused 30-day marketing test",
+        es: "Ejecutar una prueba de marketing enfocada de 30 dias"
       },
       operations: {
-        en: "Stabilize the core operating cadence",
-        es: "Estabilizar la cadencia operativa central"
+        en: "Stabilize the weekly marketing review rhythm",
+        es: "Estabilizar el ritmo semanal de revision de marketing"
       },
       positioning: {
         en: "Narrow positioning to one priority segment",
@@ -302,16 +302,16 @@ function verticalMove({
         es: "Productizar la oferta de servicio y criterios de compra"
       },
       data: {
-        en: "Install pipeline, delivery, and margin reporting",
-        es: "Instalar reporting de pipeline, entrega y margen"
+        en: "Install pipeline, channel, and proof reporting",
+        es: "Instalar reporting de pipeline, canal y prueba"
       },
       execution: {
-        en: "Run a focused service-growth operating cycle",
-        es: "Ejecutar un ciclo operativo enfocado de servicios"
+        en: "Run a focused service marketing test",
+        es: "Ejecutar una prueba enfocada de marketing de servicios"
       },
       operations: {
-        en: "Productize intake-to-delivery operations",
-        es: "Productizar operaciones de intake a entrega"
+        en: "Clarify the inquiry-to-call follow-up workflow",
+        es: "Clarificar el flujo de consulta a llamada"
       },
       positioning: {
         en: "Narrow the service promise to one buyer segment",
@@ -328,16 +328,16 @@ function verticalMove({
         es: "Clarificar packaging y disparador de conversion"
       },
       data: {
-        en: "Install activation, retention, and revenue reporting",
-        es: "Instalar reporting de activacion, retencion e ingresos"
+        en: "Install CTA, activation, and demo-request reporting",
+        es: "Instalar reporting de CTA, activacion y solicitudes de demo"
       },
       execution: {
-        en: "Run a focused activation and retention cycle",
-        es: "Ejecutar ciclo enfocado de activacion y retencion"
+        en: "Run a focused funnel and activation test",
+        es: "Ejecutar una prueba enfocada de embudo y activacion"
       },
       operations: {
-        en: "Define handoff cadence from acquisition to success",
-        es: "Definir cadencia de handoff de adquisicion a exito"
+        en: "Clarify the lead-to-activation handoff",
+        es: "Clarificar el handoff de lead a activacion"
       },
       positioning: {
         en: "Sharpen ICP and product promise",
@@ -387,24 +387,24 @@ function directiveAction({
     },
     commerce: {
       acquisition: {
-        en: "Test one purchase path from channel click to checkout completion",
-        es: "Probar un camino de compra de click de canal a checkout completo"
+        en: "Test one path from channel interest to booking or purchase",
+        es: "Probar un camino de interes de canal a reserva o compra"
       },
       commercial: {
-        en: "Define one margin-safe bundle and discount rule",
-        es: "Definir un bundle con margen seguro y regla de descuento"
+        en: "Define one clear offer bundle and booking rule",
+        es: "Definir un bundle de oferta claro y regla de reserva"
       },
       data: {
-        en: "Track traffic, conversion, order value, and repeat purchase weekly",
-        es: "Medir trafico, conversion, valor de orden y recompra semanalmente"
+        en: "Track channel response, bookings, inquiries, and proof captured weekly",
+        es: "Medir respuesta de canal, reservas, consultas y prueba capturada semanalmente"
       },
       execution: {
-        en: "Run one merchandising test with a clear keep-or-cut decision",
-        es: "Ejecutar una prueba de merchandising con decision mantener-o-cortar"
+        en: "Run one channel-to-booking test with a clear keep-or-cut decision",
+        es: "Ejecutar una prueba de canal a reserva con decision mantener-o-cortar"
       },
       operations: {
-        en: "Document fulfillment exceptions and remove the top delay source",
-        es: "Documentar excepciones de fulfillment y eliminar la mayor fuente de demora"
+        en: "Document booking, DM, and follow-up steps for the primary offer",
+        es: "Documentar pasos de reserva, DM y seguimiento de la oferta principal"
       },
       positioning: {
         en: "Rewrite product messaging for the highest-intent buyer segment",
@@ -421,16 +421,16 @@ function directiveAction({
         es: "Escribir criterios de decision de oferta y reglas de descalificacion"
       },
       data: {
-        en: "Create a weekly scorecard with five operating metrics",
-        es: "Crear scorecard semanal con cinco metricas operativas"
+        en: "Create a weekly scorecard with channel response, CTA, proof, and qualified demand",
+        es: "Crear scorecard semanal con respuesta de canal, CTA, prueba y demanda calificada"
       },
       execution: {
-        en: "Run one weekly operating review with decisions, owners, and next actions",
-        es: "Ejecutar revision semanal con decisiones, owners y proximas acciones"
+        en: "Run one weekly marketing review with decisions, owners, and next actions",
+        es: "Ejecutar revision semanal de marketing con decisiones, owners y proximas acciones"
       },
       operations: {
-        en: "Document the core workflow and remove one manual handoff",
-        es: "Documentar workflow central y eliminar un handoff manual"
+        en: "Document the inquiry-to-next-step workflow and remove one follow-up gap",
+        es: "Documentar el flujo de consulta a siguiente paso y eliminar un gap de seguimiento"
       },
       positioning: {
         en: "Choose one segment, one pain, and one promise for the next test",
@@ -473,16 +473,16 @@ function directiveAction({
         es: "Empaquetar el servicio con alcance, timeline y regla de decision"
       },
       data: {
-        en: "Track qualified pipeline, close rate, delivery load, and gross margin weekly",
-        es: "Medir pipeline calificado, cierre, carga de entrega y margen bruto semanalmente"
+        en: "Track qualified inquiries, call bookings, referral source, and proof captured weekly",
+        es: "Medir consultas calificadas, llamadas agendadas, fuente de referido y prueba capturada semanalmente"
       },
       execution: {
-        en: "Run one weekly service pipeline review with keep-or-drop decisions",
-        es: "Ejecutar revision semanal de pipeline con decisiones mantener-o-descartar"
+        en: "Run one weekly service marketing review with keep-or-drop decisions",
+        es: "Ejecutar revision semanal de marketing de servicios con decisiones mantener-o-descartar"
       },
       operations: {
-        en: "Document intake, delivery, and approval steps for the primary service",
-        es: "Documentar pasos de intake, entrega y aprobacion del servicio principal"
+        en: "Document inquiry, qualification, and follow-up steps for the primary offer",
+        es: "Documentar pasos de consulta, calificacion y seguimiento para la oferta principal"
       },
       positioning: {
         en: "Rewrite the service promise for one buyer, one pain, and one measurable result",
@@ -499,16 +499,16 @@ function directiveAction({
         es: "Definir packaging, evento disparador y regla de upgrade para un ICP"
       },
       data: {
-        en: "Track activation, retention, expansion, and pipeline quality weekly",
-        es: "Medir activacion, retencion, expansion y calidad de pipeline semanalmente"
+        en: "Track CTA response, demo requests, activation, and proof captured weekly",
+        es: "Medir respuesta al CTA, solicitudes de demo, activacion y prueba capturada semanalmente"
       },
       execution: {
         en: "Run one activation sprint with an owner and success threshold",
         es: "Ejecutar sprint de activacion con owner y umbral de exito"
       },
       operations: {
-        en: "Define sales-to-success handoffs and remove one repeated manual step",
-        es: "Definir handoffs venta-a-exito y eliminar un paso manual repetido"
+        en: "Define lead-to-activation handoffs and remove one conversion leak",
+        es: "Definir handoffs de lead a activacion y eliminar una fuga de conversion"
       },
       positioning: {
         en: "Rewrite ICP, problem, and product promise for the next funnel test",
@@ -524,9 +524,9 @@ function categoryLabel(category: CategoryTag, language: OutputLanguage) {
   const labels: Record<CategoryTag, { en: string; es: string }> = {
     acquisition: { en: "acquisition", es: "adquisicion" },
     commercial: { en: "commercial", es: "comercial" },
-    data: { en: "data visibility", es: "visibilidad de datos" },
-    execution: { en: "execution cadence", es: "cadencia de ejecucion" },
-    operations: { en: "operations", es: "operaciones" },
+    data: { en: "marketing measurement", es: "medicion de marketing" },
+    execution: { en: "30-day execution", es: "ejecucion de 30 dias" },
+    operations: { en: "marketing workflow", es: "flujo de marketing" },
     positioning: { en: "positioning", es: "posicionamiento" }
   };
 
@@ -576,8 +576,8 @@ function roadmapReasoning({
   }
 
   return language === "es"
-    ? `El diagnostico senala ${signal} como restriccion de negocio que debe traducirse a una decision operativa.`
-    : `The diagnostic identifies ${signal} as a business constraint that needs an operating decision.`;
+    ? `El diagnostico senala ${signal} como restriccion de marketing que debe traducirse a una decision concreta.`
+    : `The diagnostic identifies ${signal} as a marketing constraint that needs a concrete decision.`;
 }
 
 function actionDescription({
@@ -597,7 +597,7 @@ function actionDescription({
   const categoryName = categoryLabel(category, language);
 
   return language === "es"
-    ? `Ejecutar este paso para avanzar "${roadmapTitle}" en el ${vertical}. Debe producir una decision concreta sobre ${categoryName}, usando "${signal}" como contexto, no como titulo de trabajo.`
+    ? `Ejecutar este paso para avanzar "${roadmapTitle}" en el ${vertical}. Debe producir una decision concreta de ${categoryName}, usando "${signal}" como contexto, no como titulo de trabajo.`
     : `Execute this step to advance "${roadmapTitle}" for the ${vertical}. It should produce a concrete ${categoryName} decision, using "${signal}" as context rather than the work title.`;
 }
 
@@ -721,13 +721,13 @@ function validationRoadmapItems(input: PlanningInput, trustState: DownstreamTrus
       category: "acquisition" as CategoryTag
     },
     {
-      title: sl("Document tools, reporting, and operating cadence", "Documentar herramientas, reporting y cadencia operativa"),
+      title: sl("Document marketing tools, measurement, and review rhythm", "Documentar herramientas, medicion y ritmo de revision de marketing"),
       phase: "next" as const,
       signal: tasks[2] ?? gaps[2] ?? gaps[0],
       category: "operations" as CategoryTag
     },
     {
-      title: sl("Decide what can become an operating plan", "Decidir que puede convertirse en plan operativo"),
+      title: sl("Decide what can become a 30-day marketing plan", "Decidir que puede convertirse en plan de marketing de 30 dias"),
       phase: "later" as const,
       signal: trustState.cannotClaim[0] ?? trustState.summary,
       category: "execution" as CategoryTag
@@ -738,8 +738,8 @@ function validationRoadmapItems(input: PlanningInput, trustState: DownstreamTrus
     title: item.title,
     description:
       language === "es"
-        ? `Modo validacion primero para este ${businessTypeLabel(type, language)}. Antes de ejecutar, confirmar: ${item.signal}`
-        : `Validation-first mode for this ${businessTypeLabel(type, language)}. Before execution, confirm: ${item.signal}`,
+        ? `Modo validacion primero para este ${businessTypeLabel(type, language)}. Antes de ejecutar el plan de marketing, confirmar: ${item.signal}`
+        : `Validation-first mode for this ${businessTypeLabel(type, language)}. Before executing the marketing plan, confirm: ${item.signal}`,
     phase: item.phase,
     categoryTags: [item.category],
     effortLevel: index < 3 ? "low" : "medium",
@@ -962,8 +962,8 @@ function actionFromRoadmapItem({
     ownerSuggestion:
       item.categoryTags.includes("data") || item.categoryTags.includes("operations")
         ? language === "es"
-          ? "Operador o owner responsable de operaciones"
-          : "Operator or operations owner"
+          ? "Owner de marketing o responsable de medicion"
+          : "Marketing owner or measurement owner"
         : copy(language).owner,
     status: "not_started",
     linkedCategory: category,
@@ -1031,12 +1031,12 @@ function validationFirstActions(input: ActionPlanInput, trustState: DownstreamTr
       evidence: trustState.validationTasks[1] ?? trustState.evidenceGaps[1] ?? trustState.summary
     },
     {
-      title: sl("Document tools, owners, and reporting cadence", "Documentar herramientas, owners y cadencia de reporting"),
+      title: sl("Document marketing tools, owners, and measurement rhythm", "Documentar herramientas, owners y ritmo de medicion de marketing"),
       category: "operations" as CategoryTag,
       evidence: trustState.validationTasks[2] ?? trustState.evidenceGaps[2] ?? trustState.summary
     },
     {
-      title: sl("Decide what advice is safe to operationalize", "Decidir que recomendacion es segura para operar"),
+      title: sl("Decide what advice is safe to turn into a marketing test", "Decidir que recomendacion es segura para convertir en prueba de marketing"),
       category: "execution" as CategoryTag,
       evidence: trustState.cannotClaim[0] ?? trustState.summary
     }
@@ -1046,8 +1046,8 @@ function validationFirstActions(input: ActionPlanInput, trustState: DownstreamTr
     title: seed.title,
     description:
       language === "es"
-        ? `Tarea de validacion, no ejecucion definitiva. Confirmar evidencia antes de convertir esta recomendacion en trabajo operativo: ${seed.evidence}`
-        : `Validation task, not final execution. Confirm evidence before converting this recommendation into operating work: ${seed.evidence}`,
+        ? `Tarea de validacion, no ejecucion definitiva. Confirmar evidencia antes de convertir esta recomendacion en trabajo de marketing: ${seed.evidence}`
+        : `Validation task, not final execution. Confirm evidence before converting this recommendation into marketing work: ${seed.evidence}`,
     priority: index < 3 ? "high" : "medium",
     ownerSuggestion:
       language === "es"
@@ -1127,18 +1127,18 @@ function priorityFallback(
     commerce: {
       en: [
         "Clarify the highest-intent buyer segment",
-        "Define channel-to-checkout conversion path",
-        "Install merchandising and repeat-purchase review cadence"
+        "Define channel-to-booking or purchase conversion path",
+        "Collect proof and response signals from the next channel test"
       ],
       es: [
         "Clarificar segmento comprador de mayor intencion",
-        "Definir camino de canal a checkout",
-        "Instalar cadencia de merchandising y recompra"
+        "Definir camino de canal a reserva o compra",
+        "Recolectar prueba y senales de respuesta del proximo test de canal"
       ]
     },
     general: {
-      en: ["Clarify positioning", "Define a measurable funnel", "Install a weekly cadence"],
-      es: ["Clarificar posicionamiento", "Definir embudo medible", "Instalar cadencia semanal"]
+      en: ["Clarify positioning", "Define a measurable funnel", "Run one small channel test"],
+      es: ["Clarificar posicionamiento", "Definir embudo medible", "Ejecutar una prueba pequena de canal"]
     },
     marketplace: {
       en: [
@@ -1156,24 +1156,24 @@ function priorityFallback(
       en: [
         "Clarify the service promise for one buyer segment",
         "Define lead qualification and proposal rules",
-        "Install delivery load and margin review cadence"
+        "Collect proof and objections from the next five qualified conversations"
       ],
       es: [
         "Clarificar promesa de servicio para un segmento comprador",
         "Definir reglas de calificacion y propuesta",
-        "Instalar cadencia de carga de entrega y margen"
+        "Recolectar prueba y objeciones de las proximas cinco conversaciones calificadas"
       ]
     },
     subscription: {
       en: [
         "Clarify ICP and activation promise",
         "Define qualified pipeline and activation stages",
-        "Install activation, retention, and revenue review cadence"
+        "Test one CTA and measure demo requests or activations"
       ],
       es: [
         "Clarificar ICP y promesa de activacion",
         "Definir pipeline calificado y etapas de activacion",
-        "Instalar cadencia de activacion, retencion e ingresos"
+        "Probar un CTA y medir solicitudes de demo o activaciones"
       ]
     }
   };
@@ -1279,24 +1279,24 @@ function verticalMetrics(type: BusinessType, language: OutputLanguage) {
       ]
     },
     commerce: {
-      en: ["Channel conversion", "Checkout completion", "Average order value", "Repeat purchase"],
-      es: ["Conversion por canal", "Checkout completado", "Valor promedio de orden", "Recompra"]
+      en: ["Channel response", "Bookings or purchases", "CTA clicks", "Customer feedback captured"],
+      es: ["Respuesta por canal", "Reservas o compras", "Clicks de CTA", "Feedback de cliente capturado"]
     },
     general: {
-      en: ["Qualified conversion rate", "Weekly decision count", "Cycle time", "Primary metric movement"],
-      es: ["Tasa de conversion calificada", "Decisiones semanales", "Tiempo de ciclo", "Movimiento de metrica primaria"]
+      en: ["Qualified conversion rate", "CTA response", "Proof captured", "Primary metric movement"],
+      es: ["Tasa de conversion calificada", "Respuesta al CTA", "Prueba capturada", "Movimiento de metrica primaria"]
     },
     marketplace: {
       en: ["Supply activation", "Demand activation", "Match quality", "Repeat usage"],
       es: ["Activacion de oferta", "Activacion de demanda", "Calidad de match", "Uso repetido"]
     },
     services: {
-      en: ["Qualified pipeline", "Close rate", "Delivery load", "Gross margin"],
-      es: ["Pipeline calificado", "Tasa de cierre", "Carga de entrega", "Margen bruto"]
+      en: ["Qualified inquiries", "Discovery calls booked", "Referral source quality", "Proof captured"],
+      es: ["Consultas calificadas", "Llamadas de discovery agendadas", "Calidad de fuente de referido", "Prueba capturada"]
     },
     subscription: {
-      en: ["Qualified pipeline", "Activation rate", "Retention signal", "Expansion signal"],
-      es: ["Pipeline calificado", "Tasa de activacion", "Senal de retencion", "Senal de expansion"]
+      en: ["CTA response", "Demo requests", "Activation rate", "Proof captured"],
+      es: ["Respuesta al CTA", "Solicitudes de demo", "Tasa de activacion", "Prueba capturada"]
     }
   };
 
@@ -1315,8 +1315,8 @@ function week3Objective(type: BusinessType, priorities: string[], language: Outp
       es: `Revisar calidad de activacion, senal de retencion y friccion de packaging. Ajustar definicion de ICP basado en datos de conversion. Iterar sobre: ${p}`
     },
     services: {
-      en: `Review qualified pipeline, proposal conversion rate, and delivery load. Drop one underqualified lead source. Iterate on: ${p}`,
-      es: `Revisar pipeline calificado, tasa de conversion de propuesta y carga de entrega. Eliminar una fuente de lead sin calificacion. Iterar sobre: ${p}`
+      en: `Review qualified inquiries, booked calls, objections, and proof captured. Drop one underqualified lead source. Iterate on: ${p}`,
+      es: `Revisar consultas calificadas, llamadas agendadas, objeciones y prueba capturada. Eliminar una fuente de lead sin calificacion. Iterar sobre: ${p}`
     },
     commerce: {
       en: `Review checkout conversion, average order value, and repeat purchase signal. Pause or cut the underperforming traffic source. Iterate on: ${p}`,
@@ -1327,8 +1327,8 @@ function week3Objective(type: BusinessType, priorities: string[], language: Outp
       es: `Revisar activacion de oferta, conversion de demanda y calidad de match. Identificar que lado del marketplace tiene mas friccion. Iterar sobre: ${p}`
     },
     general: {
-      en: `Review evidence, reduce the most repeated manual step, and adjust the operating system. Iterate on: ${p}`,
-      es: `Revisar evidencia, reducir el paso manual mas repetido y ajustar el sistema operativo. Iterar sobre: ${p}`
+      en: `Review message response, CTA activity, proof captured, and channel quality. Iterate on: ${p}`,
+      es: `Revisar respuesta al mensaje, actividad de CTA, prueba capturada y calidad de canal. Iterar sobre: ${p}`
     }
   };
   return obj[type][language];
@@ -1423,25 +1423,25 @@ function verticalQuickWins(type: BusinessType, language: OutputLanguage) {
     services: {
       en: [
         "Add a qualification checklist to the next sales call before it happens",
-        "Calculate gross margin on the last three delivered projects",
-        "Map intake-to-delivery steps and count how many are manual"
+        "Collect the strongest proof point from the last three client conversations",
+        "Map inquiry-to-booked-call steps and find the largest follow-up gap"
       ],
       es: [
         "Agregar checklist de calificacion a la proxima llamada comercial antes de que ocurra",
-        "Calcular margen bruto de los ultimos tres proyectos entregados",
-        "Mapear pasos de intake a entrega y contar cuantos son manuales"
+        "Recolectar la prueba mas fuerte de las ultimas tres conversaciones con clientes",
+        "Mapear pasos de consulta a llamada agendada e identificar el mayor gap de seguimiento"
       ]
     },
     commerce: {
       en: [
-        "Map traffic-to-checkout with drop-off percentages at each step",
-        "Calculate repeat purchase rate for the last 90 days",
-        "Check whether discount usage is tracked against margin impact"
+        "Map channel-to-booking or purchase with drop-off at each step",
+        "Capture three customer comments, DMs, or reviews as proof",
+        "Check whether each active channel has a CTA and response metric"
       ],
       es: [
-        "Mapear trafico a checkout con porcentajes de abandono por paso",
-        "Calcular tasa de recompra de los ultimos 90 dias",
-        "Verificar si el uso de descuentos se mide contra impacto en margen"
+        "Mapear canal a reserva o compra con abandono por paso",
+        "Capturar tres comentarios, DMs o resenas como prueba",
+        "Verificar si cada canal activo tiene CTA y metrica de respuesta"
       ]
     },
     marketplace: {
@@ -1459,13 +1459,13 @@ function verticalQuickWins(type: BusinessType, language: OutputLanguage) {
     general: {
       en: [
         "Name one owner per action before the week ends",
-        "Choose one primary outcome metric and confirm it is being tracked",
-        "Identify the one manual task that consumes the most founder time"
+        "Choose one marketing response metric and confirm it is being tracked",
+        "Identify the one message, CTA, or channel to test next"
       ],
       es: [
         "Nombrar un owner por accion antes de que termine la semana",
-        "Elegir una metrica de resultado primaria y confirmar que se mide",
-        "Identificar la tarea manual que consume mas tiempo del fundador"
+        "Elegir una metrica de respuesta de marketing y confirmar que se mide",
+        "Identificar el mensaje, CTA o canal a probar despues"
       ]
     }
   };
@@ -1502,12 +1502,12 @@ function verticalSuccessSignals(type: BusinessType, language: OutputLanguage) {
       en: [
         "Qualified pipeline grew without adding unqualified leads",
         "At least one proposal used the new scoping and qualification rules",
-        "Delivery load is tracked against gross margin weekly"
+        "Proof, objections, and referral source are captured for each qualified conversation"
       ],
       es: [
         "El pipeline calificado crecio sin agregar leads no calificados",
         "Al menos una propuesta uso las nuevas reglas de alcance y calificacion",
-        "La carga de entrega se mide contra margen bruto semanalmente"
+        "Prueba, objeciones y fuente de referido se capturan en cada conversacion calificada"
       ]
     },
     commerce: {
@@ -1588,8 +1588,8 @@ function buildValidationFirstThirtyDayPlan(
     ? trustState.validationTasks
     : [
         sl(
-          "Confirm offer, audience, CTA, acquisition, sales process, tools, and reporting evidence.",
-          "Confirmar oferta, audiencia, CTA, adquisicion, proceso de venta, herramientas y reporting."
+          "Confirm offer, audience, CTA, acquisition, proof, and measurement evidence.",
+          "Confirmar oferta, audiencia, CTA, adquisicion, prueba y medicion."
         )
       ];
   const priorities = [
@@ -1597,7 +1597,7 @@ function buildValidationFirstThirtyDayPlan(
       ? sl("Resolve contradictory evidence before execution", "Resolver evidencia contradictoria antes de ejecutar")
       : sl("Close the highest-risk evidence gaps", "Cerrar los gaps de evidencia de mayor riesgo"),
     sl("Validate offer, audience, CTA, and acquisition claims", "Validar afirmaciones de oferta, audiencia, CTA y adquisicion"),
-    sl("Decide what can become an operating plan", "Decidir que puede convertirse en plan operativo")
+    sl("Decide what can become a practical marketing test", "Decidir que puede convertirse en prueba practica de marketing")
   ];
 
   return {
@@ -1607,14 +1607,14 @@ function buildValidationFirstThirtyDayPlan(
     sourceDiagnosticResultId: input.diagnostic.id,
     monthObjective:
       language === "es"
-        ? `${company}: modo validacion primero. Reparar evidencia antes de tratar el diagnostico como plan operativo.`
-        : `${company}: validation-first mode. Repair evidence before treating the diagnostic as an operating plan.`,
+        ? `${company}: modo validacion primero. Reparar evidencia antes de tratar el diagnostico como plan de marketing.`
+        : `${company}: validation-first mode. Repair evidence before treating the diagnosis as a marketing plan.`,
     topPriorities: priorities,
     week1: validationWeek({
       title: sl("Week 1: Evidence inventory", "Semana 1: Inventario de evidencia"),
       objective: sl(
-        "List what is known, what is missing, and which claims are unsafe to operationalize.",
-        "Listar que se sabe, que falta y que afirmaciones no son seguras para operar."
+        "List what is known, what is missing, and which marketing claims are unsafe to use.",
+        "Listar que se sabe, que falta y que afirmaciones de marketing no son seguras para usar."
       ),
       actions: [
         tasks[0] ?? priorities[0],
@@ -1643,10 +1643,10 @@ function buildValidationFirstThirtyDayPlan(
       )
     }),
     week3: validationWeek({
-      title: sl("Week 3: Channel and operating proof", "Semana 3: Prueba de canal y operacion"),
+      title: sl("Week 3: Channel and proof test", "Semana 3: Prueba de canal y prueba"),
       objective: sl(
-        "Validate acquisition source, sales process, tools, reporting, and operating ownership before scaling work.",
-        "Validar fuente de adquisicion, proceso de venta, herramientas, reporting y ownership operativo antes de escalar trabajo."
+        "Validate acquisition source, sales process, proof, measurement, and owner before scaling marketing work.",
+        "Validar fuente de adquisicion, proceso de venta, prueba, medicion y owner antes de escalar trabajo de marketing."
       ),
       actions: [
         tasks[2] ?? priorities[2],
@@ -1659,10 +1659,10 @@ function buildValidationFirstThirtyDayPlan(
       )
     }),
     week4: validationWeek({
-      title: sl("Week 4: Operating-plan decision", "Semana 4: Decision de plan operativo"),
+      title: sl("Week 4: Marketing-plan decision", "Semana 4: Decision de plan de marketing"),
       objective: sl(
-        "Decide whether the evidence is strong enough to convert into a normal 30-day execution plan.",
-        "Decidir si la evidencia es suficientemente fuerte para convertirla en un plan normal de ejecucion de 30 dias."
+        "Decide whether the evidence is strong enough to convert into a normal 30-day marketing plan.",
+        "Decidir si la evidencia es suficientemente fuerte para convertirla en un plan normal de marketing de 30 dias."
       ),
       actions: [
         sl("Classify each downstream recommendation as execute, revise, or discard.", "Clasificar cada recomendacion posterior como ejecutar, revisar o descartar."),
@@ -1675,7 +1675,7 @@ function buildValidationFirstThirtyDayPlan(
       )
     }),
     quickWins: [
-      sl("Add missing website, offer, CTA, channel, pricing, and sales-process evidence.", "Anadir evidencia faltante de website, oferta, CTA, canal, precio y proceso de venta."),
+      sl("Add missing offer, CTA, channel, proof, measurement, and visible evidence.", "Anadir evidencia faltante de oferta, CTA, canal, prueba, medicion y evidencia visible."),
       sl("Resolve any contradictory profile evidence before generating customer-facing assets.", "Resolver evidencia contradictoria antes de generar assets de cara al cliente."),
       sl("Replace generic claims with founder-confirmed facts.", "Reemplazar afirmaciones genericas por hechos confirmados por el founder.")
     ],
@@ -1689,7 +1689,7 @@ function buildValidationFirstThirtyDayPlan(
       sl("Evidence gaps closed", "Gaps de evidencia cerrados"),
       sl("Contradictions resolved", "Contradicciones resueltas"),
       sl("Profile fields confirmed", "Campos de perfil confirmados"),
-      sl("Recommendations marked execute/revise/discard", "Recomendaciones marcadas ejecutar/revisar/descartar")
+      sl("Marketing recommendations marked execute/revise/discard", "Recomendaciones de marketing marcadas ejecutar/revisar/descartar")
     ],
     createdAt: new Date().toISOString()
   };
@@ -1720,17 +1720,17 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
       ? {
           acquisition: "Tasa de lead calificado",
           commercial: "Conversion oferta a compromiso",
-          data: "Cobertura semanal de reporting",
-          execution: "Acciones completadas por semana",
-          operations: "Tiempo de ciclo operativo",
+          data: "Respuesta semanal por canal",
+          execution: "Acciones de marketing completadas por semana",
+          operations: "Seguimientos completados a tiempo",
           positioning: "Resonancia de mensaje por segmento"
         }
       : {
           acquisition: "Qualified lead rate",
           commercial: "Offer-to-commitment conversion",
-          data: "Weekly reporting coverage",
-          execution: "Actions completed per week",
-          operations: "Operating cycle time",
+          data: "Weekly channel response",
+          execution: "Marketing actions completed per week",
+          operations: "Follow-ups completed on time",
           positioning: "Message resonance by segment"
         };
 
@@ -1741,22 +1741,22 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
     sourceDiagnosticResultId: input.diagnostic.id,
     monthObjective:
       language === "es"
-        ? `${company}: cerrar los gaps de mayor riesgo para este ${businessTypeLabel(type, language)}. Prioridad principal: ${primaryAction?.title ?? priorities[0]}.`
-        : `${company}: close the highest-risk gaps for this ${businessTypeLabel(type, language)}. Primary priority: ${primaryAction?.title ?? priorities[0]}.`,
+        ? `${company}: convertir el diagnostico en una prueba de marketing de 30 dias para este ${businessTypeLabel(type, language)}. Prioridad principal: ${primaryAction?.title ?? priorities[0]}.`
+        : `${company}: turn the diagnosis into a 30-day marketing test for this ${businessTypeLabel(type, language)}. Primary priority: ${primaryAction?.title ?? priorities[0]}.`,
     topPriorities: priorities,
     week1: weekPlan({
       title: language === "es" ? "Semana 1: Enfoque y baseline" : "Week 1: Focus and baseline",
       objective:
         language === "es"
-          ? `Definir el flujo actual (${journeyLabel(type, language)}) y confirmar senales base de este ${businessTypeLabel(type, language)}.`
-          : `Define the current flow (${journeyLabel(type, language)}) and confirm baseline signals for this ${businessTypeLabel(type, language)}.`,
+          ? `Definir oferta, audiencia, CTA y baseline de respuesta para este ${businessTypeLabel(type, language)}.`
+          : `Define offer, audience, CTA, and response baseline for this ${businessTypeLabel(type, language)}.`,
       actions: [
         language === "es"
-          ? `Definir alcance, owner y baseline para: ${priorities[0]}`
-          : `Define scope, owner, and baseline for: ${priorities[0]}`,
+          ? `Definir segmento, promesa, CTA, owner y baseline para: ${priorities[0]}`
+          : `Define segment, promise, CTA, owner, and baseline for: ${priorities[0]}`,
         language === "es"
-          ? `Mapear flujo actual: ${journeyLabel(type, language)}`
-          : `Map current flow: ${journeyLabel(type, language)}`,
+          ? `Mapear ruta actual de canal a conversion: ${journeyLabel(type, language)}`
+          : `Map current channel-to-conversion path: ${journeyLabel(type, language)}`,
         language === "es"
           ? "Elegir umbral de exito y regla de decision semanal"
           : "Choose success threshold and weekly decision rule"
@@ -1772,8 +1772,8 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
       actions: [
         language === "es" ? `Lanzar prueba: ${priorities[1]}` : `Launch test: ${priorities[1]}`,
         language === "es"
-          ? "Registrar friccion, conversion y calidad de entrada"
-          : "Record friction, conversion, and input quality",
+          ? "Registrar respuesta de canal, conversion, objeciones y feedback de cliente"
+          : "Record channel response, conversion, objections, and customer feedback",
         language === "es"
           ? "Marcar que se mantiene, cambia o descarta"
           : "Mark what stays, changes, or gets dropped"
@@ -1789,11 +1789,11 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
       actions: [
         language === "es" ? `Iterar sobre: ${priorities[2]}` : `Iterate on: ${priorities[2]}`,
         language === "es"
-          ? "Revisar riesgos activos y bloquear una consecuencia antes de que escale"
-          : "Review active risks and block one consequence before it scales",
+          ? "Revisar que mensaje, canal o CTA genero mejor respuesta"
+          : "Review which message, channel, or CTA created the best response",
         language === "es"
-          ? "Eliminar o documentar el paso manual mas repetido"
-          : "Remove or document the most repeated manual step"
+          ? "Capturar prueba util: comentario, objecion, reserva, lead, demo o compra"
+          : "Capture useful proof: comment, objection, booking, lead, demo, or purchase"
       ],
       successSignal:
         language === "es"
@@ -1811,8 +1811,8 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
           ? "Cerrar acciones bloqueadas con una decision documentada"
           : "Close blocked actions with a documented decision",
         language === "es"
-          ? "Definir owner, foco y metrica primaria del proximo ciclo mensual"
-          : "Define owner, focus, and primary metric for the next monthly cycle"
+          ? "Definir owner, foco, canal y metrica primaria del proximo ciclo mensual"
+          : "Define owner, focus, channel, and primary metric for the next monthly cycle"
       ],
       successSignal:
         language === "es"
@@ -1836,7 +1836,7 @@ export function buildThirtyDayPlan(input: ThirtyDayPlanInput): ThirtyDayPlanReco
           (metric) => metricLabels[metric as keyof typeof metricLabels] ?? metricLabels.execution
         )
       )
-      .concat(language === "es" ? ["Cadencia semanal cumplida"] : ["Weekly cadence completed"])
+      .concat(language === "es" ? ["Decision semanal de marketing registrada"] : ["Weekly marketing decision recorded"])
       .slice(0, 5),
     createdAt: new Date().toISOString()
   };

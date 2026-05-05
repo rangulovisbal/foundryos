@@ -24,7 +24,9 @@ function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
     profile.businessModel ?? "",
     profile.industry ?? "",
     profile.primaryOffer ?? "",
-    profile.targetAudience ?? ""
+    profile.targetAudience ?? "",
+    ...profile.currentChannels,
+    ...profile.biggestBottlenecks
   ]
     .join(" ")
     .toLowerCase();
@@ -35,11 +37,11 @@ function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
   if (/saas|subscri|recurring|software|platform|trial|freemium|license/.test(text)) {
     return "subscription";
   }
+  if (/ecomm|store|shop|product|inventory|checkout|order|buyer|merch|restaurant|food|catering|pop[- ]?up|popup|dinner|tasting|menu|booking|reservation/.test(text)) {
+    return "commerce";
+  }
   if (/consult|agency|freelan|service|implementation|retainer|project|client/.test(text)) {
     return "services";
-  }
-  if (/ecomm|store|shop|product|inventory|checkout|order|buyer|merch/.test(text)) {
-    return "commerce";
   }
   if (/marketplace|platform|supplier|vendor|listing|match|two-sided|two sided/.test(text)) {
     return "marketplace";
@@ -112,8 +114,8 @@ function buildLeadHandlingSop(
     academy: en ? "Enrollment lead or founder" : "Responsable de matriculas o fundador",
     subscription: en ? "Growth lead or founder" : "Responsable de crecimiento o fundador",
     services: en ? "Business development lead or founder" : "Responsable de desarrollo o fundador",
-    commerce: en ? "Sales or operations lead" : "Responsable de ventas u operaciones",
-    marketplace: en ? "Growth or operations lead" : "Responsable de crecimiento u operaciones",
+    commerce: en ? "Sales or marketing lead" : "Responsable de ventas o marketing",
+    marketplace: en ? "Growth or marketplace lead" : "Responsable de crecimiento o marketplace",
     general: en ? "Founder or assigned team member" : "Fundador o miembro del equipo asignado"
   };
 
@@ -234,25 +236,25 @@ function buildReportingCadenceSop(
       en ? "Discount-dependent enrollment percentage (monthly)" : "Porcentaje de matricula dependiente de descuento (mensual)"
     ],
     subscription: [
-      en ? "New trials and signups (weekly)" : "Nuevas pruebas y registros (semanal)",
-      en ? "Trial-to-paid conversion rate (weekly)" : "Tasa de conversion de prueba a pago (semanal)",
-      en ? "Monthly recurring revenue and change (weekly)" : "Ingresos recurrentes mensuales y variacion (semanal)",
-      en ? "Churn count and reason category (monthly)" : "Cantidad de cancelaciones y categoria de razon (mensual)",
-      en ? "Net revenue retention (monthly)" : "Retencion neta de ingresos (mensual)"
+      en ? "CTA clicks and demo requests by channel (weekly)" : "Clicks de CTA y solicitudes de demo por canal (semanal)",
+      en ? "Trial or signup activation rate (weekly)" : "Tasa de activacion de prueba o registro (semanal)",
+      en ? "Qualified demo-to-activation conversion (weekly)" : "Conversion de demo calificada a activacion (semanal)",
+      en ? "Top objection or no-decision reason (weekly)" : "Objecion principal o razon de no-decision (semanal)",
+      en ? "Customer feedback captured from activated users (monthly)" : "Feedback de clientes capturado de usuarios activados (mensual)"
     ],
     services: [
       en ? "New inquiries and qualified leads (weekly)" : "Nuevas consultas y prospectos calificados (semanal)",
-      en ? "Proposals sent and conversion rate (weekly)" : "Propuestas enviadas y tasa de conversion (semanal)",
-      en ? "Active project count and delivery status (weekly)" : "Cantidad de proyectos activos y estado de entrega (semanal)",
-      en ? "Revenue by client and project margin (monthly)" : "Ingresos por cliente y margen por proyecto (mensual)",
-      en ? "Utilization rate by team member (monthly)" : "Tasa de utilizacion por miembro del equipo (mensual)"
+      en ? "Discovery calls booked by source (weekly)" : "Llamadas discovery agendadas por fuente (semanal)",
+      en ? "Qualified lead-to-proposal conversion (weekly)" : "Conversion de lead calificado a propuesta (semanal)",
+      en ? "Repeated objections or unclear-fit reasons (weekly)" : "Objeciones repetidas o razones de fit poco claro (semanal)",
+      en ? "Proof points or client feedback captured (monthly)" : "Pruebas o feedback de clientes capturados (mensual)"
     ],
     commerce: [
-      en ? "Orders and revenue by channel (weekly)" : "Pedidos e ingresos por canal (semanal)",
-      en ? "Checkout conversion rate (weekly)" : "Tasa de conversion en checkout (semanal)",
-      en ? "Cart abandonment rate (weekly)" : "Tasa de abandono de carrito (semanal)",
-      en ? "Repeat purchase rate (monthly)" : "Tasa de compra repetida (mensual)",
-      en ? "Return and refund rate (monthly)" : "Tasa de devoluciones y reembolsos (mensual)"
+      en ? "Bookings, inquiries, or orders by channel (weekly)" : "Reservas, consultas o pedidos por canal (semanal)",
+      en ? "CTA clicks, DMs, or waitlist joins (weekly)" : "Clicks de CTA, DMs o registros en waitlist (semanal)",
+      en ? "Pop-up attendance, tasting interest, or checkout conversion (weekly)" : "Asistencia a pop-up, interes en degustacion o conversion de checkout (semanal)",
+      en ? "Customer comments, reviews, or story replies captured (weekly)" : "Comentarios, resenas o respuestas a stories capturadas (semanal)",
+      en ? "Repeat purchase or repeat booking signal (monthly)" : "Senal de recompra o reserva repetida (mensual)"
     ],
     marketplace: [
       en ? "New supply-side and demand-side registrations (weekly)" : "Nuevos registros de oferta y demanda (semanal)",
@@ -263,30 +265,30 @@ function buildReportingCadenceSop(
     ],
     general: [
       en ? "New leads and qualified leads by channel (weekly)" : "Nuevos prospectos y prospectos calificados por canal (semanal)",
-      en ? "Conversion rate by stage (weekly)" : "Tasa de conversion por etapa (semanal)",
-      en ? "Revenue and change vs. prior period (weekly)" : "Ingresos y variacion vs. periodo anterior (semanal)",
+      en ? "CTA clicks or next-step actions by channel (weekly)" : "Clicks de CTA o acciones de siguiente paso por canal (semanal)",
+      en ? "Customer feedback or proof captured (weekly)" : "Feedback de cliente o prueba capturada (semanal)",
       en ? "Top performing channel (monthly)" : "Canal de mejor rendimiento (mensual)",
-      en ? "Operating cost and margin (monthly)" : "Costo operativo y margen (mensual)"
+      en ? "Primary marketing metric movement (monthly)" : "Movimiento de la metrica principal de marketing (mensual)"
     ]
   };
 
   const reviewCadence: Record<BusinessType, string> = {
     academy: en ? "Weekly review every Monday morning: review all four metrics independently before the week begins" : "Revision semanal cada lunes por la manana: revisar las cuatro metricas de forma independiente antes de iniciar la semana",
-    subscription: en ? "Weekly review every Monday: MRR, trials, conversion, and churn. Monthly deep-review on the 1st." : "Revision semanal cada lunes: MRR, pruebas, conversion y cancelaciones. Revision profunda mensual el dia 1.",
-    services: en ? "Weekly review every Friday: pipeline, active projects, and revenue. Monthly margin review on the last day of the month." : "Revision semanal cada viernes: pipeline, proyectos activos e ingresos. Revision de margen mensual el ultimo dia del mes.",
-    commerce: en ? "Weekly review every Monday: orders, revenue, and conversion. Monthly retention and return review." : "Revision semanal cada lunes: pedidos, ingresos y conversion. Revision mensual de retencion y devoluciones.",
+    subscription: en ? "Weekly review every Monday: CTA response, demo requests, activation, and objections. Monthly proof review on the 1st." : "Revision semanal cada lunes: respuesta al CTA, solicitudes de demo, activacion y objeciones. Revision mensual de prueba el dia 1.",
+    services: en ? "Weekly review every Friday: inquiries, qualified calls, objections, and proof captured." : "Revision semanal cada viernes: consultas, llamadas calificadas, objeciones y prueba capturada.",
+    commerce: en ? "Weekly review every Monday: bookings, inquiries, purchases, CTA response, and customer feedback." : "Revision semanal cada lunes: reservas, consultas, compras, respuesta al CTA y feedback de clientes.",
     marketplace: en ? "Weekly review every Monday: registrations, match rate, and liquidity. Monthly repeat usage review." : "Revision semanal cada lunes: registros, tasa de coincidencia y liquidez. Revision mensual de uso repetido.",
-    general: en ? "Weekly review every Monday: leads, conversion, and revenue. Monthly channel and margin review." : "Revision semanal cada lunes: prospectos, conversion e ingresos. Revision mensual de canal y margen."
+    general: en ? "Weekly review every Monday: leads, CTA response, proof captured, and channel quality." : "Revision semanal cada lunes: prospectos, respuesta al CTA, prueba capturada y calidad de canal."
   };
 
-  const title = en ? `Reporting Cadence — ${company}` : `Cadencia de reportes — ${company}`;
+  const title = en ? `Marketing Reporting Cadence — ${company}` : `Cadencia de reportes de marketing — ${company}`;
   const purpose = en
-    ? `Maintain a consistent weekly and monthly reporting cadence that gives the founder a decision-ready view of operating performance. Every metric is reviewed independently.`
-    : `Mantener una cadencia semanal y mensual de reportes que le da al fundador una vision lista para tomar decisiones sobre el rendimiento operativo. Cada metrica se revisa de forma independiente.`;
+    ? `Maintain a consistent weekly and monthly marketing reporting cadence that gives the founder a decision-ready view of channel response, conversion, proof, and customer feedback.`
+    : `Mantener una cadencia semanal y mensual de reportes de marketing que le da al fundador una vision lista para decidir sobre respuesta de canal, conversion, prueba y feedback de clientes.`;
 
   const decisionTriggers = [
-    en ? "If any metric declines two weeks in a row, escalate to root-cause review before the third week begins" : "Si cualquier metrica cae dos semanas seguidas, escalar a revision de causa raiz antes de iniciar la tercera semana",
-    en ? "If conversion rate drops below the prior-month baseline, pause channel spend and investigate before renewing" : "Si la tasa de conversion cae por debajo del valor base del mes anterior, pausar el gasto en canales e investigar antes de renovar",
+    en ? "If any primary marketing metric declines two weeks in a row, review message, channel, CTA, and proof before the third week begins" : "Si cualquier metrica primaria de marketing cae dos semanas seguidas, revisar mensaje, canal, CTA y prueba antes de iniciar la tercera semana",
+    en ? "If conversion response drops below the baseline, pause channel spend or extra activity and investigate before renewing" : "Si la respuesta de conversion cae por debajo del baseline, pausar gasto o actividad extra de canal e investigar antes de renovar",
     thirtyDayPlan
       ? (en ? `30-day objective: ${thirtyDayPlan.monthObjective.slice(0, 120)}` : `Objetivo de 30 dias: ${thirtyDayPlan.monthObjective.slice(0, 120)}`)
       : (en ? "Review metrics against the current month objective each week" : "Revisar las metricas contra el objetivo del mes actual cada semana")
@@ -303,15 +305,15 @@ function buildReportingCadenceSop(
     {
       heading: en ? "Owner and responsibilities" : "Responsable y responsabilidades",
       items: [
-        en ? "Owner: Founder or designated operations lead" : "Responsable: Fundador o responsable de operaciones designado",
-        en ? "Responsibilities: pull metric data, prepare the review brief, surface any anomalies, record decisions" : "Responsabilidades: extraer datos de metricas, preparar el resumen de revision, identificar anomalias, registrar decisiones"
+        en ? "Owner: Founder or designated marketing lead" : "Responsable: Fundador o responsable de marketing designado",
+        en ? "Responsibilities: pull response data, prepare the review brief, surface objections or proof, record decisions" : "Responsabilidades: extraer datos de respuesta, preparar el resumen de revision, identificar objeciones o prueba, registrar decisiones"
       ]
     },
     {
       heading: en ? "Required tools" : "Herramientas requeridas",
       items: profile.currentTools.length > 0
         ? profile.currentTools.slice(0, 4)
-        : (en ? ["Analytics or reporting tool", "CRM or sales platform", "Revenue dashboard or spreadsheet"] : ["Herramienta de analitica o reportes", "CRM o plataforma de ventas", "Panel de ingresos o hoja de calculo"])
+        : (en ? ["Analytics or channel insights", "CRM or lead tracker", "Feedback log or spreadsheet"] : ["Analytics o insights de canal", "CRM o tracker de leads", "Registro de feedback u hoja de calculo"])
     },
     {
       heading: en ? "Metrics to track" : "Metricas a seguir",
@@ -746,10 +748,10 @@ function buildInternalApprovalSop(
       items: [
         en ? "Written description of the decision: what is being proposed and why" : "Descripcion escrita de la decision: que se propone y por que",
         en ? "Expected cost or commitment: dollar amount, resource hours, or scope change" : "Costo o compromiso esperado: monto en dolares, horas de recursos o cambio de alcance",
-        en ? "Downstream impact: which current operations or metrics are affected" : "Impacto posterior: que operaciones o metricas actuales se ven afectadas",
+        en ? "Downstream impact: which current marketing plan, channel, or metric is affected" : "Impacto posterior: que plan de marketing, canal o metrica actual se ve afectado",
         nowItem
           ? (en ? `Alignment check: does this decision support or conflict with the current roadmap priority: ${nowItem.title}` : `Verificacion de alineacion: esta decision apoya o entra en conflicto con la prioridad actual del roadmap: ${nowItem.title}`)
-          : (en ? "Alignment check: does this decision support or conflict with the current operating priority" : "Verificacion de alineacion: esta decision apoya o entra en conflicto con la prioridad operativa actual"),
+          : (en ? "Alignment check: does this decision support or conflict with the current marketing priority" : "Verificacion de alineacion: esta decision apoya o entra en conflicto con la prioridad actual de marketing"),
         en ? "Reversibility: can this decision be undone if results are negative?" : "Reversibilidad: puede deshacerse esta decision si los resultados son negativos?"
       ]
     },

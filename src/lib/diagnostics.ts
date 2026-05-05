@@ -89,6 +89,8 @@ type SignalMap = {
   hasNicheClarity: boolean;
   hasOfferStructure: boolean;
   hasPositioningClarity: boolean;
+  hasSocialOrEventEvidence: boolean;
+  hasMarketingMeasurementBasics: boolean;
   hasLeadQualityConcern: boolean;
   contradictions: Contradiction[];
   issues: Issue[];
@@ -101,16 +103,16 @@ const labels: Record<
   en: {
     positioning: "Positioning",
     acquisition: "Acquisition",
-    operations: "Operations",
-    data: "Data visibility",
-    execution: "Execution cadence"
+    operations: "Marketing execution",
+    data: "Marketing measurement",
+    execution: "30-day action readiness"
   },
   es: {
     positioning: "Posicionamiento",
     acquisition: "Adquisicion",
-    operations: "Operaciones",
-    data: "Visibilidad de datos",
-    execution: "Cadencia de ejecucion"
+    operations: "Ejecucion de marketing",
+    data: "Medicion de marketing",
+    execution: "Preparacion del plan de 30 dias"
   }
 };
 
@@ -121,11 +123,11 @@ const evidenceLabels: Record<OutputLanguage, Record<EvidenceKey, string>> = {
     offer_audience: "your offer and audience",
     channel_mix: "your current channel mix",
     conversion_model: "your CTA, pricing, acquisition, and sales-process evidence",
-    operating_tools: "your current tools and reporting setup",
+    operating_tools: "your marketing tools and measurement setup",
     goals_bottlenecks: "your stated goals and bottlenecks",
     stage_budget: "your stage, team, and budget context",
-    operating_maturity: "your current operating maturity",
-    missing_evidence: "missing or unclear business evidence",
+    operating_maturity: "your current marketing execution rhythm",
+    missing_evidence: "missing or unclear marketing evidence",
     contradictory_evidence: "contradictions between declared state and supporting evidence"
   },
   es: {
@@ -134,11 +136,11 @@ const evidenceLabels: Record<OutputLanguage, Record<EvidenceKey, string>> = {
     offer_audience: "tu oferta y audiencia",
     channel_mix: "tu mezcla actual de canales",
     conversion_model: "tu evidencia de CTA, precio, adquisición y proceso comercial",
-    operating_tools: "tus herramientas y visibilidad de reporting",
+    operating_tools: "tus herramientas de marketing y medicion",
     goals_bottlenecks: "tus objetivos y cuellos de botella declarados",
     stage_budget: "tu contexto de etapa, equipo y presupuesto",
-    operating_maturity: "tu madurez operativa actual",
-    missing_evidence: "evidencia de negocio faltante o poco clara",
+    operating_maturity: "tu ritmo actual de ejecucion de marketing",
+    missing_evidence: "evidencia de marketing faltante o poco clara",
     contradictory_evidence: "contradicciones entre estado declarado y evidencia de soporte"
   }
 };
@@ -222,18 +224,18 @@ const issueCopy: Record<
   },
   weak_reporting: {
     en: {
-      title: "Reporting visibility is weak",
+      title: "Marketing measurement is weak",
       detail:
-        "The tool stack does not show enough CRM, analytics, dashboard, or reporting evidence.",
+        "The profile does not yet show a simple way to measure channel response, CTA activity, qualified demand, or customer feedback.",
       risk:
-        "The team may keep making decisions from anecdotes instead of seeing which activity changes pipeline quality."
+        "The founder may keep choosing channels from anecdotes instead of seeing which message or channel creates real response."
     },
     es: {
-      title: "La visibilidad de reporting es debil",
+      title: "La medicion de marketing es debil",
       detail:
-        "El stack de herramientas no muestra suficiente evidencia de CRM, analitica, dashboard o reporting.",
+        "El perfil todavia no muestra una forma simple de medir respuesta de canal, actividad de CTA, demanda calificada o feedback de clientes.",
       risk:
-        "El equipo puede seguir decidiendo por anecdotas en vez de ver que actividad cambia la calidad del pipeline."
+        "El founder puede seguir eligiendo canales por anecdotas en vez de ver que mensaje o canal crea respuesta real."
     }
   },
   poor_lead_quality: {
@@ -270,50 +272,50 @@ const issueCopy: Record<
   },
   no_operating_cadence: {
     en: {
-      title: "Operating cadence is missing",
+      title: "Marketing review rhythm is missing",
       detail:
-        "There is not enough evidence of weekly review, ownership rhythm, KPI review, or decision cadence.",
+        "There is not enough evidence that marketing activity is reviewed weekly with one metric, one owner, and one decision.",
       risk:
-        "Priorities can stay valid in theory but fail to become repeatable execution."
+        "The 30-day plan can become scattered activity instead of a focused marketing test."
     },
     es: {
-      title: "Falta cadencia operativa",
+      title: "Falta ritmo de revision de marketing",
       detail:
-        "No hay suficiente evidencia de revision semanal, ritmo de ownership, revision de KPIs o cadencia de decision.",
+        "No hay suficiente evidencia de que la actividad de marketing se revise semanalmente con una metrica, un owner y una decision.",
       risk:
-        "Las prioridades pueden ser correctas en teoria pero no convertirse en ejecucion repetible."
+        "El plan de 30 dias puede convertirse en actividad dispersa en vez de una prueba de marketing enfocada."
     }
   },
   manual_operations: {
     en: {
-      title: "Manual operations are constraining scale",
+      title: "Manual follow-up is constraining marketing execution",
       detail:
-        "The profile points to repeated manual work, handoff friction, or founder-dependent operations.",
+        "The profile points to repeated manual follow-up, handoff friction, or founder-dependent handling that affects leads, content, or conversion.",
       risk:
-        "Growth will add operational load before the team has the systems to absorb it."
+        "More marketing activity can create more unfinished follow-up instead of more qualified demand."
     },
     es: {
-      title: "Las operaciones manuales limitan la escala",
+      title: "El seguimiento manual limita la ejecucion de marketing",
       detail:
-        "El perfil apunta a trabajo manual repetido, friccion en handoffs u operaciones dependientes del fundador.",
+        "El perfil apunta a seguimiento manual repetido, friccion en handoffs o gestion dependiente del fundador que afecta leads, contenido o conversion.",
       risk:
-        "El crecimiento anadira carga operativa antes de que el equipo tenga sistemas para absorberla."
+        "Mas actividad de marketing puede crear mas seguimiento incompleto en vez de mas demanda calificada."
     }
   },
   low_evidence: {
     en: {
       title: "Evidence depth is low",
       detail:
-        "The profile has too little structured business evidence, visible positioning, conversion context, or operating proof to support a high-confidence diagnostic.",
+        "The profile has too little structured marketing evidence, visible positioning, conversion context, or customer proof to support a high-confidence diagnosis.",
       risk:
-        "Recommendations may sound plausible but remain provisional until the business evidence is validated."
+        "Recommendations may sound plausible but remain provisional until the marketing evidence is validated."
     },
     es: {
       title: "La profundidad de evidencia es baja",
       detail:
-        "El perfil tiene poca evidencia estructurada de negocio, posicionamiento visible, contexto de conversion o prueba operativa para sostener un diagnostico de alta confianza.",
+        "El perfil tiene poca evidencia estructurada de marketing, posicionamiento visible, contexto de conversion o prueba de cliente para sostener un diagnostico de alta confianza.",
       risk:
-        "Las recomendaciones pueden sonar plausibles pero seguir provisionales hasta validar la evidencia del negocio."
+        "Las recomendaciones pueden sonar plausibles pero seguir provisionales hasta validar la evidencia de marketing."
     }
   },
   contradictory_scale: {
@@ -346,11 +348,38 @@ function normalize(value: string | null | undefined) {
   return (value ?? "").toLowerCase();
 }
 
+function hasSocialOrEventEvidence(profile: BusinessProfileRecord) {
+  const text = [
+    profile.website,
+    profile.positioningStatement,
+    profile.acquisitionMethod,
+    profile.salesProcess,
+    profile.evidenceNotes,
+    ...profile.currentChannels,
+    ...profile.channelUrls,
+    ...profile.biggestBottlenecks
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return hasPattern(
+    text,
+    /instagram|tiktok|facebook|meta|whatsapp|dm|dms|social|community|waitlist|newsletter|pop[- ]?up|popup|event|events|market|tasting|dinner|booking|reservation|customer comment|customer feedback|testimonial|review|stories|story|followers|attendees|asistentes|comentarios|resenas|testimonios|feria|mercado|evento|cena|reserva/
+  );
+}
+
 function websiteEvidenceNote(profile: BusinessProfileRecord, language: OutputLanguage) {
   if (filled(profile.website)) {
     return language === "es"
       ? "Hay evidencia de website aportada."
       : "Website evidence is provided.";
+  }
+
+  if (hasSocialOrEventEvidence(profile)) {
+    return language === "es"
+      ? "No hay website todavia; se usa evidencia social, de evento o feedback aportado como senal de marketing."
+      : "No website yet; social, event, or feedback evidence is used as marketing signal.";
   }
 
   return language === "es"
@@ -507,12 +536,12 @@ function detectBusinessType(profile: BusinessProfileRecord): BusinessType {
     return "subscription";
   }
 
-  if (hasPattern(text, /studio|agency|service|consulting|retainer|client work|creative|design|consultoria|servicios|agencia|estudio/)) {
-    return "services";
+  if (hasPattern(text, /ecommerce|commerce|shop|retail|store|inventory|restaurant|food|catering|pop[- ]?up|popup|dinner|tasting|menu|booking|reservation|tienda|comercio|restaurante|comida|cena|degustacion|reserva/)) {
+    return "commerce";
   }
 
-  if (hasPattern(text, /ecommerce|commerce|shop|retail|store|inventory|tienda|comercio/)) {
-    return "commerce";
+  if (hasPattern(text, /studio|agency|service|consulting|retainer|client work|creative|design|consultoria|servicios|agencia|estudio/)) {
+    return "services";
   }
 
   if (hasPattern(text, /marketplace|two-sided|supply|demand|mercado/)) {
@@ -553,30 +582,42 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     `${goals} ${bottlenecks}`,
     /no operating cadence|no cadence|missing cadence|no weekly|no review rhythm|sin cadencia|no hay cadencia|no hay revision|sin revision semanal/
   );
+  const explicitMessageConcern = hasPattern(
+    `${goals} ${bottlenecks} ${evidenceNotes}`,
+    /positioning|too broad|generic|sounds similar|do not always understand|do not understand|difference between|unclear message|unclear offer|proof page|trust comes from|message unclear|posicionamiento|demasiado amplio|generico|suena similar|no entienden|diferencia entre|mensaje poco claro|oferta poco clara|prueba publica|confianza viene/
+  );
+  const broadMarketingLanguage = hasPattern(
+    `${audience} ${positioning}`,
+    /\b(everyone|any business|all companies|all teams|all founders|small businesses|startups|founders and teams|founders and managers|help businesses grow|strategy, systems, and execution|growth support|strategy support|business support|marketing help|operations help|todos|cualquier empresa|todas las empresas|para todos|empresas pequeñas|emprendedores|ayuda de crecimiento|soporte estrategico)\b/
+  );
+  const socialOrEventEvidence = hasSocialOrEventEvidence(profile);
 
   const hasNicheClarity =
     audience.length >= 42 &&
-    !hasPattern(audience, /\b(everyone|any business|all companies|small businesses|startups|customers|clients|todos|cualquier empresa|empresas|clientes)\b/);
+    !hasPattern(audience, /\b(everyone|any business|all companies|small businesses|startups|customers|clients|founders and teams|founders and managers|todos|cualquier empresa|empresas|clientes|emprendedores)\b/);
   const hasVisiblePositioningEvidence =
     filled(profile.website) ||
     filled(profile.positioningStatement) ||
-    profile.channelUrls.length > 0;
+    profile.channelUrls.length > 0 ||
+    socialOrEventEvidence;
   const hasConversionEvidence =
     filled(profile.conversionAction) &&
     (filled(profile.pricingModel) || filled(profile.salesProcess));
   const hasAcquisitionEvidence =
     profile.currentChannels.length > 0 ||
     profile.channelUrls.length > 0 ||
-    filled(profile.acquisitionMethod);
+    filled(profile.acquisitionMethod) ||
+    socialOrEventEvidence;
   const visibleEvidenceScore = clamp(
-    (filled(profile.website) ? 12 : 0) +
-      (profile.channelUrls.length >= 2 ? 14 : profile.channelUrls.length === 1 ? 8 : 0) +
+    (filled(profile.website) ? 8 : 0) +
+      (profile.channelUrls.length >= 2 ? 16 : profile.channelUrls.length === 1 ? 10 : 0) +
+      (socialOrEventEvidence ? 14 : 0) +
       (positioning.length >= 70 ? 18 : positioning.length >= 35 ? 12 : positioning.length > 0 ? 5 : 0) +
-      (conversionAction.length >= 20 ? 12 : conversionAction.length > 0 ? 5 : 0) +
+      (conversionAction.length >= 20 ? 14 : conversionAction.length > 0 ? 7 : 0) +
       (pricingModel.length >= 8 ? 10 : pricingModel.length > 0 ? 4 : 0) +
       (acquisitionMethod.length >= 35 ? 12 : acquisitionMethod.length > 0 ? 5 : 0) +
       (salesProcess.length >= 45 ? 14 : salesProcess.length > 0 ? 6 : 0) +
-      (evidenceNotes.length >= 60 ? 8 : evidenceNotes.length > 0 ? 3 : 0),
+      (evidenceNotes.length >= 60 ? 14 : evidenceNotes.length > 0 ? 6 : 0),
     0,
     100
   );
@@ -584,21 +625,29 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     (offer.length >= 55 || positioning.length >= 60) &&
     hasPattern(
       `${offer} ${positioning} ${pricingModel} ${normalize(profile.businessModel)}`,
-      /subscription|monthly|retainer|package|plan|course|cohort|audit|implementation|license|per seat|project|fixed|suscripcion|mensual|paquete|plan|curso|implementacion|licencia|proyecto/
+      /subscription|monthly|retainer|package|plan|course|cohort|audit|implementation|license|per seat|project|fixed|ticket|ticketed|booking|reservation|catering|menu|dinner|demo|trial|setup|workshop|suscripcion|mensual|paquete|plan|curso|implementacion|licencia|proyecto|reserva|cena|degustacion|demo/
     );
   const hasPositioningClarity =
     hasNicheClarity &&
     hasOfferStructure &&
+    !broadMarketingLanguage &&
     (filled(profile.industry) || hasVisiblePositioningEvidence);
   const hasDefinedFunnel =
     !explicitUndefinedFunnel &&
     hasAcquisitionEvidence &&
-    (profile.currentChannels.length >= 2 || filled(profile.acquisitionMethod)) &&
+    (filled(profile.conversionAction) || hasConversionEvidence) &&
+    (profile.currentChannels.length >= 2 || filled(profile.acquisitionMethod) || socialOrEventEvidence) &&
     hasPattern(
       `${channels} ${channelUrls} ${tools} ${goals} ${commercialEvidence}`,
-      /seo|paid|ads|content|email|referral|linkedin|outbound|inbound|webinar|sales|crm|hubspot|pipeline|conversion|demo|lead|trafico|referidos|ventas|embudo|conversion/
+      /seo|paid|ads|content|email|referral|linkedin|instagram|tiktok|social|dm|whatsapp|outbound|inbound|webinar|event|pop[- ]?up|popup|waitlist|booking|reservation|sales|crm|hubspot|pipeline|conversion|demo|lead|cta|trafico|referidos|ventas|embudo|conversion|evento|reserva/
+    );
+  const hasMarketingMeasurementBasics =
+    hasPattern(
+      `${tools} ${evidenceNotes} ${goals} ${bottlenecks}`,
+      /analytics|insights|instagram insights|metric|kpi|spreadsheet|sheet|google sheets|crm|hubspot|posthog|ga4|report|tracking|feedback|comments|reviews|bookings|attendees|inquiries|demo requests|qualified leads|analitica|metricas|hoja|comentarios|resenas|reservas|asistentes|consultas|leads calificados/
     );
   const hasDataVisibility =
+    hasMarketingMeasurementBasics ||
     hasPattern(
       tools,
       /analytics|dashboard|crm|hubspot|salesforce|posthog|ga4|looker|metabase|mixpanel|segment|report|reporting|analitica|datos|dashboard|panel|crm/
@@ -619,8 +668,8 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     /weekly|cadence|review|standup|operating rhythm|dashboard review|reporting rhythm|owner|ownership|sprint|semanal|cadencia|revision|ritmo|responsable/
   );
   const manualOps = hasPattern(
-    `${bottlenecks} ${goals} ${salesProcess}`,
-    /manual|handoff|spreadsheet|founder dependent|ops chaos|onboarding|delivery|repetitive|manual|hoja de calculo|fundador|caos|entrega|repetitivo/
+    `${bottlenecks} ${goals} ${salesProcess} ${acquisitionMethod}`,
+    /manual follow[- ]?up|manual lead|manual dm|manual outreach|manual whatsapp|handoff|spreadsheet|founder dependent|lead routing|sales follow[- ]?up|content approval|campaign follow[- ]?up|repetitive follow[- ]?up|seguimiento manual|lead manual|whatsapp manual|hoja de calculo|dependiente del fundador|aprobacion de contenido|seguimiento de campana/
   );
   const contradictions: Contradiction[] = [];
 
@@ -723,9 +772,13 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     key: IssueKey,
     severity: DiagnosticFinding["severity"],
     categories: Issue["categories"]
-  ) => issues.push({ key, severity, categories });
+  ) => {
+    if (!issues.some((issue) => issue.key === key)) {
+      issues.push({ key, severity, categories });
+    }
+  };
 
-  if (!hasPositioningClarity) {
+  if (!hasPositioningClarity || explicitMessageConcern) {
     addIssue("unclear_positioning", "high", ["positioning", "acquisition"]);
   }
 
@@ -738,7 +791,11 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
   }
 
   if (!hasReliableDataVisibility) {
-    addIssue("weak_reporting", "high", ["data", "execution"]);
+    addIssue(
+      "weak_reporting",
+      hasDefinedFunnel || filled(profile.conversionAction) ? "medium" : "high",
+      ["data", "execution"]
+    );
   }
 
   if (hasLeadQualityConcern) {
@@ -749,8 +806,8 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     addIssue("unclear_offer", "high", ["positioning", "execution"]);
   }
 
-  if (!hasCadence) {
-    addIssue("no_operating_cadence", "medium", ["execution", "operations"]);
+  if (!hasCadence && (hasDefinedFunnel || hasAcquisitionEvidence || hasConversionEvidence)) {
+    addIssue("no_operating_cadence", "low", ["execution", "operations"]);
   }
 
   if (manualOps) {
@@ -761,24 +818,29 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     (completeness >= 80 ? 25 : completeness >= 60 ? 18 : completeness >= 40 ? 10 : 4) +
       (specificity >= 75 ? 25 : specificity >= 55 ? 18 : specificity >= 40 ? 10 : 4) +
       (profile.primaryGoals.length > 0 && profile.biggestBottlenecks.length > 0 ? 15 : 8) +
-      (profile.currentChannels.length > 0 && profile.currentTools.length > 0 ? 15 : 8) +
+      (profile.currentChannels.length > 0 ? 12 : 4) +
+      (profile.currentTools.length > 0 || hasMarketingMeasurementBasics ? 10 : 4) +
       (visibleEvidenceScore >= 75 ? 20 : visibleEvidenceScore >= 50 ? 14 : visibleEvidenceScore >= 25 ? 8 : 0) +
       (hasConversionEvidence ? 8 : 0) +
       (hasAcquisitionEvidence ? 6 : 0) +
-      (hasDefinedFunnel ? 10 : 0) +
-      (hasReliableDataVisibility ? 10 : 0) +
-      (hasCadence ? 10 : 0) -
+      (hasDefinedFunnel ? 12 : 0) +
+      (hasReliableDataVisibility ? 10 : hasMarketingMeasurementBasics ? 6 : 0) +
+      (hasCadence ? 3 : 0) -
       contradictions.length * 10,
     0,
     100
   );
 
   const consistency = clamp(100 - contradictions.length * 25, 20, 100);
+  const hasMinimumMarketingEvidence =
+    hasVisiblePositioningEvidence &&
+    hasAcquisitionEvidence &&
+    (hasConversionEvidence || filled(profile.conversionAction) || socialOrEventEvidence);
   const insufficientSignal =
     completeness < 55 ||
     specificity < 45 ||
     evidenceQuality < 45 ||
-    visibleEvidenceScore < 35 ||
+    (!hasMinimumMarketingEvidence && visibleEvidenceScore < 35) ||
     !filled(profile.primaryOffer) ||
     !filled(profile.targetAudience) ||
     (profile.primaryGoals.length === 0 && profile.biggestBottlenecks.length === 0);
@@ -799,6 +861,24 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     );
   }
 
+  const issuePriority: Record<IssueKey, number> = {
+    contradictory_scale: 0,
+    unclear_offer: 1,
+    unclear_positioning: 2,
+    no_niche_clarity: 3,
+    undefined_funnel: 4,
+    poor_lead_quality: 5,
+    weak_reporting: 6,
+    low_evidence: 7,
+    no_operating_cadence: 8,
+    manual_operations: 9
+  };
+  issues.sort((a, b) => {
+    const severityWeight = { high: 0, medium: 1, low: 2 };
+    const severityDelta = severityWeight[a.severity] - severityWeight[b.severity];
+    return severityDelta || issuePriority[a.key] - issuePriority[b.key];
+  });
+
   return {
     businessType,
     completeness,
@@ -816,6 +896,8 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     hasNicheClarity,
     hasOfferStructure,
     hasPositioningClarity,
+    hasSocialOrEventEvidence: socialOrEventEvidence,
+    hasMarketingMeasurementBasics,
     hasLeadQualityConcern,
     contradictions,
     issues
@@ -905,14 +987,14 @@ function scoreCategories(
       key: "positioning",
       base: 60,
       floor: 18,
-      ceiling: 88,
+      ceiling: 92,
       positives: [
         {
           label:
             language === "es"
               ? "la oferta esta descrita con estructura"
               : "the offer is described with real structure",
-          points: signals.hasOfferStructure ? 8 : 0,
+          points: signals.hasOfferStructure ? 11 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["offer_audience", "conversion_model"])
         },
@@ -921,7 +1003,7 @@ function scoreCategories(
             language === "es"
               ? "la audiencia es suficientemente especifica"
               : "the audience is specific enough to reason about",
-          points: signals.hasNicheClarity ? 8 : 0,
+          points: signals.hasNicheClarity ? 11 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["offer_audience", "visible_positioning"])
         },
@@ -930,7 +1012,7 @@ function scoreCategories(
             language === "es"
               ? "hay evidencia visible de posicionamiento"
               : "visible positioning evidence is present",
-          points: signals.hasVisiblePositioningEvidence ? 6 : 0,
+          points: signals.hasVisiblePositioningEvidence ? 7 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["visible_positioning"])
         },
@@ -949,7 +1031,7 @@ function scoreCategories(
       key: "acquisition",
       base: 58,
       floor: 18,
-      ceiling: 86,
+      ceiling: 90,
       positives: [
         {
           label:
@@ -965,7 +1047,7 @@ function scoreCategories(
             language === "es"
               ? "hay un camino de embudo reconocible"
               : "there is a recognizable funnel path",
-          points: signals.hasDefinedFunnel ? 8 : 0,
+          points: signals.hasDefinedFunnel ? 12 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["channel_mix", "conversion_model"])
         },
@@ -974,7 +1056,7 @@ function scoreCategories(
             language === "es"
               ? "el metodo de adquisicion esta descrito"
               : "the acquisition method is described",
-          points: signals.hasAcquisitionEvidence ? 5 : 0,
+          points: signals.hasAcquisitionEvidence ? 7 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["channel_mix", "conversion_model"])
         },
@@ -991,15 +1073,15 @@ function scoreCategories(
     }),
     buildCategory({
       key: "operations",
-      base: 56,
+      base: 52,
       floor: 18,
-      ceiling: 84,
+      ceiling: 78,
       positives: [
         {
           label:
             language === "es"
-              ? "hay herramientas operativas listadas"
-              : "operating tools are listed",
+              ? "hay herramientas de marketing o seguimiento listadas"
+              : "marketing or tracking tools are listed",
           points: toolDepth,
           tone: "positive",
           basedOn: evidenceList(language, ["operating_tools"])
@@ -1007,9 +1089,9 @@ function scoreCategories(
         {
           label:
             language === "es"
-              ? "existe una cadencia operativa visible"
-              : "a visible operating cadence is present",
-          points: signals.hasCadence ? 8 : 0,
+              ? "existe un ritmo de revision de marketing"
+              : "a marketing review rhythm is present",
+          points: signals.hasCadence ? 4 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["operating_maturity", "goals_bottlenecks"])
         }
@@ -1019,14 +1101,14 @@ function scoreCategories(
       key: "data",
       base: 50,
       floor: 15,
-      ceiling: 86,
+      ceiling: 88,
       positives: [
         {
           label:
             language === "es"
-              ? "hay evidencia de reporting o CRM util"
-              : "there is useful reporting or CRM evidence",
-          points: signals.hasDataVisibility ? 18 : 0,
+              ? "hay evidencia de medicion de marketing util"
+              : "there is useful marketing measurement evidence",
+          points: signals.hasDataVisibility ? 18 : signals.hasMarketingMeasurementBasics ? 12 : 0,
           tone: "positive",
           basedOn: evidenceList(language, ["operating_tools", "goals_bottlenecks", "conversion_model"])
         },
@@ -1059,11 +1141,11 @@ function scoreCategories(
         {
           label:
             language === "es"
-              ? "la cadencia permite convertir objetivos en seguimiento"
-              : "cadence lets goals turn into follow-through",
-          points: signals.hasCadence ? 10 : 0,
+              ? "hay senales suficientes para elegir una prueba de marketing"
+              : "there is enough signal to choose a marketing test",
+          points: signals.hasDefinedFunnel || signals.hasConversionEvidence ? 10 : 0,
           tone: "positive",
-          basedOn: evidenceList(language, ["operating_maturity", "goals_bottlenecks"])
+          basedOn: evidenceList(language, ["channel_mix", "conversion_model", "goals_bottlenecks"])
         },
         {
           label:
@@ -1232,7 +1314,7 @@ function confidenceFactorCards(
       basedOn: evidenceList(language, [
         "operating_tools",
         "channel_mix",
-        "operating_maturity"
+        "conversion_model"
       ])
     }
   ];
@@ -1342,6 +1424,9 @@ function buildBottlenecks(
         if (issue.key === "poor_lead_quality") return /lead|conversion|qualified|calidad|prospecto/.test(normalized);
         if (issue.key === "undefined_funnel") return /funnel|channel|canal|embudo/.test(normalized);
         if (issue.key === "weak_reporting") return /report|data|metric|dato|metrica/.test(normalized);
+        if (issue.key === "unclear_positioning") return /position|broad|generic|similar|understand|difference|proof|trust|message|posicion|amplio|generico|entiende|diferencia|prueba|confianza|mensaje/.test(normalized);
+        if (issue.key === "unclear_offer") return /offer|package|pricing|scope|what they buy|oferta|paquete|precio|alcance|que compran/.test(normalized);
+        if (issue.key === "no_niche_clarity") return /audience|segment|buyer|cliente|audiencia|segmento|comprador/.test(normalized);
         return false;
       });
 
@@ -1349,21 +1434,25 @@ function buildBottlenecks(
       title: matchedIssue
         ? issueCopy[matchedIssue.key][language].title
         : language === "es"
-          ? "Restriccion operativa capturada"
-          : "Captured operating constraint",
+          ? "Restriccion de marketing capturada"
+          : "Captured marketing constraint",
       detail:
         language === "es"
-          ? `La entrada capturada menciona "${item}". Se trata como una restriccion que debe resolverse antes de planificar la siguiente fase.`
-          : `The captured input references "${item}". This is treated as a constraint to resolve before planning the next phase.`,
+          ? `La entrada capturada menciona "${item}". Se trata como una restriccion que debe resolverse antes de elegir el proximo test de marketing.`
+          : `The captured input references "${item}". This is treated as a marketing constraint to resolve before choosing the next test.`,
       severity: matchedIssue?.severity ?? ("medium" as const),
       basedOn: matchedIssue
         ? evidenceList(language, issueEvidenceMap[matchedIssue.key])
         : evidenceList(language, ["goals_bottlenecks"])
     };
   });
+  const uniqueExplicit = explicit.filter(
+    (finding, index, allFindings) =>
+      allFindings.findIndex((item) => item.title === finding.title) === index
+  );
 
-  if (explicit.length > 0) {
-    return [...findings, ...explicit].slice(0, 3);
+  if (uniqueExplicit.length > 0) {
+    return [...findings, ...uniqueExplicit].slice(0, 3);
   }
 
   return [
@@ -1411,8 +1500,8 @@ function buildRisks(
           : "Bottlenecks may block the plan",
       detail:
         language === "es"
-          ? "Hay restricciones capturadas en el perfil, pero aun falta convertirlas en prioridades operativas medibles."
-          : "The profile contains constraints, but they still need to be converted into measurable operating priorities.",
+          ? "Hay restricciones capturadas en el perfil, pero aun falta convertirlas en prioridades de marketing medibles."
+          : "The profile contains constraints, but they still need to be converted into measurable marketing priorities.",
       severity: "medium",
       basedOn: evidenceList(language, ["goals_bottlenecks"])
     });
@@ -1441,8 +1530,8 @@ function buildRisks(
           : "Evidence does not yet support aggressive planning",
       detail:
         language === "es"
-          ? "Antes de crear un roadmap, el equipo deberia cerrar los vacios principales de oferta, embudo, datos o cadencia."
-          : "Before creating a roadmap, the team should close the main gaps in offer, funnel, data, or cadence.",
+          ? "Antes de crear un plan, el equipo deberia cerrar los vacios principales de oferta, audiencia, CTA, embudo, prueba o medicion."
+          : "Before creating a plan, the team should close the main gaps in offer, audience, CTA, funnel, proof, or measurement.",
       severity: "medium",
       basedOn: evidenceList(language, [
         "offer_audience",
@@ -1490,16 +1579,16 @@ function businessTypeOpportunity(
     },
     commerce: {
       en: {
-        title: "Separate acquisition, conversion, and repeat purchase signals",
+        title: "Separate channel response, conversion, and repeat purchase signals",
         detail:
-          "Treat traffic quality, product-page conversion, and repeat order behavior as separate operating systems.",
+          "Track how each channel creates inquiries, bookings, purchases, repeat interest, or customer feedback before increasing activity.",
         impact: "high",
         basedOn: evidenceList(language, ["channel_mix", "operating_tools", "goals_bottlenecks"])
       },
       es: {
-        title: "Separar adquisicion, conversion y recompra",
+        title: "Separar respuesta de canal, conversion y recompra",
         detail:
-          "Tratar calidad de trafico, conversion de producto y recompra como sistemas operativos separados.",
+          "Medir como cada canal crea consultas, reservas, compras, interes repetido o feedback de cliente antes de aumentar actividad.",
         impact: "high",
         basedOn: evidenceList(language, ["channel_mix", "operating_tools", "goals_bottlenecks"])
       }
@@ -1522,48 +1611,48 @@ function businessTypeOpportunity(
     },
     services: {
       en: {
-        title: "Productize intake-to-delivery operations",
+        title: "Package the service into a clearer market-facing offer",
         detail:
-          "Turn the studio or service workflow into defined packages, handoffs, review points, and delivery templates.",
+          "Turn the service into one clear promise, one buyer segment, one proof point, and one next step before asking channels to create more demand.",
         impact: "high",
         basedOn: evidenceList(language, ["offer_audience", "operating_maturity", "goals_bottlenecks"])
       },
       es: {
-        title: "Productizar operaciones de intake a entrega",
+        title: "Empaquetar el servicio como una oferta mas clara de cara al mercado",
         detail:
-          "Convertir el flujo de estudio o servicios en paquetes, handoffs, revisiones y plantillas de entrega.",
+          "Convertir el servicio en una promesa clara, un segmento comprador, una prueba y un siguiente paso antes de pedir mas demanda a los canales.",
         impact: "high",
         basedOn: evidenceList(language, ["offer_audience", "operating_maturity", "goals_bottlenecks"])
       }
     },
     subscription: {
       en: {
-        title: "Define the activation-to-retention operating loop",
+        title: "Define the CTA-to-activation path",
         detail:
-          "Connect acquisition quality, activation, usage, and renewal signals before adding more demand.",
+          "Connect the first CTA, qualified demo or signup, activation event, and proof of value before adding more demand.",
         impact: "high",
         basedOn: evidenceList(language, ["channel_mix", "operating_tools", "goals_bottlenecks"])
       },
       es: {
-        title: "Definir el loop operativo de activacion a retencion",
+        title: "Definir el camino de CTA a activacion",
         detail:
-          "Conectar calidad de adquisicion, activacion, uso y renovacion antes de sumar mas demanda.",
+          "Conectar primer CTA, demo o registro calificado, evento de activacion y prueba de valor antes de sumar mas demanda.",
         impact: "high",
         basedOn: evidenceList(language, ["channel_mix", "operating_tools", "goals_bottlenecks"])
       }
     },
     general: {
       en: {
-        title: `Use ${channel} as the first measurable operating lane`,
+        title: `Use ${channel} as the first measurable marketing test`,
         detail:
-          "Pick one channel, one conversion event, and one review cadence before expanding the operating model.",
+          "Pick one channel, one conversion event, one proof point, and one weekly decision before expanding the marketing plan.",
         impact: "medium",
         basedOn: evidenceList(language, ["channel_mix", "goals_bottlenecks"])
       },
       es: {
-        title: `Usar ${channel} como primer carril operativo medible`,
+        title: `Usar ${channel} como primera prueba de marketing medible`,
         detail:
-          "Elegir un canal, un evento de conversion y una cadencia de revision antes de ampliar el modelo operativo.",
+          "Elegir un canal, un evento de conversion, una prueba y una decision semanal antes de ampliar el plan de marketing.",
         impact: "medium",
         basedOn: evidenceList(language, ["channel_mix", "goals_bottlenecks"])
       }
@@ -1580,8 +1669,8 @@ function issueOpportunity(
   const title = issueCopy[issue.key][language].title;
   const detail =
     language === "es"
-      ? `Convertir esta restriccion en una prueba operativa pequena antes de construir el roadmap: ${issueCopy[issue.key][language].detail}`
-      : `Turn this constraint into a small operating test before building the roadmap: ${issueCopy[issue.key][language].detail}`;
+      ? `Convertir esta restriccion en una prueba pequena de marketing antes de construir el plan: ${issueCopy[issue.key][language].detail}`
+      : `Turn this constraint into a small marketing test before building the plan: ${issueCopy[issue.key][language].detail}`;
 
   return {
     title,
@@ -1602,12 +1691,12 @@ function buildOpportunities(
     opportunities.push({
       title:
         language === "es"
-          ? "Fortalecer la base del perfil antes de escalar decisiones"
-          : "Strengthen the profile baseline before scaling decisions",
+          ? "Fortalecer la base de marketing antes de escalar decisiones"
+          : "Strengthen the marketing baseline before scaling decisions",
       detail:
         language === "es"
-          ? "Completa oferta, audiencia, canales, herramientas, objetivos y cuellos de botella para que el siguiente diagnostico sea mas util que una orientacion general."
-          : "Complete the offer, audience, channels, tools, goals, and bottlenecks so the next diagnostic can be more than directional guidance.",
+          ? "Completa oferta, audiencia, CTA, canales, prueba, medicion y cuellos de botella para que el siguiente diagnostico sea mas util que una orientacion general."
+          : "Complete the offer, audience, CTA, channels, proof, measurement, and bottlenecks so the next diagnostic can be more than directional guidance.",
       impact: "high",
       basedOn: evidenceList(language, [
         "offer_audience",
@@ -1883,19 +1972,19 @@ function buildEvidence(
         needsValidation: needs.filter((need) => need.toLowerCase().includes("cta") || need.toLowerCase().includes("precio") || need.toLowerCase().includes("conversion"))
       },
       {
-        title: "Herramientas y madurez operativa",
+        title: "Medicion y ejecucion de marketing",
         observation:
           profile.currentTools.length > 0
-            ? `Herramientas actuales: ${profile.currentTools.join(", ")}. Cadencia ${signals.hasCadence ? "presente" : "no visible"}.`
-            : `No se declararon herramientas actuales. Cadencia ${signals.hasCadence ? "presente" : "no visible"}.`,
+            ? `Herramientas actuales: ${profile.currentTools.join(", ")}. Medicion basica ${signals.hasMarketingMeasurementBasics ? "presente" : "por afinar"}.`
+            : `No se declararon herramientas actuales. Medicion basica ${signals.hasMarketingMeasurementBasics ? "presente" : "pendiente"}.`,
         implication:
           signals.hasDataVisibility
-            ? "Hay base para una lectura mas confiable de reporting y seguimiento."
-            : "La visibilidad de datos o la cadencia siguen demasiado debiles para afirmar de mas.",
+            ? "Hay base para revisar respuesta de canal, conversion o feedback con mas confianza."
+            : "La medicion de marketing sigue demasiado debil para afirmar de mas.",
         basedOn: evidenceList(language, ["operating_tools", "operating_maturity", "conversion_model"]),
         signalQuality:
-          signals.hasDataVisibility && signals.hasCadence ? "strong" : profile.currentTools.length > 0 || signals.hasCadence ? "mixed" : "weak",
-        evidenceQuality: signals.hasDataVisibility && signals.hasCadence ? "clear" : profile.currentTools.length > 0 || signals.hasCadence ? "weak" : "missing",
+          signals.hasDataVisibility ? "strong" : profile.currentTools.length > 0 || signals.hasMarketingMeasurementBasics ? "mixed" : "weak",
+        evidenceQuality: signals.hasDataVisibility ? "clear" : profile.currentTools.length > 0 || signals.hasMarketingMeasurementBasics ? "weak" : "missing",
         needsValidation: needs.filter((need) => need.toLowerCase().includes("datos") || need.toLowerCase().includes("crm") || need.toLowerCase().includes("reporting"))
       },
       {
@@ -1998,19 +2087,19 @@ function buildEvidence(
       needsValidation: needs.filter((need) => need.toLowerCase().includes("cta") || need.toLowerCase().includes("price") || need.toLowerCase().includes("conversion"))
     },
     {
-      title: "Tools and operating maturity",
+      title: "Measurement and marketing execution",
       observation:
         profile.currentTools.length > 0
-          ? `Current tools: ${profile.currentTools.join(", ")}. Cadence is ${signals.hasCadence ? "visible" : "not visible"}.`
-          : `No current tools are listed. Cadence is ${signals.hasCadence ? "visible" : "not visible"}.`,
+          ? `Current tools: ${profile.currentTools.join(", ")}. Basic measurement is ${signals.hasMarketingMeasurementBasics ? "present" : "still to sharpen"}.`
+          : `No current tools are listed. Basic measurement is ${signals.hasMarketingMeasurementBasics ? "present" : "pending"}.`,
       implication:
         signals.hasDataVisibility
-          ? "There is enough reporting structure to support a stronger measurement read."
-          : "Data visibility or operating cadence is still too weak to justify strong certainty.",
+          ? "There is enough structure to review channel response, conversion, or feedback with more confidence."
+          : "Marketing measurement is still too weak to justify strong certainty.",
       basedOn: evidenceList(language, ["operating_tools", "operating_maturity", "conversion_model"]),
       signalQuality:
-        signals.hasDataVisibility && signals.hasCadence ? "strong" : profile.currentTools.length > 0 || signals.hasCadence ? "mixed" : "weak",
-      evidenceQuality: signals.hasDataVisibility && signals.hasCadence ? "clear" : profile.currentTools.length > 0 || signals.hasCadence ? "weak" : "missing",
+        signals.hasDataVisibility ? "strong" : profile.currentTools.length > 0 || signals.hasMarketingMeasurementBasics ? "mixed" : "weak",
+      evidenceQuality: signals.hasDataVisibility ? "clear" : profile.currentTools.length > 0 || signals.hasMarketingMeasurementBasics ? "weak" : "missing",
       needsValidation: needs.filter((need) => need.toLowerCase().includes("data") || need.toLowerCase().includes("crm") || need.toLowerCase().includes("reporting"))
     },
     {
@@ -2082,7 +2171,6 @@ function resolveConfidence(signals: SignalMap): DiagnosticResultRecord["confiden
     signals.hasPositioningClarity &&
     signals.hasDefinedFunnel &&
     signals.hasDataVisibility &&
-    signals.hasCadence &&
     signals.hasConversionEvidence &&
     signals.contradictions.length === 0 &&
     highSeverityCount === 0
@@ -2096,10 +2184,13 @@ function resolveConfidence(signals: SignalMap): DiagnosticResultRecord["confiden
     signals.consistency >= 50 &&
     signals.specificity >= 50 &&
     signals.evidenceQuality >= 50 &&
-    signals.visibleEvidenceScore >= 35 &&
+    (signals.visibleEvidenceScore >= 35 || signals.hasSocialOrEventEvidence) &&
     signals.contradictions.length <= 1 &&
     highSeverityCount <= 2 &&
-    (signals.hasDataVisibility || signals.hasDefinedFunnel || signals.hasCadence)
+    (signals.hasDataVisibility ||
+      signals.hasMarketingMeasurementBasics ||
+      signals.hasDefinedFunnel ||
+      signals.hasConversionEvidence)
   ) {
     return "medium";
   }
@@ -2132,8 +2223,8 @@ const nextStepByIssue: Record<IssueKey, Record<OutputLanguage, string>> = {
     es: "Definir un camino de embudo con un evento de conversion nombrado y un owner antes de agregar canales."
   },
   weak_reporting: {
-    en: "Install a weekly scorecard for the primary metric before making channel or spend decisions.",
-    es: "Instalar un scorecard semanal de la metrica principal antes de tomar decisiones de canal o gasto."
+    en: "Choose one primary marketing metric before making channel or spend decisions.",
+    es: "Elegir una metrica primaria de marketing antes de tomar decisiones de canal o gasto."
   },
   poor_lead_quality: {
     en: "Add a lead qualification filter and measure quality by source before increasing volume.",
@@ -2144,20 +2235,20 @@ const nextStepByIssue: Record<IssueKey, Record<OutputLanguage, string>> = {
     es: "Escribir la oferta con precio, entrega y resultado esperado antes de cualquier actividad outbound o paga."
   },
   no_operating_cadence: {
-    en: "Install a weekly operating review with one owner and one primary metric to track.",
-    es: "Instalar revision operativa semanal con un owner y una metrica primaria."
+    en: "Review the active marketing test weekly with one owner, one metric, and one decision.",
+    es: "Revisar la prueba de marketing activa cada semana con un owner, una metrica y una decision."
   },
   manual_operations: {
-    en: "Document the most repeated manual step and assign it an owner or a removal decision this week.",
-    es: "Documentar el paso manual mas repetido y asignarle owner o decision de eliminacion esta semana."
+    en: "Document the manual follow-up step that affects leads or conversion and assign one owner this week.",
+    es: "Documentar el seguimiento manual que afecta leads o conversion y asignarle un owner esta semana."
   },
   low_evidence: {
-    en: "Complete the business profile with audience, offer, channels, and tools before generating a roadmap.",
-    es: "Completar el perfil con audiencia, oferta, canales y herramientas antes de crear un roadmap."
+    en: "Complete the profile with audience, offer, CTA, channel, proof, and measurement evidence before treating the plan as final.",
+    es: "Completar el perfil con audiencia, oferta, CTA, canal, prueba y medicion antes de tratar el plan como final."
   },
   contradictory_scale: {
-    en: "Resolve the gap between scale ambition and current operating capacity before adding complexity.",
-    es: "Resolver la brecha entre la ambicion de escala y la capacidad operativa actual antes de agregar complejidad."
+    en: "Resolve the gap between scale ambition and current marketing evidence before adding complexity.",
+    es: "Resolver la brecha entre la ambicion de escala y la evidencia de marketing actual antes de agregar complejidad."
   }
 };
 
@@ -2182,7 +2273,7 @@ function buildSummary({
       return (
         `${company} obtiene ${overallMaturityScore}/100 con confianza ${localizedConfidence(confidence, language)}. ` +
         `El perfil actual no aporta suficiente evidencia para una conclusion firme; la evidencia visible puntua ${signals.visibleEvidenceScore}/100. ` +
-        "Completa oferta, audiencia, posicionamiento visible, CTA, canales, herramientas y cuellos de botella antes de tratar este resultado como base de roadmap."
+        "Completa oferta, audiencia, posicionamiento visible, CTA, canales, prueba y medicion antes de tratar este resultado como base del plan de marketing."
       );
     }
 
@@ -2200,7 +2291,7 @@ function buildSummary({
       (topIssue
         ? `La restriccion principal es: ${issueCopy[topIssue.key].es.title}. `
         : "No se detecto una restriccion critica unica. ") +
-      (nextStep ?? "El siguiente paso debe cerrar la brecha operativa de mayor riesgo antes de crear un roadmap.")
+      (nextStep ?? "El siguiente paso debe cerrar la brecha de marketing de mayor riesgo antes de crear el plan de 30 dias.")
     );
   }
 
@@ -2208,7 +2299,7 @@ function buildSummary({
     return (
       `${company} scores ${overallMaturityScore}/100 with ${confidence} confidence. ` +
       `The current profile does not provide enough evidence for a firm diagnostic; visible evidence scores ${signals.visibleEvidenceScore}/100. ` +
-      "Complete the offer, audience, visible positioning, CTA, channels, tools, and main bottlenecks before treating this as roadmap-ready truth."
+      "Complete the offer, audience, visible positioning, CTA, channels, proof, and measurement before treating this as marketing-plan-ready truth."
     );
   }
 
@@ -2226,7 +2317,7 @@ function buildSummary({
     (topIssue
       ? `The primary constraint is: ${issueCopy[topIssue.key].en.title}. `
       : "No single critical constraint was detected. ") +
-    (nextStep ?? "The next step should close the highest-risk operating gap before roadmap creation.")
+    (nextStep ?? "The next step should close the highest-risk marketing gap before creating the 30-day plan.")
   );
 }
 
