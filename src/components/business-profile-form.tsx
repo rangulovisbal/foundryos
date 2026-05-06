@@ -15,6 +15,7 @@ type ProfileDraft = {
   website: string;
   positioningStatement: string;
   channelUrls: string;
+  proofTrustSignals: string;
   industry: string;
   businessModel: string;
   teamSize: string;
@@ -37,7 +38,8 @@ type ProfileDraft = {
 const optionalProgressFields = new Set<keyof ProfileDraft>([
   "website",
   "channelUrls",
-  "evidenceNotes"
+  "evidenceNotes",
+  "proofTrustSignals"
 ]);
 const urlPlaceholderValues = new Set([
   "na",
@@ -66,6 +68,133 @@ type StepDefinition = {
   fields: Array<keyof ProfileDraft>;
 };
 
+type StructuredOption = {
+  value: string;
+  labelEn: string;
+  labelEs: string;
+};
+
+const PROOF_TRUST_PREFIX = "Proof / trust available:";
+
+const industryOptions: StructuredOption[] = [
+  { value: "Food & beverage", labelEn: "Food & beverage", labelEs: "Comida y bebida" },
+  { value: "Creative services", labelEn: "Creative services", labelEs: "Servicios creativos" },
+  { value: "Professional services", labelEn: "Professional services", labelEs: "Servicios profesionales" },
+  { value: "Education / training", labelEn: "Education / training", labelEs: "Educación / formación" },
+  { value: "Wellness / health", labelEn: "Wellness / health", labelEs: "Bienestar / salud" },
+  { value: "Retail / ecommerce", labelEn: "Retail / ecommerce", labelEs: "Retail / ecommerce" },
+  { value: "SaaS / digital product", labelEn: "SaaS / digital product", labelEs: "SaaS / producto digital" },
+  { value: "Events / experiences", labelEn: "Events / experiences", labelEs: "Eventos / experiencias" },
+  { value: "Consulting", labelEn: "Consulting", labelEs: "Consultoría" }
+];
+
+const businessModelOptions: StructuredOption[] = [
+  { value: "Services", labelEn: "Services", labelEs: "Servicios" },
+  { value: "Product sales", labelEn: "Product sales", labelEs: "Venta de producto" },
+  { value: "Pop-up / event-based sales", labelEn: "Pop-up / event-based sales", labelEs: "Ventas por pop-up / evento" },
+  { value: "Ecommerce", labelEn: "Ecommerce", labelEs: "Ecommerce" },
+  { value: "Subscription", labelEn: "Subscription", labelEs: "Suscripción" },
+  { value: "Courses / workshops", labelEn: "Courses / workshops", labelEs: "Cursos / talleres" },
+  { value: "Consulting", labelEn: "Consulting", labelEs: "Consultoría" },
+  { value: "Marketplace", labelEn: "Marketplace", labelEs: "Marketplace" },
+  { value: "Mixed model", labelEn: "Mixed model", labelEs: "Modelo mixto" }
+];
+
+const businessStageOptions: StructuredOption[] = [
+  { value: "Idea only", labelEn: "Idea only", labelEs: "Sólo idea" },
+  { value: "Testing with friends/family", labelEn: "Testing with friends/family", labelEs: "Probando con amigos/familia" },
+  { value: "First sales", labelEn: "First sales", labelEs: "Primeras ventas" },
+  { value: "Regular sales", labelEn: "Regular sales", labelEs: "Ventas regulares" },
+  { value: "Growing but disorganized", labelEn: "Growing but disorganized", labelEs: "Creciendo pero desorganizado" },
+  { value: "Established but needs marketing clarity", labelEn: "Established but needs marketing clarity", labelEs: "Establecido pero necesita claridad de marketing" }
+];
+
+const teamSizeOptions: StructuredOption[] = [
+  { value: "Just me", labelEn: "Just me", labelEs: "Sólo yo" },
+  { value: "2-3 people", labelEn: "2-3 people", labelEs: "2-3 personas" },
+  { value: "4-10 people", labelEn: "4-10 people", labelEs: "4-10 personas" },
+  { value: "11-20 people", labelEn: "11-20 people", labelEs: "11-20 personas" }
+];
+
+const marketingGoalOptions: StructuredOption[] = [
+  { value: "Clarify my offer", labelEn: "Clarify my offer", labelEs: "Aclarar mi oferta" },
+  { value: "Understand my audience", labelEn: "Understand my audience", labelEs: "Entender mi audiencia" },
+  { value: "Improve my message", labelEn: "Improve my message", labelEs: "Mejorar mi mensaje" },
+  { value: "Choose a channel", labelEn: "Choose a channel", labelEs: "Elegir un canal" },
+  { value: "Get more inquiries", labelEn: "Get more inquiries", labelEs: "Conseguir más consultas" },
+  { value: "Prepare a launch / pop-up / campaign", labelEn: "Prepare a launch / pop-up / campaign", labelEs: "Preparar un lanzamiento / pop-up / campaña" },
+  { value: "Improve conversion", labelEn: "Improve conversion", labelEs: "Mejorar conversión" },
+  { value: "Collect customer feedback", labelEn: "Collect customer feedback", labelEs: "Recoger feedback de clientes" },
+  { value: "Build a simple content plan", labelEn: "Build a simple content plan", labelEs: "Crear un plan simple de contenido" },
+  { value: "I'm not sure yet", labelEn: "I'm not sure yet", labelEs: "Todavía no estoy seguro" }
+];
+
+const marketingChallengeOptions: StructuredOption[] = [
+  { value: "People don't know we exist", labelEn: "People don't know we exist", labelEs: "La gente no sabe que existimos" },
+  { value: "People like it but don't buy", labelEn: "People like it but don't buy", labelEs: "A la gente le gusta pero no compra" },
+  { value: "I don't know what to post", labelEn: "I don't know what to post", labelEs: "No sé qué publicar" },
+  { value: "I don't know which channel to use", labelEn: "I don't know which channel to use", labelEs: "No sé qué canal usar" },
+  { value: "I don't know how to explain the offer", labelEn: "I don't know how to explain the offer", labelEs: "No sé cómo explicar la oferta" },
+  { value: "I don't have a clear CTA", labelEn: "I don't have a clear CTA", labelEs: "No tengo un CTA claro" },
+  { value: "I don't know how to price it", labelEn: "I don't know how to price it", labelEs: "No sé cómo poner precio" },
+  { value: "I don't track what works", labelEn: "I don't track what works", labelEs: "No mido qué funciona" },
+  { value: "I depend too much on referrals", labelEn: "I depend too much on referrals", labelEs: "Dependo demasiado de referidos" },
+  { value: "I'm not sure yet", labelEn: "I'm not sure yet", labelEs: "Todavía no estoy seguro" }
+];
+
+const marketingChannelOptions: StructuredOption[] = [
+  { value: "Instagram", labelEn: "Instagram", labelEs: "Instagram" },
+  { value: "TikTok", labelEn: "TikTok", labelEs: "TikTok" },
+  { value: "LinkedIn", labelEn: "LinkedIn", labelEs: "LinkedIn" },
+  { value: "Website", labelEn: "Website", labelEs: "Web" },
+  { value: "WhatsApp", labelEn: "WhatsApp", labelEs: "WhatsApp" },
+  { value: "Email", labelEn: "Email", labelEs: "Email" },
+  { value: "Pop-up events", labelEn: "Pop-up events", labelEs: "Eventos pop-up" },
+  { value: "Referrals / word of mouth", labelEn: "Referrals / word of mouth", labelEs: "Referidos / boca a boca" },
+  { value: "Partnerships", labelEn: "Partnerships", labelEs: "Partnerships" },
+  { value: "Marketplaces", labelEn: "Marketplaces", labelEs: "Marketplaces" },
+  { value: "Paid ads", labelEn: "Paid ads", labelEs: "Anuncios pagados" },
+  { value: "SEO / blog", labelEn: "SEO / blog", labelEs: "SEO / blog" },
+  { value: "None yet", labelEn: "None yet", labelEs: "Ninguno todavía" }
+];
+
+const ctaOptions: StructuredOption[] = [
+  { value: "DM me", labelEn: "DM me", labelEs: "Envíame un DM" },
+  { value: "Book a call", labelEn: "Book a call", labelEs: "Reservar una llamada" },
+  { value: "Buy online", labelEn: "Buy online", labelEs: "Comprar online" },
+  { value: "Visit pop-up/event", labelEn: "Visit pop-up/event", labelEs: "Visitar pop-up/evento" },
+  { value: "Join waitlist", labelEn: "Join waitlist", labelEs: "Unirse a lista de espera" },
+  { value: "Fill form", labelEn: "Fill form", labelEs: "Rellenar formulario" },
+  { value: "Request quote", labelEn: "Request quote", labelEs: "Solicitar presupuesto" },
+  { value: "Subscribe", labelEn: "Subscribe", labelEs: "Suscribirse" },
+  { value: "Follow for updates", labelEn: "Follow for updates", labelEs: "Seguir para novedades" },
+  { value: "No clear CTA yet", labelEn: "No clear CTA yet", labelEs: "Todavía no hay CTA claro" }
+];
+
+const proofTrustOptions: StructuredOption[] = [
+  { value: "Customer feedback", labelEn: "Customer feedback", labelEs: "Feedback de clientes" },
+  { value: "Testimonials", labelEn: "Testimonials", labelEs: "Testimonios" },
+  { value: "Product photos", labelEn: "Product photos", labelEs: "Fotos de producto" },
+  { value: "Case studies", labelEn: "Case studies", labelEs: "Casos de estudio" },
+  { value: "Before/after", labelEn: "Before/after", labelEs: "Antes/después" },
+  { value: "Press / mentions", labelEn: "Press / mentions", labelEs: "Prensa / menciones" },
+  { value: "Repeat customers", labelEn: "Repeat customers", labelEs: "Clientes recurrentes" },
+  { value: "Event attendance", labelEn: "Event attendance", labelEs: "Asistencia a eventos" },
+  { value: "Sales data", labelEn: "Sales data", labelEs: "Datos de ventas" },
+  { value: "None yet", labelEn: "None yet", labelEs: "Nada todavía" }
+];
+
+const measurementOptions: StructuredOption[] = [
+  { value: "I don't track anything yet", labelEn: "I don't track anything yet", labelEs: "Todavía no mido nada" },
+  { value: "I track manually", labelEn: "I track manually", labelEs: "Mido manualmente" },
+  { value: "I track sales only", labelEn: "I track sales only", labelEs: "Sólo mido ventas" },
+  { value: "I track social metrics", labelEn: "I track social metrics", labelEs: "Mido métricas sociales" },
+  { value: "I track website analytics", labelEn: "I track website analytics", labelEs: "Mido analítica web" },
+  { value: "I track leads/inquiries", labelEn: "I track leads/inquiries", labelEs: "Mido leads/consultas" },
+  { value: "I have a CRM", labelEn: "I have a CRM", labelEs: "Tengo un CRM" },
+  { value: "I'm not sure", labelEn: "I'm not sure", labelEs: "No estoy seguro" }
+];
+
 function getWizardSteps(language: OutputLanguage): StepDefinition[] {
   return [
     {
@@ -86,7 +215,13 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
         "Add the visible message, CTA, and public channel evidence a reviewer would check first. This does not fetch or verify live data yet.",
         "Añade el mensaje visible, el CTA y la evidencia pública de canales que un revisor miraría primero. Todavía no se consulta ni verifica información en vivo."
       ),
-      fields: ["positioningStatement", "channelUrls", "conversionAction", "evidenceNotes"]
+      fields: [
+        "positioningStatement",
+        "channelUrls",
+        "conversionAction",
+        "proofTrustSignals",
+        "evidenceNotes"
+      ]
     },
     {
       key: "current-state",
@@ -176,6 +311,82 @@ function textToList(value: string) {
     .filter(Boolean);
 }
 
+function optionLabel(option: StructuredOption, language: OutputLanguage) {
+  return language === "es" ? option.labelEs : option.labelEn;
+}
+
+function optionValues(options: StructuredOption[]) {
+  return new Set(options.map((option) => option.value.toLowerCase()));
+}
+
+function knownOptionValue(value: string, options: StructuredOption[]) {
+  const normalized = value.trim().toLowerCase();
+  return options.some((option) => option.value.toLowerCase() === normalized);
+}
+
+function splitKnownAndCustomValues(value: string, options: StructuredOption[]) {
+  const knownValues = optionValues(options);
+  const values = textToList(value);
+
+  return {
+    selected: values.filter((item) => knownValues.has(item.toLowerCase())),
+    custom: values.filter((item) => !knownValues.has(item.toLowerCase()))
+  };
+}
+
+function listToDraftText(values: string[]) {
+  return values
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function splitEvidenceNotes(notes: string | null | undefined) {
+  const lines = (notes ?? "").split("\n");
+  const proofLineIndex = lines.findIndex((line) =>
+    line.trim().toLowerCase().startsWith(PROOF_TRUST_PREFIX.toLowerCase())
+  );
+
+  if (proofLineIndex === -1) {
+    return {
+      proofTrustSignals: "",
+      notes: notes ?? ""
+    };
+  }
+
+  const proofLine = lines[proofLineIndex].trim();
+  const proofSignals = proofLine
+    .slice(PROOF_TRUST_PREFIX.length)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const remainingNotes = lines
+    .filter((_, index) => index !== proofLineIndex)
+    .join("\n")
+    .trim();
+
+  return {
+    proofTrustSignals: listToDraftText(proofSignals),
+    notes: remainingNotes
+  };
+}
+
+function buildEvidenceNotesForSave(draft: ProfileDraft) {
+  const proofSignals = textToList(draft.proofTrustSignals);
+  const notes = draft.evidenceNotes.trim();
+  const sections = [];
+
+  if (proofSignals.length > 0) {
+    sections.push(`${PROOF_TRUST_PREFIX} ${proofSignals.join(", ")}`);
+  }
+
+  if (notes.length > 0) {
+    sections.push(notes);
+  }
+
+  return sections.join("\n\n");
+}
+
 function normalizeUrlFieldValue(value: string) {
   const trimmed = value.trim();
   return urlPlaceholderValues.has(trimmed.toLowerCase()) ? "" : trimmed;
@@ -192,12 +403,15 @@ function buildInitialDraft(
   profile: BusinessProfileRecord | null,
   outputLanguage: OutputLanguage
 ): ProfileDraft {
+  const evidence = splitEvidenceNotes(profile?.evidenceNotes);
+
   return {
     companyName: profile?.companyName ?? "",
     outputLanguage,
     website: profile?.website ?? "",
     positioningStatement: profile?.positioningStatement ?? "",
     channelUrls: listToText(profile?.channelUrls),
+    proofTrustSignals: evidence.proofTrustSignals,
     industry: profile?.industry ?? "",
     businessModel: profile?.businessModel ?? "",
     teamSize: profile?.teamSize ?? "",
@@ -212,7 +426,7 @@ function buildInitialDraft(
     currentTools: listToText(profile?.currentTools),
     primaryGoals: listToText(profile?.primaryGoals),
     biggestBottlenecks: listToText(profile?.biggestBottlenecks),
-    evidenceNotes: profile?.evidenceNotes ?? "",
+    evidenceNotes: evidence.notes,
     budgetBand: profile?.budgetBand ?? "",
     lifecycleStage: profile?.lifecycleStage ?? ""
   };
@@ -309,6 +523,10 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
           compactValue(draft.conversionAction, language)
         ] as [string, string],
         [
+          copyForLanguage(language, "Proof / trust available", "Prueba / confianza disponible"),
+          compactList(draft.proofTrustSignals).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
+        ] as [string, string],
+        [
           copyForLanguage(language, "Evidence notes", "Notas de evidencia"),
           compactValue(draft.evidenceNotes, language)
         ] as [string, string]
@@ -360,7 +578,7 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
           compactValue(draft.salesProcess, language)
         ] as [string, string],
         [
-          copyForLanguage(language, "Current tools", "Herramientas actuales"),
+          copyForLanguage(language, "Measurement", "Medición"),
           compactList(draft.currentTools).join(", ") || copyForLanguage(language, "Not provided yet.", "Todavía no se ha indicado.")
         ] as [string, string],
         [
@@ -372,6 +590,157 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
       ]
     }
   ];
+}
+
+function StructuredSelectField({
+  canEdit,
+  customPlaceholder,
+  draftValue,
+  inputClass,
+  language,
+  loading,
+  onChange,
+  options
+}: {
+  canEdit: boolean;
+  customPlaceholder: string;
+  draftValue: string;
+  inputClass: string;
+  language: OutputLanguage;
+  loading: boolean;
+  onChange: (value: string) => void;
+  options: StructuredOption[];
+}) {
+  const trimmedValue = draftValue.trim();
+  const isKnown = trimmedValue.length > 0 && knownOptionValue(trimmedValue, options);
+  const selectValue = trimmedValue.length === 0 ? "" : isKnown ? trimmedValue : "__other__";
+  const showCustomInput = selectValue === "__other__";
+
+  return (
+    <div className="space-y-3">
+      <select
+        className={inputClass}
+        disabled={!canEdit || loading}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          onChange(nextValue === "__other__" ? "" : nextValue);
+        }}
+        value={selectValue}
+      >
+        <option value="">
+          {copyForLanguage(language, "Choose one", "Elige una opción")}
+        </option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {optionLabel(option, language)}
+          </option>
+        ))}
+        <option value="__other__">
+          {copyForLanguage(language, "Other", "Otro")}
+        </option>
+      </select>
+      {showCustomInput ? (
+        <input
+          className={inputClass}
+          disabled={!canEdit || loading}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={customPlaceholder}
+          value={draftValue}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function StructuredMultiSelectField({
+  canEdit,
+  customPlaceholder,
+  language,
+  loading,
+  onChange,
+  options,
+  value
+}: {
+  canEdit: boolean;
+  customPlaceholder: string;
+  language: OutputLanguage;
+  loading: boolean;
+  onChange: (value: string) => void;
+  options: StructuredOption[];
+  value: string;
+}) {
+  const { selected, custom } = splitKnownAndCustomValues(value, options);
+  const [showCustom, setShowCustom] = useState(custom.length > 0);
+  const selectedSet = new Set(selected.map((item) => item.toLowerCase()));
+
+  function updateSelected(nextSelected: string[], nextCustom = custom) {
+    onChange(listToDraftText([...nextSelected, ...nextCustom]));
+  }
+
+  function toggleOption(option: StructuredOption) {
+    if (!canEdit || loading) {
+      return;
+    }
+
+    const isSelected = selectedSet.has(option.value.toLowerCase());
+    const nextSelected = isSelected
+      ? selected.filter((item) => item.toLowerCase() !== option.value.toLowerCase())
+      : [...selected, option.value];
+
+    updateSelected(nextSelected);
+  }
+
+  function updateCustom(value: string) {
+    const nextCustom = textToList(value);
+    updateSelected(selected, nextCustom);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const isSelected = selectedSet.has(option.value.toLowerCase());
+
+          return (
+            <button
+              className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                isSelected
+                  ? "border-ink bg-ink text-sand"
+                  : "border-[color:var(--border)] bg-white/85 text-ink hover:bg-white"
+              } disabled:opacity-60`}
+              disabled={!canEdit || loading}
+              key={option.value}
+              onClick={() => toggleOption(option)}
+              type="button"
+            >
+              {optionLabel(option, language)}
+            </button>
+          );
+        })}
+        <button
+          className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${
+            showCustom
+              ? "border-gold bg-gold/10 text-ink"
+              : "border-[color:var(--border)] bg-white/85 text-ink hover:bg-white"
+          } disabled:opacity-60`}
+          disabled={!canEdit || loading}
+          onClick={() => setShowCustom((current) => !current)}
+          type="button"
+        >
+          {copyForLanguage(language, "Other", "Otro")}
+        </button>
+      </div>
+      {showCustom ? (
+        <textarea
+          className="min-h-24 w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none disabled:opacity-60"
+          disabled={!canEdit || loading}
+          onChange={(event) => updateCustom(event.target.value)}
+          placeholder={customPlaceholder}
+          value={custom.join("\n")}
+        />
+      ) : null}
+    </div>
+  );
 }
 
 function renderStepFields({
@@ -422,30 +791,50 @@ function renderStepFields({
               )}
             </p>
           </Field>
-          <Field label={copyForLanguage(language, "Industry", "Industria")}>
-            <input
-              className={inputClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("industry", event.target.value)}
-              placeholder={copyForLanguage(
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Choose the closest sector so the diagnosis can use a relevant marketing lens. Example: a supper club or packaged food brand is Food & beverage.",
+              "Elige el sector más cercano para que el diagnóstico use una lectura de marketing relevante. Ejemplo: un supper club o marca de comida es Comida y bebida."
+            )}
+            label={copyForLanguage(language, "Industry / sector", "Industria / sector")}
+          >
+            <StructuredSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
                 language,
-                "B2B SaaS, services, ecommerce...",
-                "SaaS B2B, servicios, ecommerce..."
+                "Describe your sector",
+                "Describe tu sector"
               )}
-              value={draft.industry}
+              draftValue={draft.industry}
+              inputClass={inputClass}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("industry", value)}
+              options={industryOptions}
             />
           </Field>
-          <Field label={copyForLanguage(language, "Business model", "Modelo de negocio")}>
-            <input
-              className={inputClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("businessModel", event.target.value)}
-              placeholder={copyForLanguage(
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Pick how money is usually made today or expected to be made first. Example: tastings and market stalls are Pop-up / event-based sales.",
+              "Elige cómo se gana dinero hoy o cómo se espera ganar primero. Ejemplo: degustaciones y mercados son ventas por pop-up / evento."
+            )}
+            label={copyForLanguage(language, "Business model", "Modelo de negocio")}
+          >
+            <StructuredSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
                 language,
-                "Subscription, project services, marketplace...",
-                "Suscripción, servicios por proyecto, marketplace..."
+                "Describe the model",
+                "Describe el modelo"
               )}
-              value={draft.businessModel}
+              draftValue={draft.businessModel}
+              inputClass={inputClass}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("businessModel", value)}
+              options={businessModelOptions}
             />
           </Field>
         </div>
@@ -483,21 +872,60 @@ function renderStepFields({
                 )}
               </p>
             </Field>
-            <Field label={copyForLanguage(language, "Current CTA or conversion action", "CTA o acción de conversión actual")}>
-              <textarea
-                className={textareaClass}
-                disabled={!canEdit || loading}
-                onChange={(event) => updateField("conversionAction", event.target.value)}
-                placeholder={copyForLanguage(
+            <Field
+              helpText={copyForLanguage(
+                language,
+                "This is the action you want someone to take after seeing your marketing. Example: Visit pop-up/event.",
+                "Es la acción que quieres que alguien haga después de ver tu marketing. Ejemplo: visitar pop-up/evento."
+              )}
+              label={copyForLanguage(language, "CTA / next step", "CTA / siguiente paso")}
+            >
+              <StructuredSelectField
+                canEdit={canEdit}
+                customPlaceholder={copyForLanguage(
                   language,
-                  "Book a demo, request proposal, join waitlist, buy now...",
-                  "Reservar demo, solicitar propuesta, unirse a lista de espera, comprar ahora..."
+                  "Describe the next step",
+                  "Describe el siguiente paso"
                 )}
-                value={draft.conversionAction}
+                draftValue={draft.conversionAction}
+                inputClass={inputClass}
+                language={language}
+                loading={loading}
+                onChange={(value) => updateField("conversionAction", value)}
+                options={ctaOptions}
               />
             </Field>
           </div>
-          <Field label={copyForLanguage(language, "Optional proof or evidence notes", "Notas opcionales de prueba o evidencia")}>
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Pick proof that already exists, even if it is informal. Example: customer comments after a tasting count as Customer feedback.",
+              "Elige la prueba que ya existe, aunque sea informal. Ejemplo: comentarios de clientes después de una degustación cuentan como feedback de clientes."
+            )}
+            label={copyForLanguage(language, "Proof / trust available", "Prueba / confianza disponible")}
+          >
+            <StructuredMultiSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
+                language,
+                "Tell us more about proof, trust, or customer signals",
+                "Cuéntanos más sobre prueba, confianza o señales de clientes"
+              )}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("proofTrustSignals", value)}
+              options={proofTrustOptions}
+              value={draft.proofTrustSignals}
+            />
+          </Field>
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Add raw context the dropdowns cannot capture. Example: 'Three people asked for catering after the last pop-up.'",
+              "Añade contexto que los desplegables no capturan. Ejemplo: 'Tres personas preguntaron por catering después del último pop-up.'"
+            )}
+            label={copyForLanguage(language, "Evidence notes / customer comments", "Notas de evidencia / comentarios de clientes")}
+          >
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
@@ -523,12 +951,19 @@ function renderStepFields({
       return (
         <div className="grid gap-4 md:grid-cols-2">
           <Field label={copyForLanguage(language, "Team size", "Tamaño del equipo")}>
-            <input
-              className={inputClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("teamSize", event.target.value)}
-              placeholder={copyForLanguage(language, "Solo, 2-5, 6-10...", "Solo, 2-5, 6-10...")}
-              value={draft.teamSize}
+            <StructuredSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
+                language,
+                "Describe the team size",
+                "Describe el tamaño del equipo"
+              )}
+              draftValue={draft.teamSize}
+              inputClass={inputClass}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("teamSize", value)}
+              options={teamSizeOptions}
             />
           </Field>
           <Field label={copyForLanguage(language, "Geography", "Geografía")}>
@@ -540,17 +975,20 @@ function renderStepFields({
               value={draft.geography}
             />
           </Field>
-          <Field label={copyForLanguage(language, "Lifecycle stage", "Etapa del negocio")}>
-            <input
-              className={inputClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("lifecycleStage", event.target.value)}
-              placeholder={copyForLanguage(
+          <Field label={copyForLanguage(language, "Business stage", "Etapa del negocio")}>
+            <StructuredSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
                 language,
-                "Pre-revenue, validated, growing...",
-                "Pre-ingresos, validado, creciendo..."
+                "Describe the stage",
+                "Describe la etapa"
               )}
-              value={draft.lifecycleStage}
+              draftValue={draft.lifecycleStage}
+              inputClass={inputClass}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("lifecycleStage", value)}
+              options={businessStageOptions}
             />
           </Field>
           <Field label={copyForLanguage(language, "Budget band", "Rango de presupuesto")}>
@@ -568,7 +1006,14 @@ function renderStepFields({
       return (
         <div className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
-          <Field label={copyForLanguage(language, "Primary offer", "Oferta principal")}>
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Explain what you sell and what makes the project different or worth caring about. Example: handmade dumplings for private supper clubs using family recipes.",
+              "Explica qué vendes y qué hace que el proyecto sea distinto o relevante. Ejemplo: dumplings artesanales para cenas privadas usando recetas familiares."
+            )}
+            label={copyForLanguage(language, "Current offer description / what makes it special", "Descripción de la oferta / qué la hace especial")}
+          >
             <textarea
               className={textareaClass}
               disabled={!canEdit || loading}
@@ -613,24 +1058,33 @@ function renderStepFields({
     case "bottlenecks":
       return (
         <div className="space-y-4">
-          <Field label={copyForLanguage(language, "Biggest bottlenecks", "Mayores cuellos de botella")}>
-            <textarea
-              className={textareaClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("biggestBottlenecks", event.target.value)}
-              placeholder={copyForLanguage(
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Choose what feels hardest right now. Example: if people compliment the product but do not order, choose People like it but don't buy.",
+              "Elige lo que se siente más difícil ahora. Ejemplo: si la gente felicita el producto pero no pide, elige A la gente le gusta pero no compra."
+            )}
+            label={copyForLanguage(language, "Main marketing challenge", "Principal reto de marketing")}
+          >
+            <StructuredMultiSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
                 language,
-                "Not sure who the real buyer is\nTraffic arrives but does not convert\nThe message feels too generic\nThere is not enough proof yet",
-                "No tengo claro quién es el comprador real\nLlega tráfico pero no convierte\nEl mensaje se siente demasiado genérico\nTodavía no hay suficiente prueba"
+                "Describe your challenge",
+                "Describe tu reto"
               )}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("biggestBottlenecks", value)}
+              options={marketingChallengeOptions}
               value={draft.biggestBottlenecks}
             />
           </Field>
           <p className="text-sm text-muted">
             {copyForLanguage(
               language,
-              "Add one challenge per line. If you do not know the exact bottleneck yet, describe what feels unclear or difficult.",
-              "Añade un reto por línea. Si todavía no sabes el cuello de botella exacto, describe qué se siente poco claro o difícil."
+              "Select one or more challenges. Use Other if none fits exactly.",
+              "Selecciona uno o más retos. Usa Otro si ninguno encaja exactamente."
             )}
           </p>
         </div>
@@ -638,24 +1092,33 @@ function renderStepFields({
     case "goals":
       return (
         <div className="space-y-4">
-          <Field label={copyForLanguage(language, "Primary goals", "Objetivos principales")}>
-            <textarea
-              className={textareaClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("primaryGoals", event.target.value)}
-              placeholder={copyForLanguage(
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Pick the outcome you want the next 30 days to improve. Example: Prepare a launch / pop-up / campaign.",
+              "Elige el resultado que quieres mejorar en los próximos 30 días. Ejemplo: preparar un lanzamiento / pop-up / campaña."
+            )}
+            label={copyForLanguage(language, "Main 30-day marketing goal", "Objetivo principal de marketing a 30 días")}
+          >
+            <StructuredMultiSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
                 language,
-                "Clarify the offer\nGet better-fit leads\nImprove homepage or channel conversion\nCreate one repeatable content rhythm",
-                "Aclarar la oferta\nConseguir leads mejor encajados\nMejorar la conversión de la web o de canales\nCrear un ritmo de contenido repetible"
+                "Describe your goal",
+                "Describe tu objetivo"
               )}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("primaryGoals", value)}
+              options={marketingGoalOptions}
               value={draft.primaryGoals}
             />
           </Field>
           <p className="text-sm text-muted">
             {copyForLanguage(
               language,
-              "Add one goal per line. These goals shape the deterministic diagnosis and the first 30-day marketing plan.",
-              "Añade un objetivo por línea. Estos objetivos moldean el diagnóstico determinista y el primer plan de marketing de 30 días."
+              "Select one or more goals. These goals shape the deterministic diagnosis and first 30-day marketing plan.",
+              "Selecciona uno o más objetivos. Estos objetivos moldean el diagnóstico determinista y el primer plan de marketing de 30 días."
             )}
           </p>
         </div>
@@ -664,21 +1127,47 @@ function renderStepFields({
       return (
         <div className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
-          <Field label={copyForLanguage(language, "Current channels", "Canales actuales")}>
-            <textarea
-              className={textareaClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("currentChannels", event.target.value)}
-              placeholder={copyForLanguage(language, "SEO\nReferrals\nLinkedIn outbound", "SEO\nReferencias\nOutbound en LinkedIn")}
+          <Field
+            helpText={copyForLanguage(
+              language,
+              "Select where people currently discover or contact you. Example: if most demand comes through Instagram DMs, choose Instagram.",
+              "Selecciona dónde te descubren o contactan actualmente. Ejemplo: si la mayoría llega por DMs de Instagram, elige Instagram."
+            )}
+            label={copyForLanguage(language, "Current marketing channels", "Canales de marketing actuales")}
+          >
+            <StructuredMultiSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
+                language,
+                "Describe any other channels",
+                "Describe otros canales"
+              )}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("currentChannels", value)}
+              options={marketingChannelOptions}
               value={draft.currentChannels}
             />
           </Field>
-            <Field label={copyForLanguage(language, "Current tools / measurement stack", "Herramientas actuales / capa de medición")}>
-            <textarea
-              className={textareaClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("currentTools", event.target.value)}
-              placeholder={copyForLanguage(language, "HubSpot\nGoogle Analytics\nWeekly scorecard", "HubSpot\nGoogle Analytics\nScorecard semanal")}
+            <Field
+              helpText={copyForLanguage(
+                language,
+                "Pick how you currently know whether marketing is working. Example: if you count Instagram DMs in a spreadsheet, choose I track manually.",
+                "Elige cómo sabes actualmente si el marketing funciona. Ejemplo: si cuentas DMs de Instagram en una hoja, elige Mido manualmente."
+              )}
+              label={copyForLanguage(language, "Measurement", "Medición")}
+            >
+            <StructuredMultiSelectField
+              canEdit={canEdit}
+              customPlaceholder={copyForLanguage(
+                language,
+                "Add tools or measurement details",
+                "Añade herramientas o detalles de medición"
+              )}
+              language={language}
+              loading={loading}
+              onChange={(value) => updateField("currentTools", value)}
+              options={measurementOptions}
               value={draft.currentTools}
             />
           </Field>
@@ -840,7 +1329,7 @@ export function BusinessProfileForm({
         currentTools: textToList(draft.currentTools),
         primaryGoals: textToList(draft.primaryGoals),
         biggestBottlenecks: textToList(draft.biggestBottlenecks),
-        evidenceNotes: draft.evidenceNotes,
+        evidenceNotes: buildEvidenceNotesForSave(draft),
         budgetBand: draft.budgetBand,
         lifecycleStage: draft.lifecycleStage
       })
@@ -1257,16 +1746,30 @@ function ReviewCard({
 }
 
 function Field({
+  helpText,
   label,
   children
 }: {
+  helpText?: string;
   label: string;
   children: React.ReactNode;
 }) {
   return (
-    <label className="space-y-2 text-sm font-medium">
-      <span>{label}</span>
+    <div className="space-y-2 text-sm font-medium">
+      <div className="flex flex-wrap items-center gap-2">
+        <span>{label}</span>
+        {helpText ? (
+          <details className="group relative">
+            <summary className="inline-flex size-6 cursor-pointer list-none items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-xs font-semibold text-muted transition hover:text-ink">
+              ?
+            </summary>
+            <div className="absolute left-0 z-10 mt-2 w-72 rounded-2xl border border-[color:var(--border)] bg-white p-3 text-xs font-normal leading-5 text-muted shadow-soft">
+              {helpText}
+            </div>
+          </details>
+        ) : null}
+      </div>
       {children}
-    </label>
+    </div>
   );
 }
