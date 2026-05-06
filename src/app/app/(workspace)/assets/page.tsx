@@ -43,7 +43,7 @@ function resolveDisabledReason(
   }
 
   if (!hasRoadmap || !hasActionPlan || !hasThirtyDayPlan) {
-    return "Generate marketing priorities and the 30-day plan before generating marketing assets.";
+    return "Generate the priority list and 30-day plan before generating marketing assets.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
@@ -116,20 +116,20 @@ export default async function AssetsPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              Marketing assets
+              Supporting marketing assets
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
               Turn the plan into{" "}
               <span className="font-serif-display text-[#F4F2EC]">reusable marketing assets.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              Marketing assets use the saved profile, diagnosis, priorities, action list, and 30-day plan.
-              They remain structured preview artifacts, not automated fulfillment or autonomous publishing.
+              Assets are optional supporting materials derived from the saved profile, diagnosis,
+              priority list, and 30-day plan. They are not required before taking the first actions.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {latestAssets.length > 0 ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#asset-set">
-                  View latest marketing assets
+                  View latest supporting assets
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/actions">
@@ -171,7 +171,7 @@ export default async function AssetsPage() {
         <PageSummaryGrid
           items={[
             {
-              label: "Latest asset set",
+              label: "Latest supporting asset set",
               value: latestAssets.length > 0 ? `${latestAssets.length} saved` : "Missing",
               detail:
                 latestAssets.length > 0
@@ -201,7 +201,7 @@ export default async function AssetsPage() {
         <PageSectionLinks
           links={[
             ...(latestAssets.length > 0
-              ? [{ href: "#asset-set", label: "Latest marketing assets" }]
+                  ? [{ href: "#asset-set", label: "Latest supporting assets" }]
               : []),
             { href: "#asset-history", label: "History" }
           ]}
@@ -270,7 +270,7 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Marketing assets need saved profile, diagnosis, priorities, and planning inputs.
+        Supporting assets need saved profile, diagnosis, priority-list, and plan inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
         {!hasProfile ? <PrimaryLink href="/app/profile" label="Complete marketing profile" /> : null}
@@ -314,7 +314,7 @@ function LatestAssetsSection({ assets }: { assets: BusinessAssetRecord[] }) {
   return (
     <section className="space-y-6" id="asset-set">
       <div className="surface p-5 md:p-7">
-        <span className="eyebrow">Latest marketing asset set</span>
+        <span className="eyebrow">Latest supporting asset set</span>
         <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {assets.length} structured marketing assets are saved.
         </h2>

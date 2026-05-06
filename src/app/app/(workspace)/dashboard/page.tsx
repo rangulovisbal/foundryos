@@ -4,15 +4,15 @@ import {
   Activity,
   ArrowRight,
   CheckCircle2,
-  CircleHelp,
   Clock3,
   FileText,
   FolderOpen,
+  LifeBuoy,
   Map,
+  ScrollText,
   Stethoscope,
   Target,
   TriangleAlert,
-  Users,
   Zap
 } from "lucide-react";
 
@@ -255,6 +255,76 @@ function topAttentionGap(
   };
 }
 
+function primaryNextAction({
+  hasProfile,
+  hasDiagnostic,
+  hasThirtyDayPlan,
+  language
+}: {
+  hasProfile: boolean;
+  hasDiagnostic: boolean;
+  hasThirtyDayPlan: boolean;
+  language: OutputLanguage;
+}) {
+  if (!hasProfile) {
+    return {
+      eyebrow: copyForLanguage(language, "Step 1", "Paso 1"),
+      href: "/app/profile",
+      label: copyForLanguage(language, "Complete marketing profile", "Completar perfil de marketing"),
+      summary: copyForLanguage(
+        language,
+        "Start here. The diagnosis and plan need your offer, audience, channel, CTA, and proof context.",
+        "Empieza aquí. El diagnóstico y el plan necesitan tu oferta, audiencia, canal, CTA y prueba."
+      )
+    };
+  }
+
+  if (!hasDiagnostic) {
+    return {
+      eyebrow: copyForLanguage(language, "Step 2", "Paso 2"),
+      href: "/app/diagnostics",
+      label: copyForLanguage(language, "Run marketing diagnosis", "Ejecutar diagnóstico de marketing"),
+      summary: copyForLanguage(
+        language,
+        "Turn the saved profile into a clear read of what is missing in the marketing.",
+        "Convierte el perfil guardado en una lectura clara de lo que falta en el marketing."
+      )
+    };
+  }
+
+  if (!hasThirtyDayPlan) {
+    return {
+      eyebrow: copyForLanguage(language, "Step 3", "Paso 3"),
+      href: "/app/actions",
+      label: copyForLanguage(language, "Generate 30-day plan", "Generar plan 30 días"),
+      summary: copyForLanguage(
+        language,
+        "Turn the diagnosis into weekly marketing actions, quick wins, and success signals.",
+        "Convierte el diagnóstico en acciones semanales de marketing, quick wins y señales de éxito."
+      )
+    };
+  }
+
+  return {
+    eyebrow: copyForLanguage(language, "Step 4", "Paso 4"),
+    href: "/app/assets",
+    label: copyForLanguage(language, "Review supporting materials", "Revisar materiales de apoyo"),
+    summary: copyForLanguage(
+      language,
+      "Use the plan as the source, then review optional assets and routines that support execution.",
+      "Usa el plan como fuente y revisa los activos y rutinas opcionales que apoyan la ejecución."
+    )
+  };
+}
+
+function pathStepTone(isComplete: boolean, isCurrent: boolean): FoundryStatusTone {
+  if (isComplete) {
+    return "success";
+  }
+
+  return isCurrent ? "warning" : "neutral";
+}
+
 function ModuleCard({
   detail,
   href,
@@ -280,6 +350,66 @@ function ModuleCard({
         <ArrowRight className="h-4 w-4" />
       </Link>
     </FoundryMetricCard>
+  );
+}
+
+function PathStepCard({
+  detail,
+  href,
+  icon,
+  isComplete,
+  isCurrent,
+  label,
+  language,
+  step
+}: {
+  detail: string;
+  href: string;
+  icon: typeof FileText;
+  isComplete: boolean;
+  isCurrent: boolean;
+  label: string;
+  language: OutputLanguage;
+  step: string;
+}) {
+  const tone = pathStepTone(isComplete, isCurrent);
+
+  return (
+    <article
+      className={`rounded-[24px] border p-5 ${
+        isCurrent
+          ? "border-gold/40 bg-gold/10"
+          : "border-[color:var(--border)] bg-white/85"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="rounded-2xl border border-[color:var(--border)] bg-white p-2.5 text-ink">
+          {(() => {
+            const Icon = icon;
+            return <Icon className="h-4 w-4" />;
+          })()}
+        </div>
+        <FoundryStatusChip tone={tone}>
+          {isComplete
+            ? copyForLanguage(language, "Done", "Hecho")
+            : isCurrent
+              ? copyForLanguage(language, "Next", "Siguiente")
+              : copyForLanguage(language, "Later", "Después")}
+        </FoundryStatusChip>
+      </div>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+        {step}
+      </p>
+      <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-ink">{label}</h3>
+      <p className="mt-3 text-sm leading-6 text-muted">{detail}</p>
+      <Link
+        className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-ink underline"
+        href={href}
+      >
+        {copyForLanguage(language, "Open", "Abrir")}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+    </article>
   );
 }
 
@@ -310,6 +440,12 @@ export default async function WorkspaceDashboardPage() {
   const priorityCount =
     latestThirtyDayPlan?.topPriorities.length ?? profile?.primaryGoals.length ?? 0;
   const attentionGap = topAttentionGap(Boolean(profile), latestDiagnostic, language);
+  const primaryAction = primaryNextAction({
+    hasDiagnostic: Boolean(latestDiagnostic),
+    hasProfile: Boolean(profile),
+    hasThirtyDayPlan: Boolean(latestThirtyDayPlan),
+    language
+  });
 
   return (
     <div className="space-y-6">
@@ -351,9 +487,9 @@ export default async function WorkspaceDashboardPage() {
               )}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="/app/diagnostics">
-                <Stethoscope className="h-4 w-4" />
-                {copyForLanguage(language, "Open marketing diagnosis", "Abrir diagnóstico de marketing")}
+              <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href={primaryAction.href}>
+                <ArrowRight className="h-4 w-4" />
+                {primaryAction.label}
               </Link>
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/profile">
                 <FileText className="h-4 w-4" />
@@ -473,7 +609,133 @@ export default async function WorkspaceDashboardPage() {
         />
       </section>
 
-      <section className="grid min-w-0 gap-5 2xl:grid-cols-[1.05fr_0.95fr]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <article className="rounded-[28px] border border-gold/30 bg-gold/10 p-5 md:p-7">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+            {primaryAction.eyebrow}
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-ink">
+            {primaryAction.label}
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-muted">{primaryAction.summary}</p>
+          <Link
+            className="mt-6 inline-flex items-center gap-2 rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand"
+            href={primaryAction.href}
+          >
+            {primaryAction.label}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </article>
+
+        <section className="grid gap-3 sm:grid-cols-2">
+          <PathStepCard
+            detail={copyForLanguage(
+              language,
+              "Capture offer, audience, CTA, channels, proof, and the 30-day marketing goal.",
+              "Captura oferta, audiencia, CTA, canales, prueba y objetivo de marketing a 30 días."
+            )}
+            href="/app/profile"
+            icon={FileText}
+            isComplete={Boolean(profile)}
+            isCurrent={!profile}
+            label={copyForLanguage(language, "Complete marketing profile", "Completar perfil de marketing")}
+            language={language}
+            step={copyForLanguage(language, "Step 1", "Paso 1")}
+          />
+          <PathStepCard
+            detail={copyForLanguage(
+              language,
+              "Generate the marketing read: what is clear, weak, missing, or needs validation.",
+              "Genera la lectura de marketing: qué está claro, débil, falta o necesita validación."
+            )}
+            href="/app/diagnostics"
+            icon={Stethoscope}
+            isComplete={Boolean(latestDiagnostic)}
+            isCurrent={Boolean(profile) && !latestDiagnostic}
+            label={copyForLanguage(language, "Run marketing diagnosis", "Ejecutar diagnóstico de marketing")}
+            language={language}
+            step={copyForLanguage(language, "Step 2", "Paso 2")}
+          />
+          <PathStepCard
+            detail={copyForLanguage(
+              language,
+              "Turn the diagnosis into the practical month of weekly marketing work.",
+              "Convierte el diagnóstico en un mes práctico de trabajo semanal de marketing."
+            )}
+            href="/app/actions"
+            icon={Zap}
+            isComplete={Boolean(latestThirtyDayPlan)}
+            isCurrent={Boolean(latestDiagnostic) && !latestThirtyDayPlan}
+            label={copyForLanguage(language, "Generate 30-day plan", "Generar plan 30 días")}
+            language={language}
+            step={copyForLanguage(language, "Step 3", "Paso 3")}
+          />
+          <PathStepCard
+            detail={copyForLanguage(
+              language,
+              "Review optional assets and routines derived from the plan after the core path is done.",
+              "Revisa activos y rutinas opcionales derivados del plan después de completar la ruta principal."
+            )}
+            href="/app/assets"
+            icon={FolderOpen}
+            isComplete={latestAssets.length > 0}
+            isCurrent={Boolean(latestThirtyDayPlan) && latestAssets.length === 0}
+            label={copyForLanguage(language, "Review supporting materials", "Revisar materiales de apoyo")}
+            language={language}
+            step={copyForLanguage(language, "Step 4", "Paso 4")}
+          />
+        </section>
+      </section>
+
+      <section
+        className={`rounded-[28px] border p-5 md:p-6 ${
+          attentionGap.tone === "error"
+            ? "border-rose-200 bg-rose-50/70"
+            : attentionGap.tone === "warning"
+              ? "border-amber-200 bg-amber-50/70"
+              : "border-emerald-200 bg-emerald-50/60"
+        }`}
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="flex gap-3">
+            <TriangleAlert
+              className={`mt-0.5 h-5 w-5 shrink-0 ${
+                attentionGap.tone === "error"
+                  ? "text-rose-700"
+                  : attentionGap.tone === "warning"
+                    ? "text-amber-700"
+                    : "text-emerald-700"
+              }`}
+            />
+            <div>
+              <p className="text-lg font-semibold text-ink">{attentionGap.title}</p>
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-muted">{attentionGap.body}</p>
+            </div>
+          </div>
+          <Link
+            className="inline-flex items-center gap-2 rounded-[24px] border border-[color:var(--border)] bg-white/85 px-4 py-3 text-sm font-semibold text-ink"
+            href={attentionGap.href}
+          >
+            {attentionGap.cta}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Workspace details", "Detalles del espacio")}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "Expand for diagnosis detail, recent actions, evidence basis, and workspace context.",
+              "Despliega para ver detalle del diagnóstico, acciones recientes, evidencia y contexto."
+            )}
+          </p>
+        </summary>
+        <div className="grid min-w-0 gap-5 px-6 pb-6 md:px-8 md:pb-8 2xl:grid-cols-[1.05fr_0.95fr]">
         <FoundrySectionCard
           actions={
             <Link
@@ -590,44 +852,23 @@ export default async function WorkspaceDashboardPage() {
             </p>
           )}
         </FoundrySectionCard>
-      </section>
-
-      <section
-        className={`rounded-[28px] border p-5 md:p-6 ${
-          attentionGap.tone === "error"
-            ? "border-rose-200 bg-rose-50/70"
-            : attentionGap.tone === "warning"
-              ? "border-amber-200 bg-amber-50/70"
-              : "border-emerald-200 bg-emerald-50/60"
-        }`}
-      >
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex gap-3">
-            <TriangleAlert
-              className={`mt-0.5 h-5 w-5 shrink-0 ${
-                attentionGap.tone === "error"
-                  ? "text-rose-700"
-                  : attentionGap.tone === "warning"
-                    ? "text-amber-700"
-                    : "text-emerald-700"
-              }`}
-            />
-            <div>
-              <p className="text-lg font-semibold text-ink">{attentionGap.title}</p>
-              <p className="mt-2 max-w-3xl text-sm leading-7 text-muted">{attentionGap.body}</p>
-            </div>
-          </div>
-          <Link
-            className="inline-flex items-center gap-2 rounded-[24px] border border-[color:var(--border)] bg-white/85 px-4 py-3 text-sm font-semibold text-ink"
-            href={attentionGap.href}
-          >
-            {attentionGap.cta}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
-      </section>
+      </details>
 
-      <section className="grid min-w-0 gap-5 2xl:grid-cols-[1.05fr_0.95fr]">
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Plan snapshot", "Resumen del plan")}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "Expand for the current 30-day objective, week-by-week moments, and evidence basis.",
+              "Despliega para ver el objetivo de 30 días, momentos semanales y base de evidencia."
+            )}
+          </p>
+        </summary>
+        <div className="grid min-w-0 gap-5 px-6 pb-6 md:px-8 md:pb-8 2xl:grid-cols-[1.05fr_0.95fr]">
         <FoundrySectionCard
           description={copyForLanguage(
             language,
@@ -760,83 +1001,38 @@ export default async function WorkspaceDashboardPage() {
             </div>
           </div>
         </FoundrySectionCard>
-      </section>
+        </div>
+      </details>
 
-      <section className="foundry-card-grid">
-        <ModuleCard
-          detail={
-            profile
-              ? copyForLanguage(
-                  language,
-                  "Saved marketing profile context is available for every downstream module.",
-                  "El contexto guardado del perfil de marketing ya alimenta todos los módulos posteriores."
-                )
-              : copyForLanguage(language, "Start the guided marketing intake.", "Inicia la captura guiada de marketing.")
-          }
-          href="/app/profile"
-          icon={FileText}
-          label={copyForLanguage(language, "Marketing profile", "Perfil de marketing")}
-          language={language}
-          value={moduleValueLabel(Boolean(profile), language, profile ? undefined : {
-            en: "Needs setup",
-            es: "Falta configurar"
-          })}
-        />
-        <ModuleCard
-          detail={
-            latestDiagnostic
-              ? copyForLanguage(
-                  language,
-                  `Latest score ${latestDiagnostic.overallMaturityScore}/100.`,
-                  `Última puntuación ${latestDiagnostic.overallMaturityScore}/100.`
-                )
-              : copyForLanguage(language, "Run the first marketing diagnosis.", "Ejecuta el primer diagnóstico de marketing.")
-          }
-          href="/app/diagnostics"
-          icon={Stethoscope}
-          label={copyForLanguage(language, "Marketing diagnosis", "Diagnóstico de marketing")}
-          language={language}
-          value={moduleValueLabel(Boolean(latestDiagnostic), language)}
-        />
+      <section>
+        <div className="mb-4">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Secondary access", "Acceso secundario")}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
+            {copyForLanguage(language, "Supporting materials and account areas", "Materiales de apoyo y áreas de cuenta")}
+          </h2>
+        </div>
+        <div className="foundry-card-grid">
         <ModuleCard
           detail={
             latestRoadmap
               ? copyForLanguage(
                   language,
-                  `${latestRoadmap.items.length} marketing priorities are saved.`,
-                  `${latestRoadmap.items.length} prioridades de marketing están guardadas.`
+                  `${latestRoadmap.items.length} priority-list items are saved as planning detail.`,
+                  `${latestRoadmap.items.length} elementos de la lista de prioridades están guardados como detalle de planificación.`
                 )
               : copyForLanguage(
                   language,
-                  "Generate marketing priorities next.",
-                  "Genera después las prioridades de marketing."
+                  "Optional planning detail that supports the 30-day plan, not a separate first step.",
+                  "Detalle opcional de planificación que apoya el plan de 30 días, no un primer paso separado."
                 )
           }
           href="/app/roadmap"
           icon={Map}
-          label={copyForLanguage(language, "Marketing priorities", "Prioridades de marketing")}
+          label={copyForLanguage(language, "Priority list", "Lista de prioridades")}
           language={language}
           value={moduleValueLabel(Boolean(latestRoadmap), language)}
-        />
-        <ModuleCard
-          detail={
-            latestActionPlan
-              ? copyForLanguage(
-                  language,
-                  `${latestActionPlan.actions.length} plan actions are saved.`,
-                  `${latestActionPlan.actions.length} acciones del plan están guardadas.`
-                )
-              : copyForLanguage(
-                  language,
-                  "Generate the 30-day marketing plan.",
-                  "Genera el plan de marketing de 30 días."
-                )
-          }
-          href="/app/actions"
-          icon={Zap}
-          label={copyForLanguage(language, "30-day plan", "Plan 30 días")}
-          language={language}
-          value={moduleValueLabel(Boolean(latestActionPlan), language)}
         />
         <ModuleCard
           detail={
@@ -866,22 +1062,14 @@ export default async function WorkspaceDashboardPage() {
         <ModuleCard
           detail={copyForLanguage(
             language,
-            `Role: ${context.membership.role}. Global role: ${context.user.globalRole.replaceAll("_", " ")}.`,
-            `Rol: ${formatRoleLabel(context.membership.role, language)}. Rol global: ${formatRoleLabel(context.user.globalRole, language)}.`
+            "Repeatable marketing routines derived from the saved profile and diagnosis.",
+            "Rutinas repetibles de marketing derivadas del perfil guardado y el diagnóstico."
           )}
-          href="/app/team"
-          icon={Users}
-          label={copyForLanguage(language, "Team", "Equipo")}
+          href="/app/sops"
+          icon={ScrollText}
+          label={copyForLanguage(language, "Marketing routines", "Rutinas de marketing")}
           language={language}
-          value={context.workspace.slug}
-        />
-        <ModuleCard
-          detail={formatPlanDescription(context.workspace.plan, language)}
-          href="/app/dashboard"
-          icon={Activity}
-          label={copyForLanguage(language, "Plan", "Plan")}
-          language={language}
-          value={plan.label}
+          value={copyForLanguage(language, "Supporting", "Apoyo")}
         />
         <ModuleCard
           detail={copyForLanguage(
@@ -890,11 +1078,12 @@ export default async function WorkspaceDashboardPage() {
             "El soporte, las solicitudes de eliminación y la operativa piloto siguen siendo explícitos."
           )}
           href="/app/support"
-          icon={CircleHelp}
+          icon={LifeBuoy}
           label={copyForLanguage(language, "Support", "Soporte")}
           language={language}
           value={copyForLanguage(language, "Pilot-ready", "Listo para piloto")}
         />
+        </div>
       </section>
     </div>
   );

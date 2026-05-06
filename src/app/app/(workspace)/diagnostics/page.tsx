@@ -712,6 +712,52 @@ function LatestResult({
       </div>
 
       <FoundrySectionCard
+        description={copyForLanguage(
+          language,
+          "The pilot customer should read this first. The deeper evidence remains available below, but these are the practical marketing fixes to focus on next.",
+          "El cliente piloto debería leer esto primero. La evidencia más profunda sigue disponible debajo, pero estos son los arreglos prácticos de marketing en los que centrarse."
+        )}
+        title={copyForLanguage(language, "What to fix first", "Qué corregir primero")}
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              {copyForLanguage(language, "Top gaps", "Brechas principales")}
+            </p>
+            {(result.topBottlenecks.length > 0 ? result.topBottlenecks.slice(0, 3) : result.topRisks.slice(0, 3)).map((item) => (
+              <article
+                className="rounded-[22px] border border-[color:var(--border)] bg-white/85 p-4"
+                key={item.title}
+              >
+                <FoundryStatusChip tone={findingTone(item.severity)}>
+                  {localizeFindingSeverity(item, language)}
+                </FoundryStatusChip>
+                <h3 className="mt-3 text-base font-semibold text-ink">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              {copyForLanguage(language, "Next actions", "Siguientes acciones")}
+            </p>
+            {result.recommendedNextActions.slice(0, 3).map((item) => (
+              <article
+                className="rounded-[22px] border border-[color:var(--border)] bg-sand/45 p-4"
+                key={item.title}
+              >
+                <h3 className="text-base font-semibold text-ink">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  {item.owner} · {item.timeframe}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </FoundrySectionCard>
+
+      <FoundrySectionCard
         description={trustNote(result, language)}
         title={copyForLanguage(
           language,
@@ -855,82 +901,98 @@ function LatestResult({
         </div>
       </FoundrySectionCard>
 
-      <DiagnosticCardGroup
-        language={language}
-        title={copyForLanguage(language, "Captured input signals", "Señales capturadas")}
-        items={result.evidenceCards.map((item) => ({
-          title: item.title,
-          body: `${item.observation} ${item.implication}`,
-          meta: item.evidenceQuality
-            ? localizeEvidenceQuality(item.evidenceQuality, language)
-            : item.signalQuality === "strong"
-              ? copyForLanguage(language, "Strong signal", "Señal fuerte")
-              : item.signalQuality === "mixed"
-                ? copyForLanguage(language, "Mixed signal", "Señal mixta")
-                : item.signalQuality === "weak"
-                  ? copyForLanguage(language, "Weak signal", "Señal débil")
-                  : copyForLanguage(language, "Evidence", "Evidencia"),
-          metaTone: item.evidenceQuality
-            ? evidenceQualityTone(item.evidenceQuality)
-            : findingTone(item.signalQuality ?? "neutral"),
-          basis: item.basedOn,
-          needsValidation: item.needsValidation
-        }))}
-      />
-      <DiagnosticCardGroup
-        language={language}
-        title={copyForLanguage(language, "Inferred conclusions", "Conclusiones inferidas")}
-        items={result.topBottlenecks
-          .map((item) => ({
-            title: item.title,
-            body: item.detail,
-            meta: localizeFindingSeverity(item, language),
-            metaTone: findingTone(item.severity),
-            basis: item.basedOn
-          }))
-          .concat(
-            result.topRisks.map((item) => ({
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Evidence and reasoning detail", "Detalle de evidencia y razonamiento")}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "Expand if you want to inspect the captured signals, inferred conclusions, opportunities, and full recommended-action basis.",
+              "Despliega si quieres inspeccionar señales capturadas, conclusiones inferidas, oportunidades y la base completa de acciones recomendadas."
+            )}
+          </p>
+        </summary>
+        <div className="space-y-6 px-6 pb-6 md:px-8 md:pb-8">
+          <DiagnosticCardGroup
+            language={language}
+            title={copyForLanguage(language, "Captured input signals", "Señales capturadas")}
+            items={result.evidenceCards.map((item) => ({
+              title: item.title,
+              body: `${item.observation} ${item.implication}`,
+              meta: item.evidenceQuality
+                ? localizeEvidenceQuality(item.evidenceQuality, language)
+                : item.signalQuality === "strong"
+                  ? copyForLanguage(language, "Strong signal", "Señal fuerte")
+                  : item.signalQuality === "mixed"
+                    ? copyForLanguage(language, "Mixed signal", "Señal mixta")
+                    : item.signalQuality === "weak"
+                      ? copyForLanguage(language, "Weak signal", "Señal débil")
+                      : copyForLanguage(language, "Evidence", "Evidencia"),
+              metaTone: item.evidenceQuality
+                ? evidenceQualityTone(item.evidenceQuality)
+                : findingTone(item.signalQuality ?? "neutral"),
+              basis: item.basedOn,
+              needsValidation: item.needsValidation
+            }))}
+          />
+          <DiagnosticCardGroup
+            language={language}
+            title={copyForLanguage(language, "Inferred conclusions", "Conclusiones inferidas")}
+            items={result.topBottlenecks
+              .map((item) => ({
+                title: item.title,
+                body: item.detail,
+                meta: localizeFindingSeverity(item, language),
+                metaTone: findingTone(item.severity),
+                basis: item.basedOn
+              }))
+              .concat(
+                result.topRisks.map((item) => ({
+                  title: item.title,
+                  body: item.detail,
+                  meta: localizeFindingSeverity(item, language),
+                  metaTone: findingTone(item.severity),
+                  basis: item.basedOn
+                }))
+              )}
+          />
+          <DiagnosticCardGroup
+            language={language}
+            title={copyForLanguage(language, "Top opportunities", "Oportunidades principales")}
+            items={result.topOpportunities.map((item) => ({
               title: item.title,
               body: item.detail,
-              meta: localizeFindingSeverity(item, language),
-              metaTone: findingTone(item.severity),
+              meta:
+                language === "es"
+                  ? item.impact === "high"
+                    ? "Impacto alto"
+                    : item.impact === "medium"
+                      ? "Impacto medio"
+                      : "Impacto bajo"
+                  : item.impact === "high"
+                    ? "High impact"
+                    : item.impact === "medium"
+                      ? "Medium impact"
+                      : "Low impact",
+              metaTone: findingTone(item.impact),
               basis: item.basedOn
-            }))
-          )}
-      />
-      <DiagnosticCardGroup
-        language={language}
-        title={copyForLanguage(language, "Top opportunities", "Oportunidades principales")}
-        items={result.topOpportunities.map((item) => ({
-          title: item.title,
-          body: item.detail,
-          meta:
-            language === "es"
-              ? item.impact === "high"
-                ? "Impacto alto"
-                : item.impact === "medium"
-                  ? "Impacto medio"
-                  : "Impacto bajo"
-              : item.impact === "high"
-                ? "High impact"
-                : item.impact === "medium"
-                  ? "Medium impact"
-                  : "Low impact",
-          metaTone: findingTone(item.impact),
-          basis: item.basedOn
-        }))}
-      />
-      <DiagnosticCardGroup
-        language={language}
-        title={copyForLanguage(language, "Recommended actions", "Acciones recomendadas")}
-        items={result.recommendedNextActions.map((item) => ({
-          title: item.title,
-          body: item.detail,
-          meta: `${item.owner} · ${item.timeframe}`,
-          metaTone: "info" as const,
-          basis: item.basedOn
-        }))}
-      />
+            }))}
+          />
+          <DiagnosticCardGroup
+            language={language}
+            title={copyForLanguage(language, "Recommended actions", "Acciones recomendadas")}
+            items={result.recommendedNextActions.map((item) => ({
+              title: item.title,
+              body: item.detail,
+              meta: `${item.owner} · ${item.timeframe}`,
+              metaTone: "info" as const,
+              basis: item.basedOn
+            }))}
+          />
+        </div>
+      </details>
     </section>
   );
 }

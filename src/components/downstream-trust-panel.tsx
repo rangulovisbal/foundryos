@@ -47,8 +47,8 @@ export function DownstreamTrustPanel({
       </div>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
         {validationFirst
-          ? sl(language, "Validation-first output mode", "Modo validacion primero")
-          : sl(language, "Downstream confidence state", "Estado de confianza posterior")}
+          ? sl(language, "Validate before relying on this output", "Valida antes de confiar en este resultado")
+          : sl(language, "Confidence for this output", "Confianza de este resultado")}
       </h2>
       <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">{state.summary}</p>
       {details.length > 0 ? (

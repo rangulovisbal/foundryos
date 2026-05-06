@@ -40,6 +40,7 @@ type NavIcon =
   | "admin";
 
 export type WorkspaceShellNavItem = {
+  groupLabel?: string;
   href: string;
   icon: NavIcon;
   label: string;
@@ -278,32 +279,62 @@ function ShellNav({
   logoutLabel: string;
   pathname: string;
 }) {
-  return (
-    <nav className="grid gap-1.5">
-      {items.map((item) => {
-        const Icon = iconMap[item.icon];
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const groupedItems = items.reduce<Array<{ label: string | null; items: WorkspaceShellNavItem[] }>>(
+    (groups, item) => {
+      const label = item.groupLabel ?? null;
+      const latestGroup = groups.at(-1);
 
-        return (
-          <Link
-            className={clsx(
-              "group flex min-w-0 items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition",
-              isActive
-                ? "bg-ink text-sand shadow-soft"
-                : "text-muted hover:bg-white/90 hover:text-ink",
-              isCollapsed && "justify-center"
-            )}
-            href={item.href}
-            key={item.href}
-            title={item.label}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            <span className={clsx("truncate", isCollapsed && "sr-only")}>
-              {item.label}
-            </span>
-          </Link>
-        );
-      })}
+      if (latestGroup?.label === label) {
+        latestGroup.items.push(item);
+        return groups;
+      }
+
+      groups.push({ label, items: [item] });
+      return groups;
+    },
+    []
+  );
+
+  return (
+    <nav className="grid gap-4">
+      {groupedItems.map((group, groupIndex) => (
+        <div className="grid gap-1.5" key={`${group.label ?? "nav"}-${groupIndex}`}>
+          {group.label ? (
+            <p
+              className={clsx(
+                "px-3 pt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted/75",
+                isCollapsed && "sr-only"
+              )}
+            >
+              {group.label}
+            </p>
+          ) : null}
+          {group.items.map((item) => {
+            const Icon = iconMap[item.icon];
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+            return (
+              <Link
+                className={clsx(
+                  "group flex min-w-0 items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition",
+                  isActive
+                    ? "bg-ink text-sand shadow-soft"
+                    : "text-muted hover:bg-white/90 hover:text-ink",
+                  isCollapsed && "justify-center"
+                )}
+                href={item.href}
+                key={item.href}
+                title={item.label}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className={clsx("truncate", isCollapsed && "sr-only")}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      ))}
       <form action="/api/auth/logout" method="post">
         <button
           className={clsx(

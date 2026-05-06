@@ -29,26 +29,26 @@ function resolveDisabledReason(
   hasDiagnostic: boolean
 ) {
   if (!hasProfile) {
-    return "Complete and save the marketing profile before generating marketing priorities.";
+    return "Complete and save the marketing profile before generating the priority list.";
   }
 
   if (!hasDiagnostic) {
-    return "Run the marketing diagnosis before generating marketing priorities.";
+    return "Run the marketing diagnosis before generating the priority list.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
-    return "Marketing priorities generation is locked for this workspace account state.";
+    return "Priority-list generation is locked for this workspace account state.";
   }
 
   if (isReadOnlyState(context.workspace.accountState)) {
-    return "Marketing priorities generation is read-only while this workspace account state is limited.";
+    return "Priority-list generation is read-only while this workspace account state is limited.";
   }
 
   if (!canGenerateRoadmap(context)) {
-    return "Only workspace owners and admins can generate marketing priorities in this MVP.";
+    return "Only workspace owners and admins can generate the priority list in this MVP.";
   }
 
-  return "Marketing priorities generation is unavailable.";
+  return "Priority-list generation is unavailable.";
 }
 
 function formatOutputLanguageLabel(language: "en" | "es") {
@@ -90,23 +90,26 @@ export default async function RoadmapPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              Marketing priorities
+              Priority list
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
-              Stage the marketing work before it becomes{" "}
-              <span className="font-serif-display text-[#F4F2EC]">marketing noise.</span>
+              Keep planning detail behind the{" "}
+              <span className="font-serif-display text-[#F4F2EC]">30-day plan.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              Marketing priorities stay grounded in the latest diagnosis and remain grouped by now,
-              next, and later with visible effort, impact, dependencies, and reasoning.
+              The priority list is supporting detail for the 30-day plan. It stays available for
+              review, but the customer path should move from diagnosis to the plan first.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
                 Source marketing diagnosis
               </Link>
+              <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/actions">
+                Open 30-day plan
+              </Link>
               {latestRoadmap ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#roadmap-result">
-                  View latest priorities
+                  View latest priority list
                 </Link>
               ) : null}
             </div>
@@ -127,7 +130,7 @@ export default async function RoadmapPage() {
             <p className="mt-4 text-sm leading-6 text-white/68">
               {latestDiagnostic
                 ? `Confidence: ${latestDiagnostic.confidence}.`
-                : "Run the marketing diagnosis first before generating staged priorities."}
+                : "Run the marketing diagnosis first before generating the supporting priority list."}
             </p>
             <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
@@ -138,9 +141,9 @@ export default async function RoadmapPage() {
                   canGenerate={canGenerate}
                   disabledReason={disabledReason}
                   endpoint="/api/app/roadmap/generate"
-                  idleLabel="Generate marketing priorities"
-                  loadingLabel="Generating marketing priorities..."
-                  successLabel="Marketing priorities generated and saved."
+                  idleLabel="Generate priority list"
+                  loadingLabel="Generating priority list..."
+                  successLabel="Priority list generated and saved."
                 />
               </div>
             </div>
@@ -152,7 +155,7 @@ export default async function RoadmapPage() {
         <PageSummaryGrid
           items={[
             {
-              label: "Latest priorities",
+              label: "Latest priority list",
               value: latestRoadmap ? `${latestRoadmap.items.length} items` : "Missing",
               detail: latestRoadmap
                 ? latestRoadmap.summary
@@ -163,24 +166,24 @@ export default async function RoadmapPage() {
               value: latestRoadmap
                 ? `${latestRoadmap.items.filter((item) => item.phase === "now").length} / ${latestRoadmap.items.filter((item) => item.phase === "next").length} / ${latestRoadmap.items.filter((item) => item.phase === "later").length}`
                 : "0 / 0 / 0",
-              detail: "Stage distribution from the latest set of marketing priorities."
+              detail: "Stage distribution from the latest supporting priority list."
             },
             {
               label: "Latest status",
               value: history[0]?.job.status ?? "none",
-              detail: "The newest marketing-priorities job state for this workspace."
+              detail: "The newest priority-list job state for this workspace."
             },
             {
               label: "Output language",
               value: formatOutputLanguageLabel(context.workspace.outputLanguage),
               detail:
-                "The workspace language drives generated marketing-priority content and the core app experience."
+                "The workspace language drives generated priority-list content and the core app experience."
             }
           ]}
         />
         <PageSectionLinks
           links={[
-            ...(latestRoadmap ? [{ href: "#roadmap-result", label: "Latest priorities" }] : []),
+            ...(latestRoadmap ? [{ href: "#roadmap-result", label: "Latest priority list" }] : []),
             ...(latestRoadmap ? [{ href: "#roadmap-now", label: "Now" }] : []),
             ...(latestRoadmap ? [{ href: "#roadmap-next", label: "Next" }] : []),
             ...(latestRoadmap ? [{ href: "#roadmap-later", label: "Later" }] : []),
@@ -199,13 +202,13 @@ export default async function RoadmapPage() {
         <RoadmapResult roadmap={latestRoadmap} />
       ) : (
         <section className="surface p-5 md:p-7">
-          <span className="eyebrow">No marketing priorities yet</span>
+          <span className="eyebrow">No priority list yet</span>
           <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Generate the first set of marketing priorities after the diagnosis is complete.
+            Generate the priority list after the diagnosis if you want the planning detail.
           </h2>
           <p className="mt-4 body-lg">
-            This layer keeps marketing priorities structured and reviewable before they
-            become the input for assets, workflows, or deeper execution support.
+            This layer supports the 30-day plan; it is not a separate task the pilot customer
+            needs to understand before taking action.
           </p>
         </section>
       )}
@@ -235,7 +238,7 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Marketing priorities need saved inputs.
+        The priority list needs saved inputs.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
         {!hasProfile ? (
@@ -269,7 +272,7 @@ function RoadmapResult({ roadmap }: { roadmap: RoadmapRecord }) {
   return (
     <section className="space-y-6" id="roadmap-result">
       <div className="surface p-5 md:p-7">
-        <span className="eyebrow">Latest marketing priorities</span>
+        <span className="eyebrow">Latest priority list</span>
         <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
           {roadmap.summary}
         </h2>
@@ -340,7 +343,7 @@ function RoadmapPhaseGroup({
           </h3>
           <p className="mt-3 text-sm text-muted">
             {items.length > 0
-              ? `${items.length} saved marketing priorities in this phase.`
+              ? `${items.length} saved priority-list items in this phase.`
               : `No ${label.toLowerCase()} items saved.`}
           </p>
         </div>
@@ -397,8 +400,8 @@ function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[]
         <p className="text-sm uppercase tracking-[0.18em] text-muted">
           Generation history
         </p>
-        <p className="mt-2 text-sm text-muted">
-          Expand to review earlier marketing-priority runs and failure states.
+          <p className="mt-2 text-sm text-muted">
+          Expand to review earlier priority-list runs and failure states.
         </p>
       </summary>
       <div className="px-6 pb-6 md:px-8 md:pb-8">
@@ -429,7 +432,7 @@ function PlanningHistoryTable({ history }: { history: PlanningJobWithArtifacts[]
               ) : (
                 <tr>
                   <td className="px-4 py-6 text-muted" colSpan={5}>
-                    No marketing-priority generation jobs yet.
+                    No priority-list generation jobs yet.
                   </td>
                 </tr>
               )}

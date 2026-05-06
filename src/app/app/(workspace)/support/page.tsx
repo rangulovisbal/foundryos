@@ -29,16 +29,16 @@ function supportFaqItems(language: OutputLanguage) {
       question: copyForLanguage(language, "What FoundryOS does", "Qué hace FoundryOS"),
       answer: copyForLanguage(
         language,
-        "FoundryOS turns saved business context into structured diagnostics, planning, assets, and SOPs so a founder or operator can review operating priorities in one workspace.",
-        "FoundryOS convierte el contexto guardado del negocio en diagnósticos, planificación, activos y SOPs estructurados para que un fundador u operador revise prioridades operativas en un solo espacio."
+        "FoundryOS turns saved marketing context into a diagnosis, 30-day marketing plan, and optional supporting assets and routines for early-stage businesses.",
+        "FoundryOS convierte el contexto de marketing guardado en un diagnóstico, plan de marketing a 30 días y activos/rutinas opcionales para negocios early-stage."
       )
     },
     {
       question: copyForLanguage(language, "What is pilot-only right now", "Qué sigue siendo solo piloto"),
       answer: copyForLanguage(
         language,
-        "Billing automation, live checkout control, production support operations, and deeper downstream delivery workflows remain pilot-only or manual in the current MVP.",
-        "La automatización de facturación, el control del checkout en vivo, las operaciones de soporte en producción y los flujos de entrega posteriores siguen siendo solo piloto o manuales en el MVP actual."
+        "Billing automation, live checkout control, production support operations, and deeper downstream delivery remain pilot-only or manual in the current MVP.",
+        "La automatización de facturación, el control del checkout en vivo, las operaciones de soporte en producción y la entrega posterior siguen siendo solo piloto o manuales en el MVP actual."
       )
     },
     {
@@ -141,8 +141,8 @@ export default async function SupportPage() {
         <p className="mt-4 body-lg">
           {copyForLanguage(
             language,
-            "This route is the minimum operational trust layer for pilot use. Support and deletion flows are tracked here, but execution still happens manually.",
-            "Esta ruta es la capa mínima de confianza operativa para uso piloto. Los flujos de soporte y eliminación se registran aquí, pero la ejecución sigue siendo manual."
+            "Start with the support form. FAQ, legal documents, and deletion requests are still available below, but they stay out of the main support path.",
+            "Empieza por el formulario de soporte. FAQ, documentos legales y solicitudes de eliminación siguen disponibles abajo, pero no dominan la ruta principal."
           )}
         </p>
         <div className="mt-5 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
@@ -154,7 +154,32 @@ export default async function SupportPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <SupportRequestForm
+          canSubmit={canSubmitSupportRequest()}
+          language={language}
+        />
+        <SupportHistoryPanel
+          canViewWorkspaceRequests={canViewWorkspaceRequests}
+          language={language}
+          supportRequests={supportRequests}
+        />
+      </section>
+
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Pilot FAQ", "FAQ del piloto")}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "Expand for product scope, pilot limits, output generation, and language behavior.",
+              "Despliega para ver alcance del producto, límites del piloto, generación de resultados e idioma."
+            )}
+          </p>
+        </summary>
+      <section className="grid gap-4 px-6 pb-6 md:px-8 md:pb-8 xl:grid-cols-2">
         {faqItems.map((item) => (
           <article
             className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-6"
@@ -170,12 +195,22 @@ export default async function SupportPage() {
           </article>
         ))}
       </section>
+      </details>
 
-      <section className="surface p-6 md:p-8">
-        <p className="text-sm uppercase tracking-[0.18em] text-muted">
-          {copyForLanguage(language, "Legal and trust documents", "Documentos legales y de confianza")}
-        </p>
-        <div className="foundry-card-grid mt-4">
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Legal and trust documents", "Documentos legales y de confianza")}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "Terms, privacy, cookies, and subprocessors stay available without dominating the support page.",
+              "Términos, privacidad, cookies y subencargados siguen disponibles sin dominar la página de soporte."
+            )}
+          </p>
+        </summary>
+        <div className="foundry-card-grid px-6 pb-6 md:px-8 md:pb-8">
           {publicLegalLinks.map((link) => (
             <Link
               key={link.href}
@@ -197,21 +232,22 @@ export default async function SupportPage() {
             </Link>
           ))}
         </div>
-      </section>
+      </details>
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <SupportRequestForm
-          canSubmit={canSubmitSupportRequest()}
-          language={language}
-        />
-        <SupportHistoryPanel
-          canViewWorkspaceRequests={canViewWorkspaceRequests}
-          language={language}
-          supportRequests={supportRequests}
-        />
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-2">
+      <details className="surface overflow-hidden">
+        <summary className="cursor-pointer px-6 py-5 md:px-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Account and data requests", "Solicitudes de cuenta y datos")}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {copyForLanguage(
+              language,
+              "Deletion requests remain manual-review flows. No data is permanently deleted from this customer UI.",
+              "Las solicitudes de eliminación siguen siendo flujos de revisión manual. No se elimina nada permanentemente desde esta interfaz de cliente."
+            )}
+          </p>
+        </summary>
+      <section className="grid gap-6 px-6 pb-6 md:px-8 md:pb-8 xl:grid-cols-2">
         <DeletionRequestForm
           canSubmit={canRequestAccountDeletion()}
           confirmationPhrase={getDeletionConfirmationPhrase("account_deletion", language)}
@@ -238,7 +274,7 @@ export default async function SupportPage() {
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
+      <section className="grid gap-6 px-6 pb-6 md:px-8 md:pb-8 xl:grid-cols-2">
         <DeletionHistoryPanel
           deletionRequests={accountDeletionRequests}
           language={language}
@@ -250,6 +286,7 @@ export default async function SupportPage() {
           title={copyForLanguage(language, "Workspace deletion requests", "Solicitudes de eliminación del espacio")}
         />
       </section>
+      </details>
     </div>
   );
 }

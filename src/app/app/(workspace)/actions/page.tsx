@@ -108,7 +108,7 @@ export default async function ActionsPage() {
             <div className="mt-7 flex flex-wrap gap-3">
               {latestActionPlan ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#action-list">
-                  View action list
+                  View monthly actions
                 </Link>
               ) : null}
               {latestThirtyDayPlan ? (
@@ -116,6 +116,9 @@ export default async function ActionsPage() {
                   View 30-day plan
                 </Link>
               ) : null}
+              <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/roadmap">
+                Supporting priority list
+              </Link>
             </div>
           </div>
 
@@ -182,7 +185,7 @@ export default async function ActionsPage() {
         />
         <PageSectionLinks
           links={[
-            ...(latestActionPlan ? [{ href: "#action-list", label: "Action list" }] : []),
+            ...(latestActionPlan ? [{ href: "#action-list", label: "Monthly actions" }] : []),
             ...(latestThirtyDayPlan
               ? [{ href: "#thirty-day-plan", label: "30-day plan" }]
               : []),
@@ -273,7 +276,7 @@ function ActionPlanSection({ actionPlan }: { actionPlan: ActionPlanRecord }) {
 
   return (
     <section className="surface p-5 md:p-7" id="action-list">
-      <span className="eyebrow">Action list</span>
+      <span className="eyebrow">Monthly actions</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
         Prioritized marketing actions from the latest planning run.
       </h2>

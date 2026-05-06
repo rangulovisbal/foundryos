@@ -28,11 +28,11 @@ function resolveDisabledReason(
   hasDiagnostic: boolean
 ) {
   if (!hasProfile) {
-    return "Complete and save the marketing profile before generating marketing workflows.";
+    return "Complete and save the marketing profile before generating marketing routines.";
   }
 
   if (!hasDiagnostic) {
-    return "Run the marketing diagnosis before generating marketing workflows.";
+    return "Run the marketing diagnosis before generating marketing routines.";
   }
 
   if (isLockedState(context.workspace.accountState)) {
@@ -44,7 +44,7 @@ function resolveDisabledReason(
   }
 
   if (!canGenerateSops(context)) {
-    return "Only workspace owners and admins on growth-os or operator plans can generate marketing workflows in this MVP.";
+    return "Only workspace owners and admins on growth-os or operator plans can generate marketing routines in this MVP.";
   }
 
   return "Marketing workflow generation is unavailable.";
@@ -86,21 +86,20 @@ export default async function SopsPage() {
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
           <div className="min-w-0">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75">
-              Marketing workflows
+              Marketing routines
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-6xl">
               Turn context into{" "}
-              <span className="font-serif-display text-[#F4F2EC]">repeatable marketing workflows.</span>
+              <span className="font-serif-display text-[#F4F2EC]">repeatable marketing routines.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              Marketing workflows use the saved profile and diagnostic findings to draft lead handling,
-              reporting, campaign setup, content workflow, and internal approval procedures.
-              They are preview workflow drafts, not live integrations.
+              Marketing routines are optional supporting drafts for lead handling, reporting,
+              campaign setup, content workflow, and approvals. They are not live integrations.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {latestArtifacts.length > 0 ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#sop-set">
-                  View latest workflows
+                  View latest routines
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
@@ -111,7 +110,7 @@ export default async function SopsPage() {
 
           <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
-              Latest workflow set
+              Latest routine set
             </p>
             <p className="mt-4 text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
               {latestArtifacts.length > 0 ? latestArtifacts.length : "--"}
@@ -130,9 +129,9 @@ export default async function SopsPage() {
                   canGenerate={canGenerate}
                   disabledReason={disabledReason}
                   endpoint="/api/app/sops/generate"
-                  idleLabel="Generate workflows"
-                  loadingLabel="Generating workflows..."
-                  successLabel="Marketing workflows generated and saved."
+                  idleLabel="Generate routines"
+                  loadingLabel="Generating routines..."
+                  successLabel="Marketing routines generated and saved."
                 />
               </div>
             </div>
@@ -144,7 +143,7 @@ export default async function SopsPage() {
         <PageSummaryGrid
           items={[
             {
-              label: "Latest workflow set",
+              label: "Latest routine set",
               value:
                 latestArtifacts.length > 0 ? `${latestArtifacts.length} saved` : "Missing",
               detail:
@@ -155,10 +154,10 @@ export default async function SopsPage() {
             {
               label: "Latest status",
               value: history[0]?.job.status ?? "none",
-              detail: "The newest marketing-workflow generation state for this workspace."
+              detail: "The newest marketing-routine generation state for this workspace."
             },
             {
-              label: "Procedure types",
+              label: "Routine types",
               value: latestArtifacts.length > 0 ? String(latestArtifacts.length) : "0",
               detail: "Lead handling, reporting, campaign setup, content, and approvals."
             },
@@ -172,7 +171,7 @@ export default async function SopsPage() {
         />
         <PageSectionLinks
           links={[
-            ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest workflows" }] : []),
+            ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest routines" }] : []),
             { href: "#sop-history", label: "History" }
           ]}
         />
@@ -188,12 +187,12 @@ export default async function SopsPage() {
         <LatestSopsSection artifacts={latestArtifacts} />
       ) : (
         <section className="surface p-5 md:p-7">
-          <span className="eyebrow">No workflows yet</span>
+          <span className="eyebrow">No routines yet</span>
           <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-            Generate the first marketing workflow set after the profile and diagnosis are complete.
+            Generate the first marketing routine set after the profile and diagnosis are complete.
           </h2>
           <p className="mt-4 body-lg">
-            The first MVP workflow set includes lead handling, reporting cadence,
+            The first MVP routine set includes lead handling, reporting cadence,
             campaign setup, content workflow, and internal approval procedures.
           </p>
         </section>
@@ -224,7 +223,7 @@ function PrerequisitePanel({
     <section className="surface p-5 md:p-7">
       <span className="eyebrow">Prerequisites</span>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-        Marketing workflows need a saved marketing profile and diagnostic result.
+        Marketing routines need a saved marketing profile and diagnostic result.
       </h2>
       <div className="mt-5 flex flex-wrap gap-3">
         {!hasProfile ? <PrimaryLink href="/app/profile" label="Complete marketing profile" /> : null}
@@ -262,9 +261,9 @@ function LatestSopsSection({ artifacts }: { artifacts: SopArtifactRecord[] }) {
   return (
     <section className="space-y-6" id="sop-set">
       <div className="surface p-5 md:p-7">
-        <span className="eyebrow">Latest workflow set</span>
+        <span className="eyebrow">Latest routine set</span>
         <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
-          {artifacts.length} marketing workflows are saved.
+          {artifacts.length} marketing routines are saved.
         </h2>
         <p className="mt-4 text-sm text-muted">
           Last generated {new Date(artifacts[0].createdAt).toLocaleString()}
@@ -336,7 +335,7 @@ function SopHistoryTable({ history }: { history: SopJobWithArtifacts[] }) {
       <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
         <p className="text-sm uppercase tracking-[0.18em] text-muted">Generation history</p>
         <p className="mt-2 text-sm text-muted">
-          Expand to review older workflow runs and failure states.
+          Expand to review older routine runs and failure states.
         </p>
       </summary>
       <div className="px-6 pb-6 md:px-8 md:pb-8">
@@ -375,7 +374,7 @@ function SopHistoryTable({ history }: { history: SopJobWithArtifacts[] }) {
               ) : (
                 <tr>
                   <td className="px-4 py-6 text-muted" colSpan={5}>
-                    No marketing-workflow generation jobs have been created yet.
+                    No marketing-routine generation jobs have been created yet.
                   </td>
                 </tr>
               )}

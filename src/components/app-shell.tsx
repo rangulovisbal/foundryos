@@ -23,17 +23,20 @@ export function AppShell({
   const plan = getPlanDefinition(context.workspace.plan);
   const isInternalAdmin = context.user.globalRole === "internal_admin";
   const language = context.workspace.outputLanguage;
+  const primaryGroup = copyForLanguage(language, "Primary path", "Ruta principal");
+  const supportingGroup = copyForLanguage(language, "Supporting materials", "Materiales de apoyo");
+  const accountGroup = copyForLanguage(language, "Account", "Cuenta");
   const navItems: WorkspaceShellNavItem[] = [
-    { href: "/app/dashboard", icon: "dashboard", label: copyForLanguage(language, "Dashboard", "Panel") },
-    { href: "/app/profile", icon: "profile", label: copyForLanguage(language, "Marketing profile", "Perfil de marketing") },
-    { href: "/app/diagnostics", icon: "diagnostics", label: copyForLanguage(language, "Marketing diagnosis", "Diagnóstico de marketing") },
-    { href: "/app/roadmap", icon: "roadmap", label: copyForLanguage(language, "Marketing priorities", "Prioridades de marketing") },
-    { href: "/app/actions", icon: "actions", label: copyForLanguage(language, "30-day plan", "Plan 30 días") },
-    { href: "/app/assets", icon: "assets", label: copyForLanguage(language, "Marketing assets", "Activos de marketing") },
-    { href: "/app/sops", icon: "sops", label: copyForLanguage(language, "Marketing workflows", "Flujos de marketing") },
-    { href: "/app/support", icon: "support", label: copyForLanguage(language, "Support", "Soporte") },
-    { href: "/app/team", icon: "team", label: copyForLanguage(language, "Team", "Equipo") },
-    { href: "/app/billing", icon: "billing", label: copyForLanguage(language, "Billing", "Facturación") }
+    { groupLabel: primaryGroup, href: "/app/dashboard", icon: "dashboard", label: copyForLanguage(language, "Dashboard", "Panel") },
+    { groupLabel: primaryGroup, href: "/app/profile", icon: "profile", label: copyForLanguage(language, "Marketing profile", "Perfil de marketing") },
+    { groupLabel: primaryGroup, href: "/app/diagnostics", icon: "diagnostics", label: copyForLanguage(language, "Marketing diagnosis", "Diagnóstico de marketing") },
+    { groupLabel: primaryGroup, href: "/app/actions", icon: "actions", label: copyForLanguage(language, "30-day plan", "Plan 30 días") },
+    { groupLabel: supportingGroup, href: "/app/roadmap", icon: "roadmap", label: copyForLanguage(language, "Priority list", "Lista de prioridades") },
+    { groupLabel: supportingGroup, href: "/app/assets", icon: "assets", label: copyForLanguage(language, "Marketing assets", "Activos de marketing") },
+    { groupLabel: supportingGroup, href: "/app/sops", icon: "sops", label: copyForLanguage(language, "Marketing routines", "Rutinas de marketing") },
+    { groupLabel: accountGroup, href: "/app/team", icon: "team", label: copyForLanguage(language, "Team", "Equipo") },
+    { groupLabel: accountGroup, href: "/app/billing", icon: "billing", label: copyForLanguage(language, "Billing", "Facturación") },
+    { groupLabel: accountGroup, href: "/app/support", icon: "support", label: copyForLanguage(language, "Support", "Soporte") }
   ];
   const metaItems: WorkspaceShellMetaItem[] = [
     {
@@ -75,8 +78,8 @@ export function AppShell({
       navItems={navItems}
       workspaceDescription={copyForLanguage(
         language,
-        "Pilot workspace for marketing diagnosis, priorities, reusable assets, support, and role-aware execution.",
-        "Espacio piloto para diagnóstico de marketing, prioridades, activos reutilizables, soporte y ejecución con control por rol."
+        "Pilot workspace for the primary path: profile, marketing diagnosis, 30-day plan, then optional supporting materials.",
+        "Espacio piloto para la ruta principal: perfil, diagnóstico de marketing, plan de 30 días y materiales de apoyo opcionales."
       )}
       workspaceEyebrow={copyForLanguage(language, "Workspace", "Espacio")}
       workspaceName={context.workspace.name}
