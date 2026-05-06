@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-
+import { AlreadySignedInPanel } from "@/components/already-signed-in-panel";
 import { AuthShell } from "@/components/auth-shell";
 import { SignupForm } from "@/components/signup-form";
 import {
@@ -24,7 +23,35 @@ export default async function SignupPage({
   const deliveryMode = getAuthDeliveryMode();
 
   if (current) {
-    redirect(await getPostAuthRedirectPath(current.user.id, safeRedirectTo));
+    const continueHref = await getPostAuthRedirectPath(current.user.id, safeRedirectTo);
+    const logoutNextHref =
+      safeRedirectTo === "/app"
+        ? "/signup"
+        : `/signup?redirectTo=${encodeURIComponent(safeRedirectTo)}`;
+
+    return (
+      <AuthShell
+        description={copyForLanguage(
+          language,
+          "You already have an active session in this browser. Log out first if you want to test a new account from a clean signup state.",
+          "Ya tienes una sesión activa en este navegador. Cierra sesión primero si quieres probar una cuenta nueva desde un registro limpio."
+        )}
+        eyebrow={copyForLanguage(language, "Active session", "Sesión activa")}
+        language={language}
+        title={copyForLanguage(
+          language,
+          "You are already signed in.",
+          "Ya has iniciado sesión."
+        )}
+      >
+        <AlreadySignedInPanel
+          continueHref={continueHref}
+          intent="signup"
+          language={language}
+          logoutNextHref={logoutNextHref}
+        />
+      </AuthShell>
+    );
   }
 
   return (

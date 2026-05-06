@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-
+import { AlreadySignedInPanel } from "@/components/already-signed-in-panel";
 import { AuthShell } from "@/components/auth-shell";
 import { LoginForm } from "@/components/login-form";
 import {
@@ -27,7 +26,35 @@ export default async function LoginPage({
   const current = await getCurrentUserSession();
 
   if (current) {
-    redirect(await getPostAuthRedirectPath(current.user.id, safeRedirectTo));
+    const continueHref = await getPostAuthRedirectPath(current.user.id, safeRedirectTo);
+    const logoutNextHref =
+      safeRedirectTo === "/app"
+        ? "/login"
+        : `/login?redirectTo=${encodeURIComponent(safeRedirectTo)}`;
+
+    return (
+      <AuthShell
+        description={copyForLanguage(
+          language,
+          "You already have an active session in this browser. Log out first if you want to switch accounts cleanly.",
+          "Ya tienes una sesión activa en este navegador. Cierra sesión primero si quieres cambiar de cuenta limpiamente."
+        )}
+        eyebrow={copyForLanguage(language, "Active session", "Sesión activa")}
+        language={language}
+        title={copyForLanguage(
+          language,
+          "You are already signed in.",
+          "Ya has iniciado sesión."
+        )}
+      >
+        <AlreadySignedInPanel
+          continueHref={continueHref}
+          intent="login"
+          language={language}
+          logoutNextHref={logoutNextHref}
+        />
+      </AuthShell>
+    );
   }
 
   return (

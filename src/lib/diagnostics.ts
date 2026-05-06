@@ -378,8 +378,8 @@ function websiteEvidenceNote(profile: BusinessProfileRecord, language: OutputLan
 
   if (hasSocialOrEventEvidence(profile)) {
     return language === "es"
-      ? "No hay website todavia; se usa evidencia social, de evento o feedback aportado como senal de marketing."
-      : "No website yet; social, event, or feedback evidence is used as marketing signal.";
+      ? "Todavia no se ha aportado evidencia de website; se usa evidencia social, de evento o feedback aportado como senal de marketing."
+      : "No website evidence provided yet; social, event, or feedback evidence is used as marketing signal.";
   }
 
   return language === "es"

@@ -417,8 +417,8 @@ function renderStepFields({
             <p className="text-sm font-normal text-muted">
               {copyForLanguage(
                 language,
-                'Optional. Leave it blank if there is "No website yet". If you add one, enter a valid full URL. Do not type N/A.',
-                'Opcional. Déjalo en blanco si "Aún no hay sitio web". Si añades uno, introduce una URL válida completa. No escribas N/A.'
+                "Optional. Leave blank if you don't have a website yet. If you add one, enter a valid full URL starting with http:// or https://. Do not type N/A.",
+                "Opcional. Déjalo en blanco si aún no tienes sitio web. Si añades uno, introduce una URL válida completa que empiece por http:// o https://. No escribas N/A."
               )}
             </p>
           </Field>
