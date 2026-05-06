@@ -1,99 +1,105 @@
-# Product Requirements Document
+# Product Requirements
 
-## Objetivo del MVP
+## Objective
 
-Construir una web app que permita vender, diagnosticar y activar el producto AI Growth OS sin depender de una operacion manual desordenada.
+Build a web app that supports a free, founder-assisted design-partner pilot for FoundryOS.
 
-## Usuario principal
+The app should capture business context, generate a deterministic marketing diagnosis, turn that diagnosis into a clear 30-day marketing plan, and support founder review before customers rely on the outputs.
 
-Founder o responsable de crecimiento/operaciones de una startup pequena o negocio digital validado.
+## Primary User
 
-## Jobs to be done
+Founder or operator of an early-stage small business or founder-led project with a real offer and no internal marketing team.
 
-1. Entender rapidamente el estado actual del negocio.
-2. Saber que acciones priorizar en 30 dias.
-3. Recibir un roadmap util y no generico.
-4. Identificar automatizaciones y SOPs aplicables.
-5. Hacer seguimiento mensual sin rehacer el trabajo desde cero.
+## Jobs To Be Done
 
-## Modulos MVP
+1. Understand what is missing in the current marketing setup.
+2. See the most important bottlenecks without overconfident claims.
+3. Get a clear 30-day marketing plan.
+4. Act on at least one useful step this week.
+5. Give feedback on whether the output reflects the real situation.
 
-### 1. Marketing site
+## MVP Modules
 
-- Home con posicionamiento.
-- Pricing.
-- Security page.
-- CTA a Snapshot y demo.
+### 1. Public Site
 
-### 2. Onboarding intake
+- Home
+- Pricing / assisted pilot request-access surface
+- Security
+- Legal pages
+- Lead/request form
 
-- Formulario con:
-  - negocio,
-  - oferta,
-  - ICP,
-  - web,
-  - canales,
-  - competencia,
-  - recursos,
-  - objetivos,
-  - stack,
-  - dolores.
+### 2. Auth And Workspace
 
-### 3. Snapshot engine
+- Signup, verification, login, logout, password reset
+- Workspace creation
+- Role-aware team invitations
+- One primary workspace for normal pilot users
 
-- scoring del negocio,
-- deteccion de gaps,
-- prioridades a 30 dias,
-- quick wins,
-- lectura de posicionamiento,
-- stack sugerido,
-- riesgos principales.
+### 3. Business Profile
 
-### 4. Dashboard
+- Company and offer context
+- Audience
+- Website/social links if available
+- CTA
+- Pricing model
+- Acquisition method
+- Sales process
+- Goals
+- Bottlenecks
+- Customer feedback and non-sensitive evidence notes
+- Primary output language
 
-- score general,
-- prioridades,
-- modulos activables,
-- SOPs sugeridos,
-- automatizaciones sugeridas,
-- seguimiento mensual.
+### 4. Deterministic Diagnosis
 
-### 5. Admin / Ops light
+- Marketing maturity score
+- Category scores
+- Risks, opportunities, bottlenecks, and next actions
+- Evidence quality and confidence
+- Explicit missing/weak/contradictory evidence handling
 
-- trazabilidad de envios,
-- seguimiento de cuentas,
-- estado de onboarding,
-- estado del refresh.
+### 5. 30-Day Plan
 
-## Requisitos funcionales
+- Monthly objective
+- Weekly actions
+- Quick wins
+- Metrics to watch
+- Risks to avoid
+- Success signals
 
-- El usuario puede navegar la propuesta comercial sin login.
-- El usuario puede completar un onboarding estructurado.
-- El sistema devuelve un diagnostico aunque no haya API keys configuradas, usando un motor heuristico local.
-- El sistema puede mejorarse con OpenAI si existe `OPENAI_API_KEY`.
-- El dashboard debe renderizar prioridades, riesgos, quick wins y modulos recomendados.
-- Debe existir una ruta de healthcheck para validar despliegues.
+### 6. Supporting Materials
 
-## Requisitos no funcionales
+- Priority list
+- Assets
+- Customer-facing marketing routines
+- Feedback widget
 
-- Web-first.
-- Responsive.
-- Preparado para Vercel.
-- Variables de entorno separadas.
-- Base lista para multi-tenant.
-- Logs y analitica preparados para PostHog.
+### 7. Admin / Ops
 
-## Integraciones previstas
+- Workspace visibility
+- Job history
+- Output feedback
+- Support/deletion queues
+- Manual account-state controls
+- Audit logs
 
-- Supabase para auth y datos.
-- Stripe para checkout.
-- OpenAI para analisis y generacion.
-- PostHog para analitica.
-- n8n para automatizaciones.
+## Requirements
 
-## Fuera de scope del MVP
+- The first pilot must be assisted, free, and manually reviewed.
+- Stripe checkout must remain disabled until billing and provisioning are verified.
+- The core generation path must remain deterministic during the first pilot.
+- LLM refinement must require explicit opt-in and must not replace the deterministic truth layer.
+- PostgreSQL via `DATABASE_URL` is the canonical persistence model.
+- Supabase Auth should not be described as active.
+- The app must support English and Spanish as primary workspace languages.
+- The system must avoid asking for sensitive data during the first pilot.
 
-- app movil,
-- soporte en tiempo real siempre activo,
-- automatizacion total desde dia uno,
-- custom work profundo dentro del plan base.
+## Out Of Scope For First Pilot
+
+- Public self-serve paid provisioning
+- Billing portal
+- Stripe as entitlement source of truth
+- Live CRM/analytics/ad integrations
+- Website crawling or external verification
+- Agentic background automation
+- Automatic data deletion from the customer UI
+- Mobile app

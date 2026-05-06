@@ -1,25 +1,27 @@
+import { env } from "@/lib/env";
+
 export type PlanId = "snapshot" | "growth-os" | "operator";
 
 export const pricingPlans = [
   {
     id: "snapshot" as const,
     name: "Marketing Snapshot",
-    price: "€99",
-    cadence: "one-off",
+    price: "Free pilot",
+    cadence: "assisted design partner",
     description:
-      "A paid marketing diagnosis with clear gaps, priorities, and a first 30-day marketing plan for teams that need clarity fast.",
+      "A founder-assisted marketing diagnosis with clear gaps, priorities, and a first 30-day marketing plan for teams that need clarity fast.",
     checkoutEnabled: true,
-    ctaLabel: "Buy Marketing Snapshot"
+    ctaLabel: "Request assisted pilot"
   },
   {
     id: "growth-os" as const,
     name: "FoundryOS Core",
-    price: "€199",
-    cadence: "per month",
+    price: "Later",
+    cadence: "future recurring plan",
     description:
-      "Recurring marketing planning layer with refreshed priorities, asset drafting, workflow support, and monthly follow-through.",
+      "Future recurring marketing planning layer with refreshed priorities, asset drafting, workflow support, and monthly follow-through after pilots prove the repeatable workflow.",
     checkoutEnabled: true,
-    ctaLabel: "Start FoundryOS"
+    ctaLabel: "Request access"
   },
   {
     id: "operator" as const,
@@ -51,5 +53,5 @@ export function isPlanCheckoutConfigured(planId: PlanId) {
     return false;
   }
 
-  return Boolean(process.env.STRIPE_SECRET_KEY && getStripePriceId(planId));
+  return Boolean(env.stripeCheckoutEnabled && getStripePriceId(planId));
 }

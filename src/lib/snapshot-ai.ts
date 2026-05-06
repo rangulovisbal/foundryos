@@ -14,7 +14,7 @@ const snapshotModel = process.env.OPENAI_SNAPSHOT_MODEL ?? "gpt-5.4-mini";
 let openAIClient: OpenAI | null | undefined;
 
 function getOpenAIClient() {
-  if (!env.hasOpenAI) {
+  if (!env.llmSnapshotRefinementEnabled) {
     return null;
   }
 

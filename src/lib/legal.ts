@@ -31,10 +31,10 @@ export const subprocessorEntries = [
     status: "Active"
   },
   {
-    vendor: "Neon / managed Postgres",
+    vendor: "Managed Postgres provider",
     role: "Primary application database",
     data: "Accounts, workspaces, business profiles, generated artifacts, support requests, and deletion requests.",
-    status: "Active when a remote database is configured"
+    status: "Active when DATABASE_URL points to Supabase Postgres, Neon, or another compatible managed Postgres provider"
   },
   {
     vendor: "OpenAI",

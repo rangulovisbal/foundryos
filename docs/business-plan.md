@@ -1,247 +1,101 @@
-# Master Plan Operativo
+# FoundryOS Business Plan
 
-## 1. Tesis del negocio
+## Thesis
 
-AI Growth OS sera una capa operativa AI-first para startups pequenas y negocios digitales con producto validado y equipo limitado. No se posiciona como agencia ni como consultoria clasica. Se posiciona como producto.
+FoundryOS helps early-stage small businesses and founder-led projects turn messy marketing context into a clear diagnosis and a practical 30-day marketing plan.
 
-La cuña de entrada es clara:
+The current operating model is SaaS-assisted consulting / productized service for validation. Long-term SaaS may be possible, but the first pilots need founder involvement to validate output quality.
 
-**AI Growth OS para negocios pequenos con producto validado y equipo limitado.**
+## Positioning
 
-## 2. Vision, mision y posicionamiento
+FoundryOS is not an agency and should not be sold as autonomous AI automation.
 
-### Vision
+Current positioning:
 
-Ser la capa operativa AI-first que ayuda a pequenas empresas a crecer y ordenar su negocio sin contratar un equipo completo.
+> Founder-assisted marketing diagnosis and 30-day planning for small businesses with a real offer but no internal marketing team.
 
-### Mision
+## Initial ICP
 
-Dar a founders y equipos pequenos una forma rapida y estructurada de tomar decisiones, lanzar acciones y automatizar partes de su operacion con IA.
+- early-stage small businesses
+- founder-led projects
+- real offer already exists
+- no internal marketing team
+- needs marketing clarity before scaling activity
+- comfortable sharing non-sensitive business and marketing context
 
-### Posicionamiento
+Initial pilots should include creators, service businesses, boutique projects, local/product-led businesses, and early founders. The wedge should be chosen after 3-5 comparable pilots.
 
-"No necesitas una agencia de 20 personas para empezar a moverte con criterio."
+## Offer Ladder
 
-## 3. Problema que resuelve
+### Free Assisted Pilot
 
-- Falta de estructura de crecimiento.
-- Exceso de tareas manuales.
-- Falta de claridad operativa.
-- Ausencia de talento senior interno en marketing y ops.
+- design-partner validation
+- guided intake
+- deterministic draft generation
+- founder review
+- review session and feedback capture
 
-## 4. Producto y planes
+### Marketing Snapshot
 
-### AI Snapshot
+- future paid entry product
+- marketing diagnosis
+- evidence-backed bottlenecks
+- clear 30-day marketing plan
 
-- pago unico,
-- diagnostico express,
-- entrada comercial,
-- filtro de leads.
+### FoundryOS Core
 
-### AI Growth OS
+- future recurring planning layer
+- monthly refresh after pilot cycles prove what repeats
+- reviewed assets and routines
 
-- suscripcion mensual,
-- motor principal de MRR,
-- dashboard con prioridades,
-- assets base,
-- SOPs y automatizaciones sugeridas.
+### Marketing Operator
 
-### AI Operator
+- future premium support
+- integrations, implementation, and deeper follow-through
+- not part of the first pilot promise
 
-- plan premium,
-- conectores y automatizaciones activas,
-- reporting profundo,
-- soporte prioritario.
+## Value Proposition
 
-### Enterprise / Custom
+The customer should receive:
 
-- implementacion a medida,
-- proyectos de mayor complejidad.
+- a clearer read of what is missing in the current marketing setup
+- a specific 30-day plan
+- at least one action they can take this week
+- supporting assets and routines that make the plan easier to execute
 
-## 5. Cliente ideal
+The main value is clarity, focus, and actionable next steps.
 
-### ICP inicial
+## First Pilot Success Standard
 
-- 1-20 personas,
-- founder-led,
-- producto o servicio validado,
-- equipo pequeno,
-- apertura digital,
-- necesidad de crecer sin contratar demasiado.
+An output is successful when the customer says:
 
-### Segmento prioritario
+> This reflects my situation, gives me clarity, and I can act on at least one part this week.
 
-Startups pequenas y negocios digitales con producto validado.
+## Manual Work Allowed In First 5 Pilots
 
-## 6. Propuesta de valor
+- manual onboarding
+- guided intake
+- output review
+- quality checks
+- session facilitation
+- feedback capture
+- light summary preparation
 
-El cliente obtiene en dias, no en meses:
+## Manual Work That Must Not Persist Long Term
 
-- diagnostico,
-- roadmap,
-- assets,
-- automatizaciones sugeridas,
-- capa de seguimiento.
+- core generation
+- workspace creation
+- data persistence
+- feedback capture
+- basic support/deletion request logging
+- repeatable output creation
 
-Lo que se vende es:
+Manual review is acceptable early. Manual production of every deliverable forever is not.
 
-- claridad,
-- velocidad,
-- estructura,
-- ejecucion guiada.
+## First Integrations Later
 
-## 7. Modelo de negocio
+1. GA4 or Google Search Console for website/traffic evidence.
+2. HubSpot or simple CRM import for lead/funnel evidence.
+3. Stripe for billing/provisioning once paid pilots begin.
 
-### Tipo
-
-B2B SaaS / AI-enabled productized service.
-
-### Ingresos recurrentes
-
-- AI Growth OS
-- AI Operator
-
-### Ingresos no recurrentes
-
-- Snapshot
-- implementacion premium
-- workshops
-- auditorias
-- custom automation
-
-## 8. Operacion y equipo
-
-### Founder
-
-- vision,
-- oferta,
-- mensaje comercial,
-- producto,
-- QA,
-- GTM,
-- pricing.
-
-### Red externa minima
-
-- gestor/asesor,
-- legal/privacy,
-- desarrollador full-stack,
-- apoyo puntual SEO/ads si hace falta.
-
-## 9. Arquitectura del producto
-
-### Flujo principal
-
-1. Captacion por SEO, LinkedIn, referral, outbound o partners.
-2. Conversion via Snapshot o demo.
-3. Onboarding por formulario estructurado.
-4. Clasificacion del negocio y scoring.
-5. Entrega de dashboard, roadmap, SOPs, activos y automatizaciones sugeridas.
-6. Refresh mensual con nueva priorizacion.
-
-### Principios
-
-- web-first,
-- multi-tenant,
-- RBAC basico,
-- audit logs,
-- usage limits,
-- analytics desde dia 1,
-- prompt layer separada.
-
-## 10. Seguridad, privacidad y compliance
-
-### Minimo antes de vender
-
-- Terms of Service
-- Privacy Policy
-- DPA
-- Cookie Policy
-- Refund Policy
-- Security page
-- AI disclosure
-- listado de subprocessors
-- retention policy
-- incident response plan
-
-### Controles minimos
-
-- separacion de cuentas por cliente,
-- permisos por rol,
-- cifrado en transito,
-- logs de actividad,
-- backups,
-- borrado bajo solicitud,
-- consentimiento explicito en conectores,
-- no usar datos sensibles por defecto,
-- revision humana en outputs criticos.
-
-## 11. Marketing
-
-### Canales iniciales
-
-- SEO comercial
-- LinkedIn
-- outbound selectivo
-- partners
-
-### Mensajes clave
-
-- "No necesitas contratar un equipo completo para poner orden."
-- "Obten claridad, sistema y ejecucion guiada con IA."
-- "Menos caos operativo. Mas acciones utiles."
-- "Pasa de intuicion a plan."
-
-## 12. KPI
-
-### Negocio
-
-- MRR
-- ARR
-- CAC
-- payback
-- churn logo
-- churn revenue
-- conversion web -> snapshot
-- conversion snapshot -> suscripcion
-- ARPU
-- LTV
-
-### Producto
-
-- activacion
-- tiempo hasta primer valor
-- onboarding completado
-- uso de dashboard
-- uso de assets
-- refresh mensual
-- conectores activados
-- retencion por cohorte
-
-### Operacion
-
-- coste por cuenta activa
-- coste IA por output
-- tiempo medio de soporte
-- tickets por plan
-- fallos de flujo
-- outputs rechazados
-
-## 13. Riesgos
-
-- oferta demasiado amplia,
-- exceso de trabajo manual,
-- soporte excesivo,
-- expectativas irreales,
-- compliance pobre,
-- dependencia del founder.
-
-La respuesta es foco, automatizacion selectiva, soporte asincrono, scope cerrado y procesos documentados.
-
-## 14. Objetivo financiero de fase 1
-
-Buscar 10-15 clientes core y 2-4 premium con margen sano, aprendizaje alto y operacion controlada.
-
-## 15. Recomendacion ejecutiva
-
-No construir una plataforma enorme antes de vender. Validar una oferta clara, cobrar desde el inicio, operar con capas semimanuales donde haga falta y automatizar solo lo que ya demostro valor.
+Meta Ads and agentic automation can come later.

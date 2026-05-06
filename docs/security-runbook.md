@@ -2,14 +2,14 @@
 
 ## Principles
 
-- Do not store payment card data
-- Minimize sensitive data intake
-- Protect admin access
-- Rate-limit public endpoints
-- Verify inbound webhooks
-- Keep legal and security docs visible
+- Do not store payment card data.
+- Do not request sensitive customer data during the first pilot.
+- Protect admin access.
+- Keep the first pilot assisted and manually reviewed.
+- Keep billing disabled until provisioning is verified.
+- Keep deterministic outputs from becoming overconfident.
 
-## Current controls
+## Current Controls
 
 ### Headers
 
@@ -21,45 +21,56 @@
 - Cross-Origin-Opener-Policy
 - Permissions-Policy
 
-### Public form protection
+### Auth
 
-- rate limiting on `/api/leads`
-- optional Cloudflare Turnstile verification
-- explicit consent checkbox
+- Custom email/password auth
+- Email verification
+- Password reset with session invalidation
+- HTTP-only session cookies
+- Preview auth links blocked in production
 
-### Payments
+### Public Forms
 
-- Stripe Checkout only
-- webhook signature verification
-- no local card processing
-
-### Admin
-
-- access token in environment
-- httpOnly cookie session
-- protected `/admin` page flow
+- In-memory rate limiting
+- Optional Cloudflare Turnstile
+- Explicit consent on lead capture
 
 ### Data
 
-- Neon-ready Postgres schema
-- local JSON fallback for development only
-- no credential persistence in repo
+- Canonical persistence through managed Postgres via `DATABASE_URL`
+- Local PGlite only for local development
+- No Supabase Auth dependency
+- No passwords, customer lists, private financials, contracts, or sensitive personal data requested for first pilot
 
-## External setup required before production launch
+### Billing
 
-- Stripe products and price IDs
-- Neon production database
-- Resend sender domain verification
-- Cloudflare Turnstile keys
-- production domain and DNS
-- privacy/legal pages reviewed by counsel
+- Stripe checkout is hard-disabled unless `ENABLE_STRIPE_CHECKOUT=true`
+- First pilot is free and assisted
+- Paid pilots require billing/provisioning review before activation
 
-## Manual review before launch
+### Admin
 
-- verify cookie and privacy pages
-- verify refund policy wording
-- test webhook signing in Stripe dashboard
-- test Turnstile in real browser
-- verify admin token rotation procedure
-- verify Resend sender domain and inbox placement
-- verify CSP against final third-party scripts
+- Bootstrap-token admin is acceptable for pilot
+- Internal-admin accounts should become the preferred path soon
+- Admin actions are logged
+
+## Required Before First Assisted Pilot
+
+- Production/preview managed Postgres configured
+- Resend domain verified
+- `AUTH_PREVIEW_LINKS=false`
+- `ENABLE_STRIPE_CHECKOUT=false`
+- `ENABLE_LLM_SNAPSHOT_REFINEMENT=false`
+- Admin token stored securely
+- Manual test of auth, workspace, diagnostics, 30-day plan, support, and admin
+
+## Required Before Paid Pilots
+
+- Legal review
+- Stripe webhook signing test
+- Success/cancel route review
+- Billing portal behavior
+- Provisioning/account-state behavior
+- Secret rotation runbook
+- Backup and restore runbook
+- Distributed production rate limiting

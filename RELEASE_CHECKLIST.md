@@ -1,127 +1,107 @@
 # RELEASE CHECKLIST
 
-## Infrastructure readiness
+## Pilot-Safe Fixes
+
+Status: In progress
+
+- [x] Product name is `FoundryOS`.
+- [x] Public copy avoids `AI Growth OS` as product name.
+- [x] Stripe checkout requires explicit `ENABLE_STRIPE_CHECKOUT=true`.
+- [x] LLM refinement requires explicit `ENABLE_LLM_SNAPSHOT_REFINEMENT=true`.
+- [x] Core diagnostics and planning remain deterministic.
+- [x] Postgres via `DATABASE_URL` is the canonical persistence concept.
+- [ ] Production dependency audit has no unresolved direct or avoidable transitive advisories.
+- [ ] Public copy reviewed once more for pilot-safe claims.
+- [ ] Spanish primary path reviewed manually with a real pilot profile.
+
+## Assisted Pilot Readiness
 
 Status: Partial
 
-- [x] Next.js app builds cleanly
-- [x] Auth/workspace state persists in a real database path
-- [x] Local development works without a remote database via embedded PGlite
-- [x] Preview/production can use a remote `DATABASE_URL`
-- [ ] Preview environment confirmed with remote database configured
-- [ ] Production environment confirmed with remote database configured
-- [ ] Backup, restore, and DB maintenance plan documented
-- [ ] Deployment rollback/runbook documented
+- [x] Free assisted pilot positioning is documented.
+- [x] Authenticated users can create a workspace.
+- [x] Business profile, diagnostics, 30-day plan, assets, and routines exist.
+- [x] Output feedback is captured.
+- [x] Support and deletion requests are logged for manual review.
+- [x] Admin can review workspaces, jobs, requests, feedback, and account states.
+- [ ] Production `DATABASE_URL` confirmed.
+- [ ] Resend sender domain and inbox delivery confirmed.
+- [ ] Canonical URL confirmed as `https://ai-growth-os-virid.vercel.app` for now.
+- [ ] First assisted pilot script rehearsed end to end.
+- [ ] Founder review checklist for generated outputs completed.
 
-## Billing readiness
-
-Status: Not ready
-
-- [x] Plans exist in code
-- [x] Account states exist in code
-- [x] Usage counters exist in code
-- [x] Stripe checkout and webhook skeleton exist
-- [ ] Stripe products and prices confirmed
-- [ ] Stripe webhook secrets configured in preview/production
-- [ ] Billing portal/customer lifecycle implemented
-- [ ] Stripe drives entitlement state as source of truth
-- [ ] Public UI audited to avoid any false live-billing claim
-
-## Legal readiness
+## Billing Readiness
 
 Status: Not ready
 
-- [ ] Terms of Service page
-- [ ] Privacy Policy page
-- [ ] Cookie Policy page
-- [ ] Refund/fulfillment policy
-- [ ] Data Processing Addendum
-- [ ] Subprocessors page
-- [ ] Founder review on claims, billing, and support language
+- [x] Plan definitions exist in code.
+- [x] Stripe checkout and webhook skeleton exist.
+- [x] Checkout is hard-disabled unless explicitly enabled.
+- [ ] Stripe products and prices confirmed.
+- [ ] Success/cancel routing designed for scheduled onboarding/manual invite.
+- [ ] Webhook maps paid status to workspace provisioning and account states.
+- [ ] Customer portal behavior implemented.
+- [ ] Stripe drives entitlements as source of truth.
+- [ ] Refund/payment terms reviewed legally.
 
-## Security readiness
+## Legal Readiness
+
+Status: Pilot-only
+
+- [x] Terms page exists.
+- [x] Privacy page exists.
+- [x] Cookie page exists.
+- [x] Subprocessors page exists.
+- [x] Deletion requests are framed as manual review.
+- [ ] Lawyer review before paid pilots.
+- [ ] Refund/payment terms before paid pilots.
+- [ ] DPA basics before paid pilots.
+- [ ] NDA/light consent decided for free assisted pilots.
+
+## Security Readiness
 
 Status: Partial
 
-- [x] HTTP-only session cookies
-- [x] Email verification flow
-- [x] Password reset flow with session invalidation
-- [x] Route guards for `/app/*`
-- [x] Route guards for `/admin/*`
-- [x] Workspace account-state lock/read-only handling
-- [x] Admin audit logging for workspace state changes
-- [x] Optional Turnstile support on lead capture
-- [ ] Formal secret rotation/runbook
-- [ ] Production review of admin bootstrap-token flow
-- [x] `APP_SECRET` and `ENCRYPTION_KEY` removed from the required-env list
+- [x] HTTP-only session cookies.
+- [x] Email verification flow.
+- [x] Password reset with session invalidation.
+- [x] Route guards for `/app/*`.
+- [x] Route guards for `/admin/*`.
+- [x] Account-state lock/read-only handling.
+- [x] Admin audit logging.
+- [x] Optional Turnstile on lead capture.
+- [ ] Distributed production rate limiting.
+- [ ] Admin bootstrap-token flow replaced or formally accepted for pilot.
+- [ ] Secret rotation runbook.
+- [ ] Backup and restore runbook.
 
-## Product readiness
+## Product Readiness
 
-Status: Foundation only
+Status: Pilot usable, not self-serve SaaS
 
-- [x] Public preview surface
-- [x] Auth and workspace foundation
-- [x] Team and billing preview pages
-- [x] Admin foundation
-- [x] Business profile module
-- [x] Diagnostics module with persisted runs
-- [ ] Roadmap module
-- [ ] Assets module
-- [ ] SOPs module
-- [ ] Integrations module
+- [x] Public preview surface.
+- [x] Auth and workspace foundation.
+- [x] Business profile module.
+- [x] Deterministic diagnostics module.
+- [x] 30-day plan module.
+- [x] Supporting priority list.
+- [x] Supporting assets.
+- [x] Customer-facing marketing routines.
+- [x] Team page.
+- [x] Billing preview page.
+- [x] Support page.
+- [ ] Copy/export deliverables.
+- [ ] Monthly refresh product workflow.
+- [ ] Workspace switcher for multi-workspace users.
+- [ ] Live integrations.
 
-## Support readiness
+## Launch Gate
 
-Status: Not ready
+Do not call FoundryOS commercially launched until all of these are true:
 
-- [ ] Help center surface
-- [ ] Support intake path
-- [ ] Escalation workflow
-- [ ] Internal support runbook
-- [ ] Support SLA/pilot expectations defined
-
-## Analytics readiness
-
-Status: Not ready
-
-- [x] PostHog env placeholders exist
-- [ ] Product analytics events implemented
-- [ ] Funnel events implemented
-- [ ] Admin visibility into usage analytics
-- [ ] Consent/privacy review for analytics
-
-## Pilot readiness
-
-Status: Partial
-
-- [x] Authenticated users can create a workspace
-- [x] Team invitation flow works
-- [x] Admin can manually move plan/account state
-- [x] Suspended/canceled-style access handling is implemented
-- [ ] Founder-facing pilot onboarding checklist
-- [ ] Remote preview DB confirmed
-- [ ] Resend configured for real invite/verification emails
-- [ ] Pilot script for workspace creation and recovery
-
-## Launch readiness
-
-Status: No
-
-- [x] Controlled MVP preview is usable internally
-- [ ] Commercial launch billing is ready
-- [ ] Legal pages are live
-- [ ] Analytics are live
-- [ ] Support is live
-- [ ] Founder claims/copy audit is complete
-- [x] Brand/name consistency is resolved for user-facing copy
-- [ ] All production env vars are configured and verified
-
-## Release gate
-
-Do not call this commercially launched until all of the following are true:
-
-- remote production database is configured and verified
-- live billing is intentionally enabled and tested
-- legal pages are published
-- founder-side support and analytics decisions are completed
-- public copy is audited to remove preview-only inconsistencies
+- 3-5 assisted pilots show repeated value.
+- The winning wedge is clearer than the current broad ICP.
+- Paid onboarding is scheduled/manual-invite or fully provisioned by Stripe.
+- Legal/payment terms are reviewed.
+- Production database, email, backup, and admin access are verified.
+- Public copy no longer implies self-serve SaaS, live billing, autonomous analysis, or live integrations ahead of reality.

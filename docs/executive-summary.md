@@ -1,120 +1,69 @@
 # Executive Summary
 
-## Proyecto
+## Project
 
-**Nombre de trabajo:** AI Growth OS
+**Product name:** FoundryOS
 
-AI Growth OS es un producto digital AI-first para pequenas empresas y startups con equipo limitado. Su objetivo es convertir trabajo de estrategia, marketing y operaciones en un sistema escalable, recurrente y con baja dependencia del tiempo del founder.
+FoundryOS is a founder-assisted marketing diagnosis and 30-day marketing planning product for early-stage small businesses.
 
-## Problema
+The product should be validated through assisted pilots before being positioned as self-serve SaaS or expanded into AI/agentic automation.
 
-El mercado objetivo sufre tres bloqueos recurrentes:
+## Problem
 
-1. Producto validado, pero sin estructura real de crecimiento.
-2. Exceso de tareas manuales y poca claridad operativa.
-3. Falta de talento senior interno en marketing y ops.
+The target customer often has:
 
-## Solucion
+1. A real offer, but unclear marketing focus.
+2. No internal marketing team.
+3. Scattered channels, weak proof, unclear CTA, or inconsistent follow-up.
+4. A need for practical next steps, not a broad strategy deck.
 
-AI Growth OS no vende "IA" como categoria abstracta. Vende:
+## Solution
 
-- claridad operativa,
-- velocidad de decision,
-- estructura de ejecucion,
-- automatizacion selectiva,
-- y seguimiento continuo.
+FoundryOS turns saved business and marketing context into:
 
-El producto entiende el negocio del cliente, detecta cuellos de botella, prioriza acciones, genera activos utiles y mantiene un refresh mensual.
+- a deterministic marketing diagnosis
+- clear bottlenecks and evidence quality
+- a practical 30-day marketing plan
+- supporting assets and customer-facing marketing routines
 
-## Oferta inicial
+Founder review remains part of the first pilot workflow.
 
-### 1. AI Snapshot
+## Initial Offer
 
-- Modelo: pago unico.
-- Precio inicial: EUR79-EUR99.
-- Funcion: diagnostico express y filtro de leads.
-- Entregables: score, prioridades de 30 dias, gaps, quick wins, stack recomendado y riesgos.
+### Free Assisted Design-Partner Pilot
 
-### 2. AI Growth OS
+- guided onboarding
+- founder-entered context
+- deterministic draft generation
+- founder review before delivery
+- customer review session
+- structured feedback capture
 
-- Modelo: suscripcion mensual.
-- Precio inicial: EUR149-EUR249/mes.
-- Funcion: producto core para generar MRR.
-- Entregables: refresh mensual, plan operativo, assets base, SOPs, automatizaciones sugeridas y dashboard.
+### Future Paid Snapshot
 
-### 3. AI Operator
+- one-off marketing diagnosis and 30-day plan
+- manually reviewed at first
 
-- Modelo: premium.
-- Precio inicial: EUR499-EUR999/mes.
-- Funcion: clientes con mayor madurez y complejidad.
-- Entregables: conectores, flujos activos, agentes funcionales, reporting y soporte prioritario.
+### Future FoundryOS Core
 
-## ICP inicial
+- recurring planning and monthly refresh once pilot cycles prove what repeats
 
-- Equipos de 1 a 20 personas.
-- Founder-led.
-- Producto o servicio ya validado.
-- Poco equipo interno.
-- Necesidad de crecer sin sobredimensionar plantilla.
-- Buena predisposicion hacia herramientas digitales.
+### Future Operator
 
-## Go-to-market
+- deeper implementation, integrations, and support for more complex customers
 
-- SEO comercial con busquedas de compra.
-- LinkedIn con contenido de demostracion.
-- Outbound muy selectivo.
-- Partners: incubadoras, consultores, fractional CMOs y microagencias.
+## ICP
 
-## Ventaja de ejecucion
+Early-stage small businesses and founder-led projects with a real offer but no internal marketing team.
 
-La escala no vendra de vender mas horas, sino de:
+For first pilots, prioritize creators, service businesses, boutique projects, local/product-led businesses, and early founders who need marketing clarity.
 
-- plantillas,
-- prompts estructurados,
-- librerias de SOPs,
-- motores de scoring,
-- conectores,
-- limites de uso,
-- soporte asincrono.
+## Pilot Quality Bar
 
-## Estructura operativa recomendada
+The output is good enough when the customer says:
 
-### Fase 1
+> This reflects my situation, gives me clarity, and I can act on at least one part this week.
 
-- operar como autonomo para validar rapido,
-- gestor/asesor fiscal,
-- apoyo legal/privacy por horas,
-- desarrollo full-stack freelance o socio tecnico parcial.
+## Current Strategic Decision
 
-### Fase 2
-
-Pasar a SL cuando coincidan traccion recurrente, necesidad de separar riesgo, mejor imagen societaria y/o contratacion.
-
-## Stack inicial recomendado
-
-- Next.js + Vercel
-- Supabase
-- Stripe Billing
-- n8n
-- OpenAI GPT-5.4 / GPT-5.4 mini
-- PostHog
-
-## Objetivo de validacion
-
-La fase 1 no busca miles de clientes. Busca una base controlada y rentable:
-
-- 10 clientes recurrentes activos,
-- churn controlado,
-- onboarding entendible,
-- coste operativo predecible,
-- y evidencia de valor en uso, no solo en interes.
-
-## Siguiente paso
-
-Construir un MVP web-first que permita:
-
-1. captar demanda,
-2. vender Snapshot,
-3. ejecutar onboarding estructurado,
-4. generar un diagnostico util,
-5. y preparar el paso a la suscripcion recurrente.
+Keep the core deterministic for trust. Add LLM refinement, live integrations, billing automation, and agentic workflows only after the assisted pilot proves the repeatable workflow.

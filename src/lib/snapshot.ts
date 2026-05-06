@@ -277,8 +277,8 @@ function buildPriorities(intake: BusinessIntake): SnapshotPriority[] {
 function buildSuggestedStack(intake: BusinessIntake): string[] {
   const baseline = [
     "Next.js + Vercel",
-    "Supabase for auth and data",
-    "Stripe Billing for subscriptions",
+    "Postgres via DATABASE_URL for workspace data",
+    "Stripe only after billing and provisioning are verified",
     "PostHog for product analytics",
     "n8n for workflow automation"
   ];
@@ -292,7 +292,7 @@ function buildSuggestedStack(intake: BusinessIntake): string[] {
   }
 
   if (intake.openToAutomation) {
-    baseline.push("OpenAI routing layer with GPT-5.4 mini for repeatable tasks");
+    baseline.push("Future LLM refinement layer for reviewed output polish");
   }
 
   return baseline;

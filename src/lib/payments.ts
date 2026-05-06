@@ -21,6 +21,12 @@ export async function createCheckoutSession({
   email?: string;
   company?: string;
 }) {
+  if (!env.stripeCheckoutEnabled) {
+    throw new Error(
+      "Stripe checkout is intentionally disabled for the assisted pilot."
+    );
+  }
+
   const stripe = getStripeClient();
   const priceId = getStripePriceId(planId);
 
@@ -38,7 +44,7 @@ export async function createCheckoutSession({
       }
     ],
     customer_email: email,
-    success_url: `${env.appUrl}/dashboard?checkout=success&plan=${planId}`,
+    success_url: `${env.appUrl}/pricing?checkout=success&plan=${planId}`,
     cancel_url: `${env.appUrl}/pricing?checkout=cancelled&plan=${planId}`,
     metadata: {
       planId,

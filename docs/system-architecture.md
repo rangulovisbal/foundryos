@@ -1,102 +1,92 @@
 # System Architecture
 
-## Product layers
+## Product Layers
 
-### 1. Acquisition layer
+### 1. Acquisition Layer
 
 - Landing page
-- Pricing page
+- Pricing / assisted pilot access page
 - SEO primitives
-- Lead capture form
-- UTM capture
+- Lead capture
 - Optional Cloudflare Turnstile
 
-### 2. Conversion layer
+### 2. Auth And Workspace Layer
 
-- Stripe Checkout session API
-- Pricing plan abstraction
-- Hosted payment only
-- No direct storage of payment card data
+- Custom email/password auth
+- Email verification and password reset
+- HTTP-only session cookies
+- Workspace, membership, invitation, role, plan, and account-state tables
+- One primary workspace per normal user during pilot
 
-### 3. Diagnostic layer
+### 3. Truth And Diagnosis Layer
 
-- Snapshot intake form
-- Heuristic scoring engine
-- OpenAI-ready upgrade path
-- Dashboard demo seeded from the same engine
+- Workspace business profile
+- Founder-entered evidence
+- Deterministic diagnostic engine
+- Confidence and evidence-quality propagation
+- Persisted diagnostic job/result history
 
-### 4. Operations layer
+### 4. Planning Layer
 
-- Admin login with secure cookie
-- Admin dashboard with lead queue
-- Local storage fallback for development
-- Neon-ready persistence for production
+- 30-day marketing plan
+- Supporting priority list
+- Action cards
+- Weekly plan structure
 
-### 5. Communications layer
+### 5. Supporting Output Layer
 
-- Resend outbound notifications
-- Lead receipt confirmation
-- Internal new-lead notification
+- Marketing asset drafts
+- Customer-facing marketing routines
+- Source references
+- Output feedback capture
 
-### 6. Security layer
+### 6. Operations Layer
 
-- Security headers through middleware
-- Rate limiting on public APIs
-- Optional Cloudflare Turnstile
-- Admin token gate
-- Stripe webhook verification
+- Internal admin login
+- Workspace/customer visibility
+- Job history
+- Support and deletion request queues
+- Account-state controls
+- Audit logs
 
-## Data model
+### 7. Future Commercial And Integration Layer
 
-### Leads
+- Stripe checkout and webhook path
+- Customer portal
+- Billing-driven provisioning
+- GA4/Search Console evidence
+- CRM/funnel evidence import
+- LLM refinement layer
+- Automation/agentic layer after workflow validation
 
-- id
-- name
-- email
-- company
-- website
-- team size
-- message
-- source
-- status
-- consent
-- snapshot requested
-- UTM tags
-- turnstile verification
-- created at / updated at
+## Data Runtime
 
-### Subscriptions
+- Canonical remote persistence: Postgres via `DATABASE_URL`
+- Supported providers: Supabase Postgres, Neon, or compatible managed Postgres
+- Local development fallback: embedded PGlite
+- Legacy marketing lead/subscription fallback: local JSON only where explicitly used
 
-- id
-- email
-- company
-- plan id
-- status
-- Stripe customer id
-- Stripe subscription id
-- metadata
-- created at / updated at
+## Current Integration Decisions
 
-## Runtime strategy
+- Stripe exists in code but is disabled unless `ENABLE_STRIPE_CHECKOUT=true`.
+- OpenAI helper exists but is disabled unless `ENABLE_LLM_SNAPSHOT_REFINEMENT=true`.
+- Supabase Auth is not used.
+- PostHog server-side events are optional.
+- Resend is used for email only when configured.
 
-- static marketing routes where possible
-- server routes for lead intake, checkout and webhooks
-- Neon when `DATABASE_URL` exists
-- local JSON fallback when Neon is absent
+## Scaling Decisions Already Reflected
 
-## Scaling decisions already reflected
+- Generated outputs are persisted as structured records, not raw one-off text.
+- Jobs have queued/processing/completed/failed states.
+- Account states protect locked/read-only workspaces.
+- Admin gets feedback, support/deletion, and failed-job visibility.
+- The deterministic truth layer keeps weak evidence from becoming overconfident output.
 
-- payment offloaded to Stripe Checkout
-- email offloaded to Resend
-- bot protection offloaded to Cloudflare
-- database abstraction prepared for Neon
-- API boundaries separated from UI
-- internal docs embedded in repo
+## Next Evolution Points
 
-## Next evolution points
-
-- replace token-based admin with managed auth
-- move heuristic scoring to hybrid heuristic + LLM pipeline
-- add customer accounts and workspace model
-- add billing portal route
-- add analytics events and attribution dashboards
+1. Align docs and public copy with assisted-pilot reality.
+2. Add copy/export controls for reviewed outputs.
+3. Replace or formalize bootstrap-token admin.
+4. Add production-grade distributed rate limiting.
+5. Add Stripe provisioning only after paid pilot workflow is designed.
+6. Add first evidence integrations after 3-5 pilots prove which evidence matters.

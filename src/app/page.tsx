@@ -173,8 +173,8 @@ const fit = {
 };
 
 const trustPoints = [
-  "Payments handled securely by Stripe",
-  "No payment card data stored by the product",
+  "Free assisted design-partner pilot before self-serve billing",
+  "Stripe checkout disabled until provisioning is verified",
   "Security and legal pages are visible",
   "Lead capture protected with rate limiting and optional Cloudflare Turnstile"
 ];
@@ -687,11 +687,11 @@ export default function HomePage() {
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-white md:text-5xl">
             Trust has to be{" "}
             <span className="font-serif-display tracking-[-0.02em]">visible</span>,
-            especially for an AI-first product.
+            especially for an assisted pilot.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/70 md:text-lg">
-            The commercial promise is simple: secure checkout, clear data
-            handling and structured outputs without hype or black-box pricing.
+            The pilot promise is simple: clear data handling, founder-reviewed
+            outputs, and no public checkout until paid provisioning is ready.
           </p>
         </div>
 

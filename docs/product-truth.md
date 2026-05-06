@@ -1,77 +1,80 @@
-# PRODUCT TRUTH
+# Product Truth
 
-## What FoundryOS does today
+## What FoundryOS Is
 
-FoundryOS v1 currently turns a saved business profile and user-entered business
-evidence into a deterministic marketing diagnosis for the workspace. Today that
-includes:
+FoundryOS is currently a founder-assisted marketing diagnosis and 30-day marketing planning product for early-stage small businesses.
 
-- a workspace-scoped business and marketing profile
-- evidence intake for website URL, channel URLs, positioning, CTA, pricing, acquisition method, sales process, and founder notes
-- deterministic diagnostics from saved profile inputs and user-entered evidence
-- persisted diagnostic scores, risks, opportunities, and next actions
-- marketing-priority, 30-day action-plan, asset, and workflow generation built on the saved workspace truth layer
-- usage gating, account-state handling, and admin visibility for internal control
+The first pilot is free, assisted, and manually reviewed. It is a design-partner pilot used to validate usefulness, clarity, output quality, and the real workflow before the product is positioned as self-serve SaaS.
 
-The current system is strongest when the profile is complete, specific, internally
-consistent, and supported by concrete evidence entered by the founder or operator.
-It is intentionally conservative when those conditions are not met.
+## Primary Promise
 
-## What FoundryOS does not do yet
+The primary promise is:
+
+> Turn founder-entered marketing context into a clear diagnosis and an actionable 30-day marketing plan.
+
+Assets and marketing routines support that plan, but they are not the main promise.
+
+## First ICP
+
+The first ICP is early-stage small businesses and founder-led projects with a real offer but no internal marketing team.
+
+Prioritize creators, service businesses, boutique projects, local/product-led businesses, and early founders who need marketing clarity. Do not lock the whole company into academies, SaaS, restaurants, or one vertical until 3-5 comparable pilots reveal the best wedge.
+
+## What FoundryOS Does Today
+
+FoundryOS currently includes:
+
+- workspace-scoped business and marketing profile
+- founder-entered evidence for website, channels, positioning, CTA, pricing, acquisition, sales process, goals, bottlenecks, and notes
+- deterministic marketing diagnostics from saved profile inputs
+- persisted scores, risks, bottlenecks, opportunities, next actions, and evidence cards
+- a 30-day marketing plan derived from the diagnosis
+- supporting priority lists, assets, and customer-facing marketing routines
+- usage gating, account-state handling, admin visibility, feedback capture, support requests, and deletion request logging
+
+The system is strongest when the profile is complete, specific, internally consistent, and supported by concrete evidence entered by the founder or operator. It should be conservative when the input is weak.
+
+## What FoundryOS Does Not Do Yet
 
 FoundryOS does not currently:
 
 - read live source-of-truth systems such as CRM, analytics, ads, finance, or support platforms
 - verify claims against external integrations in real time
-- crawl, scrape, or independently inspect the website or channel URLs provided by the user
+- crawl, scrape, or independently inspect website or channel URLs
 - autonomously understand a company without structured workspace input
-- operate as a background agent that makes business decisions or changes systems on its own
-- use live billing as the product truth layer
+- operate as a background agent that makes decisions or changes systems
+- use Stripe as billing/provisioning source of truth
+- provide public self-serve paid provisioning
+- execute account/workspace deletion automatically from the customer UI
 
-## Deterministic now vs AI-assisted later
+## Deterministic Now, AI-Assisted Later
 
 The current truth layer is deterministic first.
 
 - Diagnostics are rule-based and derived from the saved workspace profile.
-- Evidence-backed currently means the user has provided structured supporting evidence; it does not mean FoundryOS has independently verified that evidence.
+- Evidence-backed currently means the user provided structured supporting evidence; it does not mean FoundryOS independently verified that evidence.
 - Confidence is calculated from completeness, consistency, specificity, visible evidence, conversion evidence, acquisition evidence, and evidence quality.
-- Contradictions and weak input are supposed to lower certainty instead of being smoothed over.
-- Diagnostics must separate founder-stated inputs, visible evidence entered by the user, missing evidence, and contradictory evidence.
+- Contradictions and weak input lower certainty.
+- Diagnostics must separate founder-stated inputs, user-entered evidence, missing evidence, and contradictory evidence.
 
-AI-assisted behavior may be added later for drafting, synthesis, or variant generation, but:
+AI-assisted behavior may be added later for drafting, synthesis, variant generation, and language polish, but it must sit on top of the deterministic truth layer and never upgrade trust beyond the saved evidence.
 
-- AI-assisted layers must sit on top of the deterministic truth layer, not replace it.
-- AI should not upgrade trust claims beyond what the saved evidence supports.
-- Any later AI assistance should inherit the same honesty rule: weak signal should produce weaker claims.
+## Pilot Quality Bar
 
-## Trust level the product should claim today
+An output is good enough when the customer says:
 
-FoundryOS should currently claim:
+> This reflects my situation, gives me clarity, and I can act on at least one part this week.
 
-- deterministic profile-based marketing diagnosis
-- evidence-backed initial diagnostics when the founder has entered concrete website, positioning, channel, CTA, pricing, acquisition, and sales-process evidence
-- explainable scores with visible evidence references
-- explicit validation needs when evidence is weak, missing, or contradictory
-- directional marketing planning support grounded in saved workspace context
+Outputs must be specific, evidence-linked, not overconfident, and not feel like generic ChatGPT text.
 
-FoundryOS should not currently claim:
+## Language
 
-- autonomous business understanding
-- live business truth across external systems
-- verified website, CRM, analytics, sales, or channel truth
-- authoritative certainty when the profile is vague or contradictory
+For pilot, FoundryOS supports English and Spanish. The user/workspace chooses one primary language, and the experience should follow that language as much as currently implemented. Spanish should be treated as first-class because the first real pilots may be in Spain.
 
-## Current confidence standard
+## Current Confidence Standard
 
-- `high` confidence means the profile is complete, specific, consistent, supported by meaningful marketing evidence, and includes enough visible/CTA/acquisition evidence for stronger claims.
-- `medium` confidence means the profile is usable, but some gaps, ambiguity, or unverified evidence still limit certainty.
-- `low` confidence means the profile is weak, contradictory, too vague, or missing the business evidence needed for strong conclusions.
+- `high` confidence means the profile is complete, specific, consistent, and supported by meaningful marketing evidence.
+- `medium` confidence means the profile is usable, but gaps, ambiguity, or unverified evidence still limit certainty.
+- `low` confidence means the profile is weak, contradictory, too vague, or missing evidence needed for strong conclusions.
 
 Low-confidence outputs are not failures. They are the expected truthful behavior when the input quality does not support stronger claims.
-
-## Current evidence quality states
-
-- `clear evidence` means enough structured user-entered evidence exists to support a more specific diagnostic statement.
-- `weak evidence` means some supporting evidence exists, but the system should still use provisional language.
-- `missing evidence` means the product should surface what needs to be added or validated before making stronger claims.
-- `contradictory evidence` means declared inputs and supporting evidence point in different directions, so confidence must be reduced.

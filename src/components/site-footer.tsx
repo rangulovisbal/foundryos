@@ -1,12 +1,11 @@
 import Link from "next/link";
 
+import { env } from "@/lib/env";
 import type { OutputLanguage } from "@/lib/foundation";
 import { copyForLanguage } from "@/lib/language";
 import { publicLegalLinks } from "@/lib/legal";
 
 export function SiteFooter({ language }: { language: OutputLanguage }) {
-  const hasLiveCheckout = Boolean(process.env.STRIPE_SECRET_KEY);
-
   return (
     <footer className="page-shell pt-0">
       <div className="surface px-6 py-6 md:px-8">
@@ -24,7 +23,7 @@ export function SiteFooter({ language }: { language: OutputLanguage }) {
             </p>
           </div>
           <div className="text-sm text-muted">
-            {hasLiveCheckout ? (
+            {env.stripeCheckoutEnabled ? (
               <>
                 <p>
                   {copyForLanguage(
@@ -46,15 +45,15 @@ export function SiteFooter({ language }: { language: OutputLanguage }) {
                 <p>
                   {copyForLanguage(
                     language,
-                    "Checkout is being enabled for this deployment.",
-                    "El checkout se está habilitando para este despliegue."
+                    "The first pilot is assisted and request-access only.",
+                    "El primer piloto es asistido y solo por solicitud."
                   )}
                 </p>
                 <p>
                   {copyForLanguage(
                     language,
-                    "Use the request form if you want access before billing is live.",
-                    "Usa el formulario de solicitud si quieres acceso antes de que la facturación esté activa."
+                    "Stripe checkout stays disabled until paid provisioning is verified.",
+                    "Stripe permanece desactivado hasta verificar el alta de clientes de pago."
                   )}
                 </p>
               </>

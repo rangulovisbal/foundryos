@@ -15,9 +15,11 @@ export async function GET() {
     service: "foundryos",
     environment: env.vercelEnv,
     integrations: {
-      supabase: env.hasSupabase,
-      stripe: env.hasStripe,
-      openai: env.hasOpenAI,
+      database: env.foundationDbMode,
+      stripeCredentials: env.hasStripeCredentials,
+      stripeCheckout: env.stripeCheckoutEnabled,
+      llmRefinementConfigured: env.hasOpenAI,
+      llmSnapshotRefinement: env.llmSnapshotRefinementEnabled,
       posthog: env.hasPostHog
     }
   });

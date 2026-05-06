@@ -1,13 +1,17 @@
 # FoundryOS
 
-MVP B2B SaaS for marketing diagnosis, evidence-backed prioritization, and
-30-day marketing action plans for early-stage businesses.
+Founder-assisted marketing diagnosis and 30-day marketing planning for
+early-stage small businesses.
+
+The current product is a controlled design-partner pilot. It uses
+founder-entered context and deterministic generation first; LLM refinement,
+self-serve billing, and live integrations are later layers.
 
 ## Local development
 
 ```bash
 cp .env.example .env.local
-# Fill in values from Supabase/Postgres, OpenAI, Resend, Cloudflare, PostHog
+# Fill in values for Postgres, Resend, Cloudflare Turnstile, and PostHog as needed
 npm install
 npm run dev
 ```

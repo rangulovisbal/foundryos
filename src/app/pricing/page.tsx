@@ -29,8 +29,8 @@ const planIncludes: Record<string, string[]> = {
 };
 
 const trustItems = [
-  "Payments handled securely by Stripe",
-  "No payment card data stored locally",
+  "First pilot is free, assisted, and manually reviewed",
+  "Stripe checkout stays disabled until paid provisioning is verified",
   "Security and legal policy pages are visible",
   "Clear plan boundaries and no hidden scope creep"
 ];
@@ -53,7 +53,7 @@ export default function PricingPage() {
       title: "Start access with the current billing mode",
       body: hasLiveCheckout
         ? "Checkout happens on Stripe when it is enabled on this deployment. The product does not store card data."
-        : "This deployment is still in request-access mode, so access starts with a manual review instead of live checkout."
+        : "This deployment is running the free assisted design-partner pilot, so access starts with manual review instead of live checkout."
     },
     {
       title: "Complete the intake",
@@ -61,7 +61,7 @@ export default function PricingPage() {
     },
     {
       title: "Receive your first outputs",
-      body: "Snapshot customers receive a marketing diagnosis and 30-day marketing plan. FoundryOS Core customers move into recurring refreshes once those workflows are enabled for the workspace."
+      body: "Pilot customers receive a founder-reviewed marketing diagnosis and 30-day marketing plan. Recurring refreshes stay assisted-service language until 2-3 pilot cycles prove what should repeat."
     }
   ] as const;
 
@@ -73,16 +73,16 @@ export default function PricingPage() {
           Clear plans, clear deliverables, clear next marketing step.
         </h1>
         <p className="mt-4 max-w-3xl body-lg">
-          Start with Snapshot if you need clarity on what is missing in your
-          marketing and what to do in the next 30 days. Choose FoundryOS Core if
-          you want recurring marketing planning support. Use Operator when the
-          work includes deeper implementation and integrations.
+          Start with the assisted Snapshot pilot if you need clarity on what is
+          missing in your marketing and what to do in the next 30 days.
+          FoundryOS Core and Operator remain future packaging until the first
+          pilots prove the repeatable workflow.
         </p>
         {!hasLiveCheckout ? (
           <p className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
-            This deployment is running in request-access mode. Public checkout is
-            not enabled yet, so use the request form and we will follow up
-            manually.
+            This deployment is running the free assisted design-partner pilot.
+            Public checkout is disabled, so use the request form and we will
+            follow up manually.
           </p>
         ) : null}
       </section>

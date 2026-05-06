@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { env } from "@/lib/env";
 import { publicLegalLinks } from "@/lib/legal";
 
 const controls = [
@@ -13,12 +14,10 @@ const controls = [
   "No sensitive data by default"
 ];
 
-const hasLiveCheckout = Boolean(process.env.STRIPE_SECRET_KEY);
-
 const handling = [
-  hasLiveCheckout
+  env.stripeCheckoutEnabled
     ? "Payments are handled by Stripe Checkout and Stripe Billing."
-    : "Checkout is designed to run through Stripe once billing is enabled on this deployment.",
+    : "Stripe checkout is intentionally disabled for the assisted pilot until billing, provisioning, account states, customer portal behavior, and routing are verified.",
   "The product does not store payment card details.",
   "Support and deletion requests remain request-based and are reviewed manually in the current pilot.",
   "Lead capture can be protected with rate limiting and Cloudflare Turnstile.",
