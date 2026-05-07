@@ -33,8 +33,8 @@ export default async function SignupPage({
       <AuthShell
         description={copyForLanguage(
           language,
-          "You already have an active session in this browser. Log out first if you want to test a new account from a clean signup state.",
-          "Ya tienes una sesión activa en este navegador. Cierra sesión primero si quieres probar una cuenta nueva desde un registro limpio."
+          "You already have an active session in this browser. Log out first if you were invited to set up a different pilot account.",
+          "Ya tienes una sesión activa en este navegador. Cierra sesión primero si te invitaron a configurar otra cuenta de piloto."
         )}
         eyebrow={copyForLanguage(language, "Active session", "Sesión activa")}
         language={language}
@@ -58,12 +58,12 @@ export default async function SignupPage({
     <AuthShell
       description={copyForLanguage(
         language,
-        "Create your FoundryOS account. Email verification is part of the flow, and the product will clearly tell you whether this environment is using live email, preview links, or no delivery path yet.",
-        "Crea tu cuenta de FoundryOS. La verificación por correo forma parte del flujo y el producto te dirá claramente si este entorno usa correo real, enlaces de vista previa o si todavía no tiene entrega configurada."
+        "Use this page only if you were invited into a FoundryOS pilot or asked to create an account for manual access. Email verification is part of the flow, and the product will clearly tell you whether this environment is using live email, preview links, or no delivery path yet.",
+        "Usa esta página solo si te invitaron a un piloto de FoundryOS o te pidieron crear una cuenta para acceso manual. La verificación por correo forma parte del flujo y el producto te dirá claramente si este entorno usa correo real, enlaces de vista previa o si todavía no tiene entrega configurada."
       )}
-      eyebrow={copyForLanguage(language, "Create account", "Crear cuenta")}
+      eyebrow={copyForLanguage(language, "Invited pilot signup", "Registro de piloto invitado")}
       language={language}
-      title={copyForLanguage(language, "Set up your FoundryOS login", "Configura tu acceso a FoundryOS")}
+      title={copyForLanguage(language, "Set up invited FoundryOS access", "Configura tu acceso invitado a FoundryOS")}
     >
       <SignupForm
         canSubmit={env.hasFoundationDb && deliveryMode !== "unavailable"}

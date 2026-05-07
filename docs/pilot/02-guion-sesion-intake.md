@@ -31,7 +31,8 @@ Fill in the business profile fields in FoundryOS while asking these questions.
 | Target customer | "Quien es tu cliente tipico? Describemelo como si yo no supiera nada." |
 | Team size | "Cuanta gente trabaja contigo? Incluye a ti." |
 | Time in business | "Cuanto tiempo llevas con esto?" |
-| Monthly revenue range | "Sin que me des el numero exacto: en que rango de facturacion mensual estas?" (Offer ranges if she hesitates.) |
+| Pricing / ticket model | "Como tienes estructurados tus precios o tickets? No necesito facturacion privada; solo entender si vendes por proyecto, paquete, sesion, suscripcion, reserva..." |
+| Typical order/project value (optional) | "Si te sientes comoda, dame solo una idea amplia del ticket tipico. Si prefieres no compartirlo, lo dejamos en blanco." |
 | Main product/service | "Cual es tu producto o servicio principal? El que te da mas ingresos." |
 
 **If she gets stuck:** "No te preocupes por ser precisa. Dime lo que se te ocurra y lo vamos refinando."

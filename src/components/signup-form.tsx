@@ -73,8 +73,8 @@ export function SignupForm({
       setMessage(
         copyForLanguage(
           language,
-          "Account created. Verify your email before entering the workspace.",
-          "Cuenta creada. Verifica tu correo antes de entrar al espacio."
+          "Pilot account created. Verify your email before entering the workspace.",
+          "Cuenta de piloto creada. Verifica tu correo antes de entrar al espacio."
         )
       );
       setPreviewUrl(payload.verificationPreviewUrl ?? null);
@@ -151,8 +151,8 @@ export function SignupForm({
           type="submit"
         >
           {loading
-            ? copyForLanguage(language, "Creating account...", "Creando cuenta...")
-            : copyForLanguage(language, "Create account", "Crear cuenta")}
+            ? copyForLanguage(language, "Creating pilot account...", "Creando cuenta de piloto...")
+            : copyForLanguage(language, "Create invited account", "Crear cuenta invitada")}
         </button>
       </form>
 

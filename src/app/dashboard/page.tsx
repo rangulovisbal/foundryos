@@ -9,7 +9,7 @@ const displayReport: SnapshotReport = {
     "This sample shows how FoundryOS turns founder-entered business and marketing context into a structured diagnosis, marketing priorities, and a practical first 30-day plan.",
   headline:
     "The business has real traction, but the marketing still needs clearer message, stronger proof, and a tighter conversion path.",
-  recommendedPlan: "AI Snapshot" as const,
+  recommendedPlan: "Marketing Snapshot" as const,
   monthlyFocus: [
     "Clarify the offer and headline so the right buyer understands it quickly.",
     "Strengthen proof, CTA, and channel consistency across the main touchpoints.",

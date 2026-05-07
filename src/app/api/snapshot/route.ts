@@ -22,7 +22,19 @@ export async function POST(request: Request) {
     const intake = businessIntakeSchema.parse(json);
     const report = generateSnapshotReport(intake);
 
-    return noStoreJson(report);
+    return noStoreJson(
+      {
+        ...report,
+        outputStatus: "draft_preview",
+        reviewNotice:
+          "This is an initial draft preview, not a final reviewed FoundryOS pilot output."
+      },
+      {
+        headers: {
+          "X-FoundryOS-Output-Status": "draft-preview"
+        }
+      }
+    );
   } catch (error) {
     return publicErrorJson(error, "Snapshot request could not be processed.");
   }

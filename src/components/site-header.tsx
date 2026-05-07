@@ -15,7 +15,7 @@ export function SiteHeader({ language }: { language: OutputLanguage }) {
       <div className="surface flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-7">
         <Link className="flex items-center gap-3" href="/">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-ink text-sm font-semibold text-sand">
-            AG
+            FO
           </div>
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted">
@@ -57,9 +57,9 @@ export function SiteHeader({ language }: { language: OutputLanguage }) {
             </Link>
             <Link
               className="rounded-full bg-[#051A24] px-4 py-2 text-sm font-semibold text-[#FBFAF7] shadow-[0_1px_2px_rgba(5,26,36,0.08),0_8px_20px_-8px_rgba(5,26,36,0.25),inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-0.5 hover:bg-[#0D212C]"
-              href="/signup"
+              href="/#snapshot-request"
             >
-              {copyForLanguage(language, "Create account", "Crear cuenta")}
+              {copyForLanguage(language, "Request access", "Solicitar acceso")}
             </Link>
           </div>
         </div>

@@ -55,7 +55,7 @@ export default async function VerifyEmailPage({
           </Link>
           {" · "}
           <Link className="font-semibold text-ink underline" href="/signup">
-            {copyForLanguage(language, "Create another account", "Crear otra cuenta")}
+            {copyForLanguage(language, "Create invited account", "Crear cuenta invitada")}
           </Link>
         </>
       }

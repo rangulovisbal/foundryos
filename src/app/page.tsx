@@ -84,12 +84,12 @@ const steps = [
     body: "You complete a structured intake covering offer, audience, message, channels, CTA, proof, and measurement."
   },
   {
-    title: "FoundryOS turns that into a diagnosis",
-    body: "The system translates your saved inputs into a marketing diagnosis, clear priorities, and a practical first plan."
+    title: "FoundryOS creates an initial draft",
+    body: "The system translates your saved inputs into a draft diagnosis, clear priorities, and a practical first plan for founder review."
   },
   {
-    title: "You receive outputs that are usable immediately",
-    body: "You get a plan you can execute, not a slide deck you need to reinterpret."
+    title: "The pilot output is reviewed before delivery",
+    body: "The first pilot is assisted, so the final guidance is checked before it is treated as customer-ready."
   }
 ];
 
@@ -133,9 +133,9 @@ const evidenceSignals = [
     detail: "Shows the current measurement and execution stack"
   },
   {
-    label: "Revenue band",
-    value: sampleIntake.monthlyRevenueBand,
-    detail: "Frames maturity and urgency"
+    label: "Pricing model",
+    value: sampleIntake.pricingModel || "Not provided",
+    detail: "Optional commercial context, not private financial data"
   }
 ];
 
@@ -167,8 +167,8 @@ const fit = {
   no: [
     "Businesses that need a fully custom agency relationship",
     "Teams expecting unlimited calls and open-ended revisions",
-    "Companies that want card processing or support handled outside Stripe",
-    "High-touch consulting engagements without product boundaries"
+    "Teams expecting public signup-to-paid provisioning today",
+    "High-touch consulting engagements without pilot boundaries"
   ]
 };
 
@@ -198,17 +198,17 @@ const faqs = [
   {
     question: "What do I get first?",
     answer:
-      "The first deliverable is Snapshot: a marketing diagnosis, 30-day priorities, quick wins, key risks, and a practical first action plan."
+      "The assisted pilot starts with a Snapshot: a founder-reviewed marketing diagnosis, 30-day priorities, quick wins, key risks, and a practical first action plan."
   },
   {
     question: "How fast is the first value?",
     answer:
-      "The pilot is designed to deliver structured first outputs quickly after intake review. Exact timing depends on the current deployment and whether billing or follow-up steps are still manual."
+      "The pilot is designed to create a structured draft quickly after intake, then review it before delivery. Exact timing depends on the pilot schedule and any manual follow-up."
   },
   {
     question: "Do you store payment data?",
     answer:
-      "No. When checkout is enabled, billing is handled by Stripe. The product does not process or store payment card details."
+      "No payment is required for the first assisted pilot. If paid plans are enabled later, billing will be handled outside the product card-data flow."
   },
   {
     question: "Who should start with Snapshot?",
@@ -230,13 +230,7 @@ export default function HomePage() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description:
-      "Marketing diagnosis and 30-day marketing planning software for early-stage businesses that need clearer priorities without pretending to run the business autonomously.",
-    offers: {
-      "@type": "AggregateOffer",
-      lowPrice: "99",
-      highPrice: "699",
-      priceCurrency: "EUR"
-    }
+      "Assisted pilot for marketing diagnosis and 30-day marketing planning for early-stage businesses that need clearer priorities without pretending to run the business autonomously."
   };
 
   return (
@@ -251,7 +245,7 @@ export default function HomePage() {
           <div className="grid-lines absolute inset-0 rounded-[32px] opacity-40" />
           <div className="relative z-10 mx-auto max-w-5xl space-y-7 text-center">
             <span className="eyebrow justify-center">
-              Marketing diagnosis and 30-day planning for early-stage businesses
+              Assisted pilot for marketing diagnosis and 30-day planning
             </span>
             <div className="space-y-4">
               <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
@@ -262,18 +256,19 @@ export default function HomePage() {
                 after seeing what your marketing is missing.
               </h1>
               <p className="mx-auto max-w-3xl body-lg">
-                FoundryOS helps early-stage businesses diagnose what is missing
-                in their marketing and turn that into clear priorities,
-                reusable assets, and a practical 30-day plan.
+                FoundryOS is currently in assisted pilot mode. It helps
+                early-stage businesses diagnose what is missing in their
+                marketing, then turns founder-reviewed context into clear
+                priorities, reusable assets, and a practical 30-day plan.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
                 className="foundry-primary-button rounded-full"
-                href="/pricing#plans"
+                href="#snapshot-request"
               >
-                Get your marketing Snapshot <ArrowRight className="h-4 w-4" />
+                Request assisted pilot <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 className="text-sm font-semibold uppercase tracking-[0.18em] text-ink underline-offset-4 hover:underline"
@@ -380,16 +375,16 @@ export default function HomePage() {
 
       <section className="surface p-6 md:p-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="eyebrow justify-center">What you get in 24 hours</span>
+          <span className="eyebrow justify-center">What you get after review</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
             The deliverables feel{" "}
             <span className="font-serif-display tracking-[-0.02em]">usable</span>,
             not conceptual.
           </h2>
           <p className="mt-4 body-lg">
-            The product should show value immediately: a diagnosis, next
-            actions, reusable marketing support, and a clearer picture of what
-            to fix first.
+            The product creates a structured draft quickly, then the assisted
+            pilot review protects quality before the output becomes customer
+            guidance.
           </p>
         </div>
 
@@ -626,7 +621,8 @@ export default function HomePage() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl body-lg">
             Snapshot is the main starting point. FoundryOS Core is the recurring
-            planning layer. Operator is for teams that need deeper implementation.
+            planning layer. Operator is future packaging for teams that need
+            deeper implementation after the pilot proves the workflow.
           </p>
         </div>
 

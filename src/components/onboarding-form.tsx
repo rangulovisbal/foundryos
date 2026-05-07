@@ -17,6 +17,11 @@ import {
 } from "@/lib/types";
 import { SnapshotReportView } from "@/components/snapshot-report";
 
+type SnapshotDraftResponse = SnapshotReport & {
+  outputStatus?: "draft_preview";
+  reviewNotice?: string;
+};
+
 const labelMap: Record<string, string> = {
   saas: "SaaS",
   service: "Service business",
@@ -78,7 +83,7 @@ export function OnboardingForm() {
         throw new Error(payload.error ?? "Snapshot generation failed.");
       }
 
-      const payload = (await response.json()) as SnapshotReport;
+      const payload = (await response.json()) as SnapshotDraftResponse;
       setReport(payload);
 
       if (typeof window !== "undefined") {
@@ -107,12 +112,17 @@ export function OnboardingForm() {
             <div>
               <span className="eyebrow">Snapshot intake</span>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-                Turn a messy marketing picture into one clear 30-day plan.
+                Request an initial Snapshot draft for founder review.
               </h1>
               <p className="mt-3 max-w-2xl body-lg">
-                This intake produces a structured marketing diagnosis from the
-                profile you provide. It uses founder-entered context and visible
-                evidence, not fake autonomous business understanding.
+                This pilot intake creates an initial draft preview from the
+                context you provide. It is not a final reviewed output; the
+                founder reviews pilot outputs before they are treated as guidance.
+              </p>
+              <p className="mt-3 max-w-2xl rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm leading-6 text-coral">
+                Do not enter private financials, customer lists, passwords, or
+                confidential contracts. Optional commercial context should stay
+                high-level enough for a pilot review.
               </p>
             </div>
 
@@ -165,14 +175,26 @@ export function OnboardingForm() {
               />
 
               <label className="space-y-2 text-sm font-medium">
-                <span>Monthly revenue band</span>
+                <span>Pricing / ticket model (optional)</span>
                 <input
                   className="w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none ring-0"
                   onChange={(event) =>
-                    updateField("monthlyRevenueBand", event.target.value)
+                    updateField("pricingModel", event.target.value)
                   }
-                  placeholder="EUR8k-EUR20k MRR"
-                  value={form.monthlyRevenueBand}
+                  placeholder="Project packages, hourly, subscription, menu pricing"
+                  value={form.pricingModel}
+                />
+              </label>
+
+              <label className="space-y-2 text-sm font-medium">
+                <span>Typical order / project value (optional)</span>
+                <input
+                  className="w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none ring-0"
+                  onChange={(event) =>
+                    updateField("typicalOrderValue", event.target.value)
+                  }
+                  placeholder="Example: small, medium, premium, or a broad range"
+                  value={form.typicalOrderValue}
                 />
               </label>
 
@@ -212,7 +234,7 @@ export function OnboardingForm() {
                 <input
                   className="w-full rounded-2xl border border-[color:var(--border)] bg-white/90 px-4 py-3 outline-none ring-0"
                   onChange={(event) => updateField("currentTools", event.target.value)}
-                  placeholder="Notion, Stripe, HubSpot"
+                  placeholder="Instagram, WhatsApp, Google Sheets, simple CRM"
                   value={form.currentTools}
                 />
               </label>
@@ -271,7 +293,7 @@ export function OnboardingForm() {
                   Quick wins, risks, and a suggested channel and measurement stack
                 </li>
                 <li className="rounded-2xl border border-[color:var(--border)] bg-white/85 px-4 py-3">
-                  Execution support ideas and a suggested next plan
+                  Founder-reviewed guidance before final pilot delivery
                 </li>
               </ul>
             </div>
@@ -281,7 +303,7 @@ export function OnboardingForm() {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? "Generating marketing snapshot..." : "Generate marketing snapshot"}
+              {isSubmitting ? "Generating draft preview..." : "Generate draft preview"}
             </button>
 
             {error ? (
@@ -296,7 +318,7 @@ export function OnboardingForm() {
       {report ? (
         <SnapshotReportView
           report={report}
-          title={`${form.companyName} marketing diagnosis`}
+          title={`${form.companyName} marketing draft preview`}
         />
       ) : null}
     </div>

@@ -84,7 +84,7 @@ export function SiteFooter({ language }: { language: OutputLanguage }) {
             {copyForLanguage(language, "Customer login", "Acceso de clientes")}
           </Link>
           <Link className="transition hover:text-ink" href="/signup">
-            {copyForLanguage(language, "Create account", "Crear cuenta")}
+            {copyForLanguage(language, "Invited pilot signup", "Registro de piloto invitado")}
           </Link>
           <Link className="transition hover:text-ink" href="/admin/login">
             {copyForLanguage(language, "Internal admin", "Admin interno")}

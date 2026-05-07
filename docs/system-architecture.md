@@ -66,6 +66,13 @@
 - Local development fallback: embedded PGlite
 - Legacy marketing lead/subscription fallback: local JSON only where explicitly used
 
+## Legacy Internal Keys
+
+- The internal workspace plan key `growth-os` remains for database and entitlement compatibility only.
+- Public UI and customer-facing docs must call that package `FoundryOS Core`.
+- The env var `STRIPE_PRICE_GROWTH_OS` remains compatibility-only while Stripe is disabled.
+- `AI Growth OS`, `AI Snapshot`, and `AI Operator` must not be used as public product or plan names.
+
 ## Current Integration Decisions
 
 - Stripe exists in code but is disabled unless `ENABLE_STRIPE_CHECKOUT=true`.

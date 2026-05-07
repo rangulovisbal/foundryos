@@ -1,18 +1,17 @@
 metric,low_case,base_case,high_case,notes
-snapshot_price_eur,79,89,99,pago unico de entrada
-growth_os_price_eur_month,149,199,249,plan core
-ai_operator_price_eur_month,499,699,999,plan premium
-core_customers_month_6,10,12,15,meta de validacion controlada
-premium_customers_month_6,2,3,4,clientes de mayor ticket
-mrr_core_month_6_eur,1490,2388,3735,precio por numero de clientes core
-mrr_premium_month_6_eur,998,2097,3996,precio por numero de clientes premium
-total_mrr_month_6_eur,2488,4485,7731,suma core + premium
-vercel_monthly_cost,20,20,20,plan pro estimado
-supabase_monthly_cost,25,25,25,plan pro base
-n8n_monthly_cost,20,20,50,starter a pro
-email_domain_tools_monthly_cost,25,40,60,dominio email y utilidades
-accounting_legal_monthly_cost,150,250,400,gestoria y soporte legal
-llm_cost_per_active_account_eur,5,12,25,depende del routing y uso
-support_cost_per_active_account_eur,5,10,20,si el soporte se mantiene asincrono
-target_payback_months,3,3,4,objetivo de negocio sano
-target_logo_churn_monthly_pct,3,4,6,referencia para fase inicial
+free_assisted_pilot_price_eur,0,0,0,primer piloto gratuito y asistido
+pilot_setup_fee_hypothesis_eur,150,250,300,solo despues de validar utilidad real
+monthly_refresh_hypothesis_eur,60,90,150,hipotesis para ciclos de 30 dias revisados
+assisted_plan_hypothesis_eur_month,250,350,400,revision manual y soporte adicional
+active_paid_clients_after_validation,3,5,8,no objetivo antes de pilotos comparables
+monthly_revenue_after_validation_eur,630,1700,3800,setup fee amortizado mas recurrencia simple
+vercel_monthly_cost_eur,20,40,70,hosting segun uso real
+managed_postgres_monthly_cost_eur,30,45,60,provider compatible via DATABASE_URL
+resend_monthly_cost_eur,15,20,30,email transaccional
+analytics_monthly_cost_eur,0,20,40,PostHog u otra analitica si se usa
+email_domain_tools_monthly_cost_eur,10,25,40,dominio email y utilidades basicas
+accounting_legal_monthly_cost_eur,80,120,200,gestoria y soporte legal inicial
+llm_cost_per_active_account_eur,0,0,15,solo si se activa refinamiento controlado despues
+support_cost_per_active_account_eur,5,10,20,si el soporte se mantiene asincrono y acotado
+target_payback_months,3,3,4,objetivo posterior a validacion
+target_logo_churn_monthly_pct,3,4,6,referencia futura para fase recurrente

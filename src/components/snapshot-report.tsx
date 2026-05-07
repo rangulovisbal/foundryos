@@ -7,10 +7,6 @@ type SnapshotReportProps = {
 
 function formatRecommendedPlan(plan: SnapshotReport["recommendedPlan"]) {
   switch (plan) {
-    case "AI Snapshot":
-      return "Marketing Snapshot";
-    case "AI Operator":
-      return "Marketing Operator";
     default:
       return plan;
   }
@@ -18,17 +14,22 @@ function formatRecommendedPlan(plan: SnapshotReport["recommendedPlan"]) {
 
 export function SnapshotReportView({
   report,
-  title = "Marketing Snapshot output"
+  title = "Marketing Snapshot draft preview"
 }: SnapshotReportProps) {
   return (
     <section className="space-y-6">
       <div className="surface-strong p-6 md:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow">Marketing Snapshot</span>
+            <span className="eyebrow">Initial draft preview</span>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
               {title}
             </h2>
+            <p className="mt-3 max-w-3xl rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm leading-6 text-coral">
+              This is an initial draft preview generated from the information
+              provided. It is not a final reviewed output and should be checked
+              by the founder before being used as pilot guidance.
+            </p>
             <p className="mt-3 max-w-3xl body-lg">{report.summary}</p>
           </div>
           <div className="flex gap-4">

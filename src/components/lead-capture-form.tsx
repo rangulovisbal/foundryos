@@ -35,10 +35,10 @@ type LeadCaptureFormProps = {
 
 export function LeadCaptureForm({
   id = "snapshot-request",
-  eyebrow = "Request your marketing Snapshot",
-  title = "Get a marketing diagnosis and first 30-day plan.",
-  description = "Use this form to request the Snapshot or tell us if you need a deeper implementation rollout. FoundryOS starts from founder-entered context and visible evidence you share; it does not claim live autonomous business analysis.",
-  buttonLabel = "Request marketing Snapshot"
+  eyebrow = "Request assisted pilot access",
+  title = "Request a founder-reviewed Snapshot and first 30-day plan.",
+  description = "Use this form to request the free assisted design-partner pilot. FoundryOS starts from founder-entered context and visible evidence you share; draft outputs are reviewed before they are treated as pilot guidance.",
+  buttonLabel = "Request pilot access"
 }: LeadCaptureFormProps) {
   const [form, setForm] = useState<LeadState>(defaultState);
   const [isSubmitting, setIsSubmitting] = useState(false);

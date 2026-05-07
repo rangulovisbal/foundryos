@@ -182,7 +182,7 @@ export function LoginForm({
         </Link>
         <span>·</span>
         <Link className="font-semibold text-ink underline" href={signupHref}>
-          {copyForLanguage(language, "Create account", "Crear cuenta")}
+          {copyForLanguage(language, "Invited signup", "Registro invitado")}
         </Link>
       </div>
     </div>

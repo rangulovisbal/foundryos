@@ -11,7 +11,7 @@ const bottleneckCopy: Record<
   }
 > = {
   "growth-clarity": {
-    headline: "The business has momentum, but not a clear operating system.",
+    headline: "The business has momentum, but not a clear marketing rhythm.",
     focus: [
       "Clarify the growth model and leading indicators.",
       "Translate strategy into a 30-day execution cadence.",
@@ -23,9 +23,9 @@ const bottleneckCopy: Record<
       "Turn the current offer into a one-page decision memo."
     ],
     automations: [
-      "Weekly KPI digest from analytics into Slack or email.",
-      "Lead capture scoring in CRM with routing rules.",
-      "Auto-generated weekly plan from channel performance."
+      "Weekly marketing review sent to the founder or operator.",
+      "Simple lead tracker with source, status, and next follow-up.",
+      "Reusable weekly plan template based on channel response."
     ],
     risks: [
       "The team keeps shipping without a shared priority model.",
@@ -45,9 +45,9 @@ const bottleneckCopy: Record<
       "Set one source of truth for tasks, status and blockers."
     ],
     automations: [
-      "Form-to-database intake automation.",
-      "Client onboarding sequence after payment.",
-      "Support triage tags and autoresponses."
+      "Guided intake form that captures lead context in one place.",
+      "Lead or client onboarding checklist after someone raises their hand.",
+      "Support and follow-up tags with reusable response templates."
     ],
     risks: [
       "Growth increases chaos instead of capacity.",
@@ -67,9 +67,9 @@ const bottleneckCopy: Record<
       "Create a tighter problem-agitation-solution script."
     ],
     automations: [
-      "AI-assisted landing page audit workflow.",
-      "Message consistency checker for outbound and website copy.",
-      "Auto-generation of sector-specific use cases."
+      "Landing page review checklist for offer, proof, and CTA clarity.",
+      "Message consistency checklist for website, social, and outreach copy.",
+      "Draft use-case examples for the highest-priority buyer segment."
     ],
     risks: [
       "Traffic arrives but does not understand what is being sold.",
@@ -86,12 +86,12 @@ const bottleneckCopy: Record<
     quickWins: [
       "Add one primary CTA and one supporting CTA to key pages.",
       "Clarify plan boundaries and expected outcomes.",
-      "Instrument visit-to-lead and lead-to-checkout events."
+      "Track visit-to-lead and lead-to-booking or purchase events."
     ],
     automations: [
       "Lead magnet delivery plus nurture sequence.",
-      "Abandoned checkout recovery.",
-      "Lead qualification scoring before demos."
+      "Follow-up sequence after abandoned booking, cart, or inquiry intent.",
+      "Lead qualification checklist before calls or proposals."
     ],
     risks: [
       "More traffic amplifies inefficiency instead of revenue.",
@@ -113,7 +113,7 @@ const bottleneckCopy: Record<
     automations: [
       "Automated KPI summaries.",
       "Monthly refresh report with movement highlights.",
-      "Alerting when key conversion metrics drop."
+      "Simple alerts when lead, booking, or conversion signals drop."
     ],
     risks: [
       "Execution keeps moving, but nobody knows what improved.",
@@ -135,7 +135,7 @@ const bottleneckCopy: Record<
     automations: [
       "Task creation from intake forms or support requests.",
       "Async reporting for delivery, growth and product.",
-      "AI-generated drafts for recurring customer outputs."
+      "Reusable draft templates for recurring customer outputs."
     ],
     risks: [
       "Hiring happens before the operating model is fixed.",
@@ -174,9 +174,9 @@ function getRecommendedPlan(
   score: number,
   teamSize: BusinessIntake["teamSize"]
 ): SnapshotReport["recommendedPlan"] {
-  if (score < 60) return "AI Snapshot";
+  if (score < 60) return "Marketing Snapshot";
   if (score >= 82 || teamSize === "11-20" || teamSize === "20+") {
-    return "AI Operator";
+    return "Marketing Operator";
   }
   return "FoundryOS Core";
 }
@@ -276,23 +276,23 @@ function buildPriorities(intake: BusinessIntake): SnapshotPriority[] {
 
 function buildSuggestedStack(intake: BusinessIntake): string[] {
   const baseline = [
-    "Next.js + Vercel",
-    "Postgres via DATABASE_URL for workspace data",
-    "Stripe only after billing and provisioning are verified",
-    "PostHog for product analytics",
-    "n8n for workflow automation"
+    "Simple landing page with one primary CTA",
+    "Instagram, LinkedIn, or WhatsApp follow-up path for warm interest",
+    "Email list or waitlist for people who are not ready to buy yet",
+    "Basic analytics and UTM tracking for the main channel",
+    "Customer feedback collection after inquiries, delivery, or events"
   ];
 
   if (!intake.hasAnalytics) {
-    baseline.push("PostHog dashboards for activation and funnel tracking");
+    baseline.push("Simple weekly tracking sheet for visits, leads, replies, and bookings");
   }
 
   if (!intake.hasDocumentedSOPs) {
-    baseline.push("Internal SOP library with async templates");
+    baseline.push("One-page follow-up checklist for new leads and customer feedback");
   }
 
   if (intake.openToAutomation) {
-    baseline.push("Future LLM refinement layer for reviewed output polish");
+    baseline.push("Simple CRM or shared sheet only if lead follow-up is already happening");
   }
 
   return baseline;
@@ -342,8 +342,9 @@ export const sampleIntake: BusinessIntake = {
   primaryGoal: "build-system",
   biggestBottleneck: "manual-operations",
   mainChannel: "LinkedIn and referrals",
-  currentTools: "Notion, Stripe, HubSpot, Calendly",
-  monthlyRevenueBand: "EUR8k-EUR20k MRR",
+  currentTools: "Google Sheets, LinkedIn, email list, Calendly",
+  pricingModel: "Project-based service packages with a clear starting price",
+  typicalOrderValue: "Optional range shared only if the founder is comfortable",
   hasDocumentedSOPs: false,
   hasAnalytics: true,
   openToAutomation: true,

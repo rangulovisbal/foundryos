@@ -34,7 +34,7 @@ export default function Icon() {
             width: 24
           }}
         >
-          AG
+          FO
         </div>
       </div>
     ),
