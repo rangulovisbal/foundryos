@@ -4,45 +4,46 @@ Last updated: 2026-05-07
 
 ## 1. What Was Completed
 
-- Reframed FoundryOS v1 around marketing diagnosis and a practical 30-day marketing plan for early-stage businesses.
-- Hardened the generation engine to prefer marketing-specific guidance over generic operations advice.
-- Hardened profile intake for early-stage businesses with optional website/URL handling, URL placeholder sanitation, structured dropdowns/multi-selects, and field help.
-- Cleaned up auth UX for already-signed-in users and public header CTAs.
-- Restructured internal admin IA, added output feedback visibility, and expanded account closure/recovery/test cleanup controls.
-- Simplified customer pilot UX: primary path is now profile -> diagnosis -> 30-day plan -> supporting materials.
-- Latest committed state is `47d1641 chore: align FoundryOS pilot guardrails`.
-- Pilot Access & Messaging Alignment pass reframed public CTAs, signup language, Snapshot draft-preview handling, intake privacy, visible branding, and stale docs around assisted pilot mode.
+- Reframed FoundryOS around assisted marketing diagnosis and a founder-reviewed 30-day marketing plan.
+- Pushed `86960a0 chore: align pilot access and messaging` to `origin/main`.
+- Public header now prioritizes `Request access` and `Log in`; public signup is framed as invited/manual pilot access.
+- Public Snapshot flow now returns and displays an initial draft preview, not a final reviewed deliverable.
+- Public intake no longer asks for monthly revenue; it uses optional pricing/ticket and typical order/project value fields with a privacy warning.
+- Customer-facing Snapshot recommendations no longer expose internal stack choices such as framework, database, billing, analytics, or automation tooling.
+- Visible `AG` mark was replaced with `FO`; public output names use `Marketing Snapshot`, `FoundryOS Core`, and `Marketing Operator`.
+- Stale roadmap and financial docs were updated around assisted pilots, no public launch, no live checkout, and post-validation pricing hypotheses.
 
 ## 2. Current Project Status
 
 - Branch: `main`
-- Remote tracking: `main...origin/main`
-- Current pending commit includes public copy, snapshot flow, docs, onboarding, auth page copy, and related types.
-- This handoff adds documentation: `HANDOFF.md` and `docs/current-product-conventions.md`.
-- Current pass validation completed: `npm run typecheck`, `npm run lint`, and `npm run build` passed.
-- Public smoke tests confirmed home, pricing, signup, login, onboarding, dashboard, and security routes return `200`.
-- Snapshot API returns `outputStatus: "draft_preview"` and `X-FoundryOS-Output-Status: draft-preview`.
+- Remote: `origin/main`
+- Latest pushed commit: `86960a0 chore: align pilot access and messaging`
+- Validation completed before that push: `npm run typecheck`, `npm run lint`, and `npm run build`.
+- Public smoke tests passed locally for `/`, `/pricing`, `/signup`, `/login`, `/onboarding`, `/dashboard`, and `/security`.
+- Snapshot API smoke test returned `outputStatus: "draft_preview"` and `X-FoundryOS-Output-Status: draft-preview`.
+- This handoff documentation update is local unless committed after this note.
 
 ## 3. Pending Tasks
 
-- Perform authenticated smoke testing with a real local or production pilot user session.
-- Verify production env vars, email delivery, migrations, and end-to-end auth/profile/diagnosis/plan flow before an unassisted pilot.
-- Decide whether draft-preview Snapshot should remain public or be moved fully behind request/manual access after the first pilot.
+- Run authenticated end-to-end pilot testing with a real local or production pilot user.
+- Verify production env vars, database migrations, Resend delivery, auth verification/reset, and the full profile -> diagnosis -> 30-day plan flow.
+- Decide after the first pilot whether public `/onboarding` should remain a draft preview or move fully behind request/manual access.
+- Confirm the first real pilot path: request access -> manual invite/signup -> guided intake -> founder review -> customer review session.
+- Review Vercel deployment after the latest push once the deployment is available.
 
 ## 4. Important Architectural Decisions
 
-- Auth is custom database-backed auth with PostgreSQL persistence, not Supabase Auth.
-- `DATABASE_URL` points at the production PostgreSQL/Supabase database; Supabase Auth keys should not be documented as the auth system.
-- FoundryOS v1 should be described as a marketing diagnosis and 30-day planning tool, not an autonomous business OS or agent.
-- Core app routes and persisted module types stay stable; UI labels can be reframed without renaming routes.
-- Internal `growth-os` plan key is compatibility-only. Public naming should use `FoundryOS Core`.
-- Stripe billing remains disabled for the pilot unless explicitly enabled with guardrails.
-- Resend/live email is required for real email verification/reset delivery; assisted pilot can use controlled/manual flows only if explicitly accepted.
-- Output feedback is intentionally simple: customer widget plus admin visibility, not analytics dashboards.
+- Auth is custom Postgres-backed auth, not Supabase Auth.
+- PostgreSQL via `DATABASE_URL` is the canonical database concept; provider can be Supabase Postgres, Neon, or compatible managed Postgres.
+- The deterministic diagnosis/planning/assets/SOP engines remain the trust layer for pilots.
+- LLM refinement is future-only and gated by `ENABLE_LLM_SNAPSHOT_REFINEMENT=true`.
+- Stripe remains disabled unless `ENABLE_STRIPE_CHECKOUT=true`; do not enable billing until provisioning, account states, success/cancel routing, webhooks, and portal behavior are verified.
+- Internal plan key `growth-os` remains compatibility-only; public naming should be `FoundryOS Core`.
+- `AI Growth OS`, `AI Snapshot`, and `AI Operator` must not be used as public product or plan names.
 
 ## 5. Files Modified
 
-Files included in the Pilot Access & Messaging Alignment pass:
+Latest pushed alignment pass modified:
 
 - `.env.example`
 - `README.md`
@@ -67,20 +68,26 @@ Files included in the Pilot Access & Messaging Alignment pass:
 - `src/components/snapshot-report.tsx`
 - `src/lib/snapshot.ts`
 - `src/lib/types.ts`
+- `docs/current-product-conventions.md`
+- `HANDOFF.md`
 
-Files added for handoff/conventions:
+This final handoff update touches:
 
 - `HANDOFF.md`
 - `docs/current-product-conventions.md`
 
 ## 6. Known Issues Or Blockers
 
-- Authenticated end-to-end pilot testing still needs a real local or production pilot user session.
-- Production readiness still depends on verified env vars, DB migrations, email delivery, and a real end-to-end pilot smoke test.
-- Public copy must avoid overclaiming autonomous AI, live crawling, live social analysis, or agentic execution.
+- Authenticated customer smoke testing still needs a real user session.
+- Production readiness still depends on verified env vars, DB migrations, email delivery, and an end-to-end production pilot test.
+- Vercel deployment status could not previously be inspected through the Vercel API because of a scope/auth `403`.
+- Public copy must continue avoiding claims of autonomous AI, live crawling, live social analysis, public self-serve launch, or agentic execution.
+- Snapshot draft preview is still publicly accessible at `/onboarding`; this is intentional for now but should be reviewed after pilot feedback.
 
 ## 7. Recommended Next Steps
 
-1. Smoke test authenticated customer flow: profile -> diagnosis -> 30-day plan -> assets/routines -> support.
-2. Before the next pilot session, verify production env vars and live auth/email behavior on the Vercel domain.
-3. Confirm the first pilot customer path: request access -> manual invite/signup -> guided intake -> founder review -> customer review session.
+1. Check Vercel deployment status for commit `86960a0`.
+2. Verify production environment values: `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, Resend sender, `ADMIN_ACCESS_TOKEN`, `INTERNAL_ADMIN_EMAILS`, `AUTH_PREVIEW_LINKS=false`, `ENABLE_STRIPE_CHECKOUT=false`, and `ENABLE_LLM_SNAPSHOT_REFINEMENT=false`.
+3. Run a real pilot-user auth test: signup/invite, verify email, login, workspace setup, profile save.
+4. Run the authenticated product flow: diagnosis, 30-day plan, priority list, assets, routines, feedback, support request, and admin review.
+5. Use pilot feedback to decide whether `/onboarding` remains public draft preview or becomes request-only/manual.

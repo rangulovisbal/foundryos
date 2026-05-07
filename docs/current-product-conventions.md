@@ -6,6 +6,9 @@ Last updated: 2026-05-07
 
 - FoundryOS v1 is a marketing diagnosis and 30-day marketing planning tool for early-stage businesses.
 - Safe public promise: diagnose what is missing in marketing and turn that into a clear 30-day action plan.
+- Public access is assisted-pilot first, not open self-serve SaaS.
+- The primary public CTA should be request access / join pilot. Login stays visible for existing or invited pilot users.
+- Signup routes may remain available for invited users or manual onboarding, but should not be presented as the main public CTA.
 - Do not claim autonomous business intelligence, live website crawling, live social analysis, or agentic execution.
 - Evidence is founder-entered and profile-based unless a specific integration is explicitly implemented.
 
@@ -47,7 +50,12 @@ Route names remain unchanged for compatibility:
 - Profile intake should favor structured options with `Other` support, plus free text where nuance matters.
 - Website and channel URLs are optional; placeholders like `NA`, `N/A`, `none`, and `-` should not be stored as URLs.
 - Missing website is missing evidence, not a blocking error.
+- Public/pilot intake should not require monthly revenue or private financials.
+- Safe public commercial fields are optional pricing/ticket model and optional broad typical order/project value.
+- Public Snapshot output should be labeled as an initial draft preview until founder review is complete.
+- `/api/snapshot` draft-preview responses should keep `outputStatus: "draft_preview"` and `X-FoundryOS-Output-Status: draft-preview`.
 - Diagnosis should surface "what to fix first" before deep evidence detail.
+- Customer-facing output should recommend marketing and measurement practices, not FoundryOS implementation stack choices.
 - Deep evidence, reasoning, histories, legal/deletion flows, and technical details should be available but visually secondary.
 
 ## Operational Guardrails
