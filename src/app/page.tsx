@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import {
   ArrowRight,
   BadgeCheck,
@@ -84,12 +85,12 @@ const steps = [
     body: "You complete a structured intake covering offer, audience, message, channels, CTA, proof, and measurement."
   },
   {
-    title: "FoundryOS creates an initial draft",
-    body: "The system translates your saved inputs into a draft diagnosis, clear priorities, and a practical first plan for founder review."
+    title: "FoundryOS creates your diagnosis",
+    body: "The system translates your saved inputs into a marketing diagnosis, clear priorities, and a practical first plan."
   },
   {
-    title: "The pilot output is reviewed before delivery",
-    body: "The first pilot is assisted, so the final guidance is checked before it is treated as customer-ready."
+    title: "Turn it into the next 30 days",
+    body: "Use the plan, assets, and routines as a starting point, then refine them as you collect real feedback."
   }
 ];
 
@@ -167,14 +168,14 @@ const fit = {
   no: [
     "Businesses that need a fully custom agency relationship",
     "Teams expecting unlimited calls and open-ended revisions",
-    "Teams expecting public signup-to-paid provisioning today",
-    "High-touch consulting engagements without pilot boundaries"
+    "Teams expecting the product to run marketing autonomously",
+    "High-touch consulting engagements without a defined scope"
   ]
 };
 
 const trustPoints = [
-  "Free assisted design-partner pilot before self-serve billing",
-  "Stripe checkout disabled until provisioning is verified",
+  "Free self-serve starter path",
+  "Stripe checkout only when paid plans are configured",
   "Security and legal pages are visible",
   "Lead capture protected with rate limiting and optional Cloudflare Turnstile"
 ];
@@ -198,17 +199,17 @@ const faqs = [
   {
     question: "What do I get first?",
     answer:
-      "The assisted pilot starts with a Snapshot: a founder-reviewed marketing diagnosis, 30-day priorities, quick wins, key risks, and a practical first action plan."
+      "FoundryOS starts with a marketing diagnosis, 30-day priorities, quick wins, key risks, and a practical first action plan."
   },
   {
     question: "How fast is the first value?",
     answer:
-      "The pilot is designed to create a structured draft quickly after intake, then review it before delivery. Exact timing depends on the pilot schedule and any manual follow-up."
+      "The product is designed to create a structured first output quickly after intake. Quality still depends on how specific and complete your saved marketing context is."
   },
   {
     question: "Do you store payment data?",
     answer:
-      "No payment is required for the first assisted pilot. If paid plans are enabled later, billing will be handled outside the product card-data flow."
+      "No payment is required for the starter path. If paid plans are enabled, checkout is handled by Stripe and FoundryOS does not store card data."
   },
   {
     question: "Who should start with Snapshot?",
@@ -222,7 +223,8 @@ const faqs = [
   }
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -230,13 +232,14 @@ export default function HomePage() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description:
-      "Assisted pilot for marketing diagnosis and 30-day marketing planning for early-stage businesses that need clearer priorities without pretending to run the business autonomously."
+      "Self-serve marketing diagnosis and 30-day marketing planning for early-stage businesses that need clearer priorities without pretending to run the business autonomously."
   };
 
   return (
     <div className="page-shell space-y-8 pt-0">
       <script
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        nonce={nonce}
         type="application/ld+json"
       />
 
@@ -245,7 +248,7 @@ export default function HomePage() {
           <div className="grid-lines absolute inset-0 rounded-[32px] opacity-40" />
           <div className="relative z-10 mx-auto max-w-5xl space-y-7 text-center">
             <span className="eyebrow justify-center">
-              Assisted pilot for marketing diagnosis and 30-day planning
+              Self-serve marketing diagnosis and 30-day planning
             </span>
             <div className="space-y-4">
               <h1 className="mx-auto max-w-5xl text-5xl font-semibold leading-[0.92] tracking-[-0.06em] md:text-7xl">
@@ -256,9 +259,8 @@ export default function HomePage() {
                 after seeing what your marketing is missing.
               </h1>
               <p className="mx-auto max-w-3xl body-lg">
-                FoundryOS is currently in assisted pilot mode. It helps
-                early-stage businesses diagnose what is missing in their
-                marketing, then turns founder-reviewed context into clear
+                FoundryOS helps early-stage businesses diagnose what is missing
+                in their marketing, then turns saved business context into clear
                 priorities, reusable assets, and a practical 30-day plan.
               </p>
             </div>
@@ -266,9 +268,9 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
                 className="foundry-primary-button rounded-full"
-                href="#snapshot-request"
+                href="/signup"
               >
-                Request assisted pilot <ArrowRight className="h-4 w-4" />
+                Start free <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 className="text-sm font-semibold uppercase tracking-[0.18em] text-ink underline-offset-4 hover:underline"
@@ -375,16 +377,15 @@ export default function HomePage() {
 
       <section className="surface p-6 md:p-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="eyebrow justify-center">What you get after review</span>
+          <span className="eyebrow justify-center">What you get after intake</span>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-5xl">
             The deliverables feel{" "}
             <span className="font-serif-display tracking-[-0.02em]">usable</span>,
             not conceptual.
           </h2>
           <p className="mt-4 body-lg">
-            The product creates a structured draft quickly, then the assisted
-            pilot review protects quality before the output becomes customer
-            guidance.
+            The product creates a structured first output quickly, then keeps
+            the guidance grounded in the evidence and context you provide.
           </p>
         </div>
 
@@ -620,9 +621,9 @@ export default function HomePage() {
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl body-lg">
-            Snapshot is the main starting point. FoundryOS Core is the recurring
-            planning layer. Operator is future packaging for teams that need
-            deeper implementation after the pilot proves the workflow.
+            The free starter path is the main starting point. FoundryOS Core is
+            the recurring planning layer. Assisted support is for teams that
+            need deeper implementation.
           </p>
         </div>
 
@@ -660,13 +661,13 @@ export default function HomePage() {
                       ? "text-sand"
                       : "text-ink underline-offset-4 hover:underline"
                   }`}
-                  href={plan.id === "operator" ? "#snapshot-request" : "/pricing"}
+                  href={plan.id === "snapshot" ? "/signup" : "/pricing"}
                 >
                   {plan.id === "snapshot"
-                    ? "See plan details"
+                    ? "Start free"
                     : plan.id === "growth-os"
                       ? "Compare recurring plan"
-                      : "Request Operator"}
+                      : "Compare assisted"}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -683,11 +684,11 @@ export default function HomePage() {
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-white md:text-5xl">
             Trust has to be{" "}
             <span className="font-serif-display tracking-[-0.02em]">visible</span>,
-            especially for an assisted pilot.
+            especially when planning touches real customer-facing work.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/70 md:text-lg">
-            The pilot promise is simple: clear data handling, founder-reviewed
-            outputs, and no public checkout until paid provisioning is ready.
+            The promise is simple: clear data handling, evidence-linked outputs,
+            and checkout only when paid plans are configured.
           </p>
         </div>
 

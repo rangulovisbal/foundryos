@@ -4,6 +4,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -52,6 +53,21 @@ export const subscriptions = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
   (table) => [index("subscriptions_customer_idx").on(table.stripeCustomerId)]
+);
+
+export const rateLimitHits = pgTable(
+  "rate_limit_hits",
+  {
+    bucket: text("bucket").notNull(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(0)
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.bucket, table.windowStart]
+    }),
+    index("idx_rate_limit_window").on(table.windowStart)
+  ]
 );
 
 export const appUsers = pgTable(
@@ -238,7 +254,6 @@ export const workspaceBusinessProfiles = pgTable(
     primaryGoals: jsonb("primary_goals").$type<string[]>(),
     biggestBottlenecks: jsonb("biggest_bottlenecks").$type<string[]>(),
     evidenceNotes: text("evidence_notes"),
-    budgetBand: varchar("budget_band", { length: 64 }),
     lifecycleStage: varchar("lifecycle_stage", { length: 64 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
@@ -246,6 +261,34 @@ export const workspaceBusinessProfiles = pgTable(
   (table) => [
     uniqueIndex("workspace_business_profiles_workspace_idx").on(table.workspaceId),
     index("workspace_business_profiles_updated_idx").on(table.updatedAt)
+  ]
+);
+
+export const agenticDiagnoses = pgTable(
+  "agentic_diagnoses",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    sourceBusinessProfileId: uuid("source_business_profile_id").references(
+      () => workspaceBusinessProfiles.id,
+      { onDelete: "set null" }
+    ),
+    intake: jsonb("intake").$type<Record<string, unknown>>().notNull(),
+    outputCiphertext: text("output_ciphertext").notNull(),
+    outputSummary: text("output_summary").notNull(),
+    overallConfidence: varchar("overall_confidence", { length: 16 }).notNull(),
+    model: varchar("model", { length: 120 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("agentic_diagnoses_workspace_idx").on(table.workspaceId),
+    index("agentic_diagnoses_requested_by_idx").on(table.requestedByUserId),
+    index("agentic_diagnoses_created_idx").on(table.createdAt)
   ]
 );
 

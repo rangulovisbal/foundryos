@@ -1,36 +1,36 @@
 # FoundryOS
 
-Founder-assisted marketing diagnosis and 30-day marketing planning for
-early-stage small businesses.
+Self-serve marketing diagnosis and 30-day marketing planning for early-stage
+small businesses and founder-led projects.
 
-The current product is a controlled design-partner pilot. It uses
-founder-entered context and deterministic generation first; LLM refinement,
-self-serve billing, and live integrations are later layers.
+FoundryOS uses structured business intake, deterministic product workflows, and
+an optional agentic diagnosis endpoint to turn saved marketing context into a
+clear diagnosis, first plan, supporting assets, and customer-facing routines.
 
-Public access is request-led. Signup routes remain available for invited pilot
-users and manual onboarding, but FoundryOS should not be presented as an open
-self-serve launch.
+Public access is self-serve by default through `ACCESS_MODE=self_serve`. Signup
+can still be restricted with `ACCESS_MODE=invite` and `SIGNUP_ACCESS_TOKEN` when
+a deployment needs controlled access.
 
-Production deployment exists, but pilot readiness still requires the target
-environment variables, email delivery, database migration, and end-to-end flow
-verification.
+Production deployment exists, but production readiness still depends on a valid
+`DATABASE_URL`, email delivery, database migrations, Stripe price/webhook
+configuration when checkout is enabled, and end-to-end flow verification.
 
-## Local development
+## Local Development
 
 ```bash
 cp .env.example .env.local
-# Fill in values for Postgres, Resend, Cloudflare Turnstile, and PostHog as needed.
-# Keep ENABLE_STRIPE_CHECKOUT=false and ENABLE_LLM_SNAPSHOT_REFINEMENT=false for pilot.
+# Fill in Postgres, Resend, Stripe, Anthropic, Turnstile, and PostHog as needed.
 npm install
 npm run dev
 ```
 
-## Quality checks
+## Quality Checks
 
 ```bash
 npm run typecheck
 npm run lint
 npm run build
+npm audit --omit=dev
 ```
 
 ## Database

@@ -19,7 +19,7 @@ export function CheckoutButton({
     setError(null);
 
     try {
-      const response = await fetch("/api/checkout", {
+      const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -28,6 +28,11 @@ export function CheckoutButton({
       });
 
       const payload = (await response.json()) as { url?: string; error?: string };
+
+      if (response.status === 401) {
+        window.location.href = `/signup?redirectTo=${encodeURIComponent("/pricing")}`;
+        return;
+      }
 
       if (!response.ok || !payload.url) {
         throw new Error(payload.error ?? "Checkout is not available.");

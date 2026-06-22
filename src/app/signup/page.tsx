@@ -7,6 +7,7 @@ import {
   getPostAuthRedirectPath,
   sanitizeRedirectPath
 } from "@/lib/auth";
+import { getAccessMode } from "@/lib/access";
 import { env } from "@/lib/env";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage } from "@/lib/language-server";
@@ -14,13 +15,14 @@ import { getCookieLanguage } from "@/lib/language-server";
 export default async function SignupPage({
   searchParams
 }: {
-  searchParams: Promise<{ email?: string; redirectTo?: string }>;
+  searchParams: Promise<{ accessToken?: string; email?: string; redirectTo?: string }>;
 }) {
-  const { email, redirectTo } = await searchParams;
+  const { accessToken, email, redirectTo } = await searchParams;
   const language = await getCookieLanguage();
   const current = await getCurrentUserSession();
   const safeRedirectTo = sanitizeRedirectPath(redirectTo);
   const deliveryMode = getAuthDeliveryMode();
+  const accessMode = getAccessMode();
 
   if (current) {
     const continueHref = await getPostAuthRedirectPath(current.user.id, safeRedirectTo);
@@ -33,8 +35,8 @@ export default async function SignupPage({
       <AuthShell
         description={copyForLanguage(
           language,
-          "You already have an active session in this browser. Log out first if you were invited to set up a different pilot account.",
-          "Ya tienes una sesión activa en este navegador. Cierra sesión primero si te invitaron a configurar otra cuenta de piloto."
+          "You already have an active session in this browser. Continue to your workspace or log out first if you need to create a different account.",
+          "Ya tienes una sesión activa en este navegador. Continúa a tu espacio o cierra sesión primero si necesitas crear otra cuenta."
         )}
         eyebrow={copyForLanguage(language, "Active session", "Sesión activa")}
         language={language}
@@ -58,14 +60,19 @@ export default async function SignupPage({
     <AuthShell
       description={copyForLanguage(
         language,
-        "Use this page only if you were invited into a FoundryOS pilot or asked to create an account for manual access. Email verification is part of the flow, and the product will clearly tell you whether this environment is using live email, preview links, or no delivery path yet.",
-        "Usa esta página solo si te invitaron a un piloto de FoundryOS o te pidieron crear una cuenta para acceso manual. La verificación por correo forma parte del flujo y el producto te dirá claramente si este entorno usa correo real, enlaces de vista previa o si todavía no tiene entrega configurada."
+        accessMode === "self_serve"
+          ? "Create a FoundryOS account to start the guided marketing intake. Email verification is part of the flow, and the product will clearly tell you whether this environment is using live email, preview links, or no delivery path yet."
+          : "Create a FoundryOS account using the access token supplied by the team. Email verification is part of the flow, and the product will clearly tell you whether this environment is using live email, preview links, or no delivery path yet.",
+        accessMode === "self_serve"
+          ? "Crea una cuenta de FoundryOS para empezar el intake guiado de marketing. La verificación por correo forma parte del flujo y el producto te dirá claramente si este entorno usa correo real, enlaces de vista previa o si todavía no tiene entrega configurada."
+          : "Crea una cuenta de FoundryOS usando el token de acceso proporcionado por el equipo. La verificación por correo forma parte del flujo y el producto te dirá claramente si este entorno usa correo real, enlaces de vista previa o si todavía no tiene entrega configurada."
       )}
-      eyebrow={copyForLanguage(language, "Invited pilot signup", "Registro de piloto invitado")}
+      eyebrow={copyForLanguage(language, "Create account", "Crear cuenta")}
       language={language}
-      title={copyForLanguage(language, "Set up invited FoundryOS access", "Configura tu acceso invitado a FoundryOS")}
+      title={copyForLanguage(language, "Start with FoundryOS", "Empieza con FoundryOS")}
     >
       <SignupForm
+        accessToken={accessToken ?? ""}
         canSubmit={env.hasFoundationDb && deliveryMode !== "unavailable"}
         initialEmail={email ?? ""}
         language={language}

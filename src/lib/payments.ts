@@ -15,15 +15,19 @@ export function getStripeClient() {
 export async function createCheckoutSession({
   planId,
   email,
-  company
+  company,
+  userId,
+  workspaceId
 }: {
   planId: PlanId;
   email?: string;
   company?: string;
+  userId?: string;
+  workspaceId?: string;
 }) {
   if (!env.stripeCheckoutEnabled) {
     throw new Error(
-      "Stripe checkout is intentionally disabled for the assisted pilot."
+      "Stripe checkout is not enabled on this deployment."
     );
   }
 
@@ -34,7 +38,17 @@ export async function createCheckoutSession({
     throw new Error("Stripe is not fully configured for this plan.");
   }
 
-  const mode = planId === "snapshot" ? "payment" : "subscription";
+  if (planId === "snapshot") {
+    throw new Error("The starter plan is free and does not require checkout.");
+  }
+
+  const mode = "subscription";
+  const metadata = {
+    planId,
+    company: company ?? "",
+    userId: userId ?? "",
+    workspaceId: workspaceId ?? ""
+  };
   const session = await stripe.checkout.sessions.create({
     mode,
     line_items: [
@@ -46,9 +60,10 @@ export async function createCheckoutSession({
     customer_email: email,
     success_url: `${env.appUrl}/pricing?checkout=success&plan=${planId}`,
     cancel_url: `${env.appUrl}/pricing?checkout=cancelled&plan=${planId}`,
-    metadata: {
-      planId,
-      company: company ?? ""
+    client_reference_id: workspaceId,
+    metadata,
+    subscription_data: {
+      metadata
     },
     billing_address_collection: "auto",
     allow_promotion_codes: true

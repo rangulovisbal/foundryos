@@ -48,7 +48,7 @@ export default async function InvitePage({
               className="rounded-[24px] border border-[color:var(--border)] bg-white/80 px-5 py-4 font-semibold uppercase tracking-[0.18em]"
               href={`/signup?redirectTo=${encodeURIComponent(`/invite/${token}`)}`}
             >
-              {copyForLanguage(language, "Create invited account", "Crear cuenta invitada")}
+              {copyForLanguage(language, "Create account", "Crear cuenta")}
             </Link>
           </div>
         </div>

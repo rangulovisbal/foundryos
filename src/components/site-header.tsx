@@ -57,9 +57,9 @@ export function SiteHeader({ language }: { language: OutputLanguage }) {
             </Link>
             <Link
               className="rounded-full bg-[#051A24] px-4 py-2 text-sm font-semibold text-[#FBFAF7] shadow-[0_1px_2px_rgba(5,26,36,0.08),0_8px_20px_-8px_rgba(5,26,36,0.25),inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-0.5 hover:bg-[#0D212C]"
-              href="/#snapshot-request"
+              href="/signup"
             >
-              {copyForLanguage(language, "Request access", "Solicitar acceso")}
+              {copyForLanguage(language, "Start free", "Empieza gratis")}
             </Link>
           </div>
         </div>

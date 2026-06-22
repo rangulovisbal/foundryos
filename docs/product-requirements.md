@@ -1,105 +1,38 @@
 # Product Requirements
 
+Last updated: 2026-06-23
+
 ## Objective
 
-Build a web app that supports a free, founder-assisted design-partner pilot for FoundryOS.
+Build FoundryOS as a self-serve marketing diagnosis and 30-day planning product
+for early-stage small businesses with a real offer and no internal marketing
+team.
 
-The app should capture business context, generate a deterministic marketing diagnosis, turn that diagnosis into a clear 30-day marketing plan, and support founder review before customers rely on the outputs.
+## Core User
 
-## Primary User
+Founder, operator, creator, service business, boutique project, local/product-led
+business, or early founder who needs marketing clarity.
 
-Founder or operator of an early-stage small business or founder-led project with a real offer and no internal marketing team.
+## Primary Workflow
 
-## Jobs To Be Done
-
-1. Understand what is missing in the current marketing setup.
-2. See the most important bottlenecks without overconfident claims.
-3. Get a clear 30-day marketing plan.
-4. Act on at least one useful step this week.
-5. Give feedback on whether the output reflects the real situation.
-
-## MVP Modules
-
-### 1. Public Site
-
-- Home
-- Pricing / assisted pilot request-access surface
-- Security
-- Legal pages
-- Lead/request form
-
-### 2. Auth And Workspace
-
-- Signup, verification, login, logout, password reset
-- Workspace creation
-- Role-aware team invitations
-- One primary workspace for normal pilot users
-
-### 3. Business Profile
-
-- Company and offer context
-- Audience
-- Website/social links if available
-- CTA
-- Pricing model
-- Acquisition method
-- Sales process
-- Goals
-- Bottlenecks
-- Customer feedback and non-sensitive evidence notes
-- Primary output language
-
-### 4. Deterministic Diagnosis
-
-- Marketing maturity score
-- Category scores
-- Risks, opportunities, bottlenecks, and next actions
-- Evidence quality and confidence
-- Explicit missing/weak/contradictory evidence handling
-
-### 5. 30-Day Plan
-
-- Monthly objective
-- Weekly actions
-- Quick wins
-- Metrics to watch
-- Risks to avoid
-- Success signals
-
-### 6. Supporting Materials
-
-- Priority list
-- Assets
-- Customer-facing marketing routines
-- Feedback widget
-
-### 7. Admin / Ops
-
-- Workspace visibility
-- Job history
-- Output feedback
-- Support/deletion queues
-- Manual account-state controls
-- Audit logs
+1. Create account.
+2. Verify email.
+3. Create workspace.
+4. Complete marketing profile.
+5. Run diagnosis.
+6. Generate 30-day plan.
+7. Review supporting assets/routines.
+8. Upgrade through billing when checkout is configured.
 
 ## Requirements
 
-- The first pilot must be assisted, free, and manually reviewed.
-- Stripe checkout must remain disabled until billing and provisioning are verified.
-- The core generation path must remain deterministic during the first pilot.
-- LLM refinement must require explicit opt-in and must not replace the deterministic truth layer.
-- PostgreSQL via `DATABASE_URL` is the canonical persistence model.
-- Supabase Auth should not be described as active.
-- The app must support English and Spanish as primary workspace languages.
-- The system must avoid asking for sensitive data during the first pilot.
-
-## Out Of Scope For First Pilot
-
-- Public self-serve paid provisioning
-- Billing portal
-- Stripe as entitlement source of truth
-- Live CRM/analytics/ad integrations
-- Website crawling or external verification
-- Agentic background automation
-- Automatic data deletion from the customer UI
-- Mobile app
+- FoundryOS naming only in public UI.
+- `ACCESS_MODE=self_serve` default, with optional invite-token mode.
+- No required revenue/private-financial fields.
+- Durable Postgres rate limiting on auth, snapshot, diagnosis, and billing paths.
+- `/api/diagnosis` must be authenticated, workspace-bound, rate limited, Zod
+  validated, and persisted encrypted.
+- Stripe checkout must attach user/workspace metadata so webhooks can update
+  plan/account state.
+- Customer-facing output must avoid recommending internal implementation stack
+  choices as marketing advice.

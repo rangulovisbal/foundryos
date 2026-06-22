@@ -29,8 +29,8 @@ const planIncludes: Record<string, string[]> = {
 };
 
 const trustItems = [
-  "First pilot is free, assisted, and manually reviewed",
-  "Stripe checkout stays disabled until paid provisioning is verified",
+  "Starter access is free and self-serve",
+  "Stripe checkout is used only for configured paid plans",
   "Security and legal policy pages are visible",
   "Clear plan boundaries and no hidden scope creep"
 ];
@@ -50,10 +50,10 @@ export default function PricingPage() {
   );
   const purchaseSteps = [
     {
-      title: "Start access with the current billing mode",
+      title: "Start free or choose a paid plan",
       body: hasLiveCheckout
-        ? "Checkout happens on Stripe when it is enabled on this deployment. The product does not store card data."
-        : "This deployment is running the free assisted design-partner pilot, so access starts with manual review instead of live checkout."
+        ? "Paid checkout happens on Stripe when it is enabled on this deployment. The product does not store card data."
+        : "The free starter path is available now. Paid checkout appears only after Stripe price IDs are configured."
     },
     {
       title: "Complete the intake",
@@ -61,7 +61,7 @@ export default function PricingPage() {
     },
     {
       title: "Receive your first outputs",
-      body: "Pilot customers receive a founder-reviewed marketing diagnosis and 30-day marketing plan. Recurring refreshes stay assisted-service language until 2-3 pilot cycles prove what should repeat."
+      body: "You receive a marketing diagnosis and 30-day marketing plan from the saved intake. Paid plans can add recurring refreshes and assisted support."
     }
   ] as const;
 
@@ -73,16 +73,14 @@ export default function PricingPage() {
           Clear plans, clear deliverables, clear next marketing step.
         </h1>
         <p className="mt-4 max-w-3xl body-lg">
-          Start with the assisted Snapshot pilot if you need clarity on what is
-          missing in your marketing and what to do in the next 30 days.
-          FoundryOS Core and Operator remain future packaging until the first
-          pilots prove the repeatable workflow.
+          Start free if you need clarity on what is missing in your marketing
+          and what to do in the next 30 days. Paid plans add recurring planning
+          and assisted implementation when Stripe checkout is configured.
         </p>
         {!hasLiveCheckout ? (
           <p className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
-            This deployment is running the free assisted design-partner pilot.
-            Public checkout is disabled, so use the request form and we will
-            follow up manually.
+            Paid checkout is not configured in this environment yet. You can
+            still create a free account and start the marketing intake.
           </p>
         ) : null}
       </section>
@@ -127,9 +125,9 @@ export default function PricingPage() {
               ) : (
                 <Link
                   className="inline-flex w-full items-center justify-center rounded-[24px] bg-ink px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand transition hover:opacity-90"
-                  href="/#snapshot-request"
+                  href={plan.id === "snapshot" ? "/signup" : "/signup?redirectTo=/pricing"}
                 >
-                  {plan.checkoutEnabled ? "Request access" : plan.ctaLabel}
+                  {plan.ctaLabel}
                 </Link>
               )}
             </div>

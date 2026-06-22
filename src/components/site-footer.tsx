@@ -45,15 +45,15 @@ export function SiteFooter({ language }: { language: OutputLanguage }) {
                 <p>
                   {copyForLanguage(
                     language,
-                    "The first pilot is assisted and request-access only.",
-                    "El primer piloto es asistido y solo por solicitud."
+                    "Starter access is self-serve when email and database configuration are available.",
+                    "El acceso inicial es self-serve cuando el correo y la base de datos están configurados."
                   )}
                 </p>
                 <p>
                   {copyForLanguage(
                     language,
-                    "Stripe checkout stays disabled until paid provisioning is verified.",
-                    "Stripe permanece desactivado hasta verificar el alta de clientes de pago."
+                    "Stripe checkout appears only when paid plans are configured for this deployment.",
+                    "Stripe aparece sólo cuando los planes de pago están configurados para este despliegue."
                   )}
                 </p>
               </>
@@ -84,7 +84,7 @@ export function SiteFooter({ language }: { language: OutputLanguage }) {
             {copyForLanguage(language, "Customer login", "Acceso de clientes")}
           </Link>
           <Link className="transition hover:text-ink" href="/signup">
-            {copyForLanguage(language, "Invited pilot signup", "Registro de piloto invitado")}
+            {copyForLanguage(language, "Create account", "Crear cuenta")}
           </Link>
           <Link className="transition hover:text-ink" href="/admin/login">
             {copyForLanguage(language, "Internal admin", "Admin interno")}

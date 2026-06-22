@@ -93,8 +93,8 @@ export function WorkspaceSetupForm({
       <div className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
         {copyForLanguage(
           language,
-          "This creates one FoundryOS Core trial workspace for pilot use. Live billing and automated plan provisioning are still disabled.",
-          "Esto crea un espacio FoundryOS Core en prueba para uso piloto. La facturación en vivo y el aprovisionamiento automático del plan siguen desactivados."
+          "This creates one FoundryOS Core trial workspace. Paid plan provisioning updates automatically when Stripe checkout and webhook events are configured.",
+          "Esto crea un espacio FoundryOS Core en prueba. El aprovisionamiento de planes de pago se actualiza automáticamente cuando Stripe checkout y los webhooks están configurados."
         )}
       </div>
 

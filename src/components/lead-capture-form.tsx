@@ -22,7 +22,7 @@ const defaultState: LeadState = {
   website: "",
   teamSize: "2-5",
   message: "",
-  consent: true
+  consent: false
 };
 
 type LeadCaptureFormProps = {
@@ -35,10 +35,10 @@ type LeadCaptureFormProps = {
 
 export function LeadCaptureForm({
   id = "snapshot-request",
-  eyebrow = "Request assisted pilot access",
-  title = "Request a founder-reviewed Snapshot and first 30-day plan.",
-  description = "Use this form to request the free assisted design-partner pilot. FoundryOS starts from founder-entered context and visible evidence you share; draft outputs are reviewed before they are treated as pilot guidance.",
-  buttonLabel = "Request pilot access"
+  eyebrow = "Assisted setup",
+  title = "Want help applying FoundryOS to your business?",
+  description = "Use this form if you want assisted setup, feedback, or rollout help. Do not enter sensitive private financials, customer lists, passwords, contracts, or confidential data.",
+  buttonLabel = "Contact FoundryOS"
 }: LeadCaptureFormProps) {
   const [form, setForm] = useState<LeadState>(defaultState);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -185,8 +185,9 @@ export function LeadCaptureForm({
               type="checkbox"
             />
             <span>
-              I agree to be contacted about FoundryOS. If paid plans are enabled
-              later, payment processing will be handled directly by Stripe.
+              I agree to be contacted about FoundryOS. I will not enter
+              sensitive private financials, passwords, customer lists, contracts,
+              or confidential data in this pilot form.
             </span>
           </label>
 
@@ -205,7 +206,7 @@ export function LeadCaptureForm({
 
           <button
             className="rounded-[24px] bg-coral px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !form.consent}
             type="submit"
           >
             {isSubmitting ? "Submitting..." : buttonLabel}

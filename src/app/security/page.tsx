@@ -17,9 +17,9 @@ const controls = [
 const handling = [
   env.stripeCheckoutEnabled
     ? "Payments are handled by Stripe Checkout and Stripe Billing."
-    : "Stripe checkout is intentionally disabled for the assisted pilot until billing, provisioning, account states, customer portal behavior, and routing are verified.",
+    : "Stripe checkout is available only when billing, provisioning, account states, customer portal behavior, and routing are configured for the deployment.",
   "The product does not store payment card details.",
-  "Support and deletion requests remain request-based and are reviewed manually in the current pilot.",
+  "Support and deletion requests remain request-based and are reviewed manually.",
   "Lead capture can be protected with rate limiting and Cloudflare Turnstile.",
   "Generated outputs are structured operating drafts and should remain subject to human review."
 ];
@@ -58,7 +58,7 @@ export default function SecurityPage() {
         <div className="surface p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-muted">Public legal documents</p>
           <p className="mt-4 text-sm leading-7 text-muted">
-            These are the current public-facing pilot policies. They clarify how
+            These are the current public-facing policies. They clarify how
             the product works today without implying that billing automation,
             compliance automation, or full legal review is already complete.
           </p>

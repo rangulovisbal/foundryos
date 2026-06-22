@@ -2039,7 +2039,7 @@ function LogsPanel({
         <SectionLead
           eyebrow="Available log families"
           title="What exists today"
-          body="The admin currently records workspace state changes, deletion review actions, direct test cleanup actions, and pilot output feedback history."
+          body="The admin currently records workspace state changes, deletion review actions, direct test cleanup actions, and output feedback history."
         />
       </section>
 

@@ -244,7 +244,6 @@ export type BusinessProfileRecord = {
   primaryGoals: string[];
   biggestBottlenecks: string[];
   evidenceNotes: string | null;
-  budgetBand: string | null;
   lifecycleStage: string | null;
   createdAt: string;
   updatedAt: string;
@@ -805,7 +804,6 @@ export const businessProfileSchema = z.object({
   primaryGoals: profileListSchema,
   biggestBottlenecks: profileListSchema,
   evidenceNotes: optionalProfileText(1600),
-  budgetBand: optionalProfileText(64),
   lifecycleStage: optionalProfileText(64)
 });
 
@@ -880,7 +878,7 @@ type PlanDefinition = {
 export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
   snapshot: {
     label: "Marketing Snapshot",
-    description: "Paid marketing diagnosis and first 30-day plan.",
+    description: "Free starter marketing diagnosis and first 30-day plan.",
     features: {
       dashboard: true,
       profile: true,
@@ -899,7 +897,7 @@ export const planDefinitions: Record<WorkspacePlan, PlanDefinition> = {
     },
     usageLimits: {
       seats: 1,
-      diagnostic_runs: 1,
+      diagnostic_runs: 5,
       asset_exports: 3,
       monthly_refreshes: 0
     }
@@ -979,8 +977,8 @@ export function formatPlanDescription(
     case "snapshot":
       return copyForLanguage(
         language,
-        "Paid marketing diagnosis and first 30-day plan.",
-        "Diagnóstico de marketing de pago y primer plan de 30 días."
+        "Free starter marketing diagnosis and first 30-day plan.",
+        "Diagnóstico inicial gratuito de marketing y primer plan de 30 días."
       );
     case "growth-os":
       return copyForLanguage(

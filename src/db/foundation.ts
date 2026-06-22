@@ -6,6 +6,7 @@ import { requireDb } from "@/db/client";
 import {
   adminAuditLogs,
   actionPlans,
+  agenticDiagnoses,
   assetJobs,
   appSessions,
   appUsers,
@@ -295,7 +296,6 @@ function mapBusinessProfile(
     primaryGoals: row.primaryGoals ?? [],
     biggestBottlenecks: row.biggestBottlenecks ?? [],
     evidenceNotes: row.evidenceNotes,
-    budgetBand: row.budgetBand,
     lifecycleStage: row.lifecycleStage,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
@@ -1119,7 +1119,6 @@ export async function upsertBusinessProfile(
     primaryGoals: normalizeProfileList(input.primaryGoals),
     biggestBottlenecks: normalizeProfileList(input.biggestBottlenecks),
     evidenceNotes: toNullableText(input.evidenceNotes),
-    budgetBand: toNullableText(input.budgetBand),
     lifecycleStage: toNullableText(input.lifecycleStage),
     updatedAt: now
   };
@@ -1138,6 +1137,45 @@ export async function upsertBusinessProfile(
     });
 
   return getBusinessProfile(workspaceId);
+}
+
+export async function createAgenticDiagnosisRecord(input: {
+  workspaceId: string;
+  requestedByUserId: string | null;
+  sourceBusinessProfileId: string | null;
+  intake: Record<string, unknown>;
+  outputCiphertext: string;
+  outputSummary: string;
+  overallConfidence: "low" | "medium" | "high";
+  model: string;
+}) {
+  const db = await requireDb("agentic diagnosis persistence");
+  const id = crypto.randomUUID();
+  const now = new Date();
+
+  await db.insert(agenticDiagnoses).values({
+    id,
+    workspaceId: input.workspaceId,
+    requestedByUserId: input.requestedByUserId,
+    sourceBusinessProfileId: input.sourceBusinessProfileId,
+    intake: input.intake,
+    outputCiphertext: input.outputCiphertext,
+    outputSummary: input.outputSummary,
+    overallConfidence: input.overallConfidence,
+    model: input.model,
+    createdAt: now
+  });
+
+  return {
+    id,
+    workspaceId: input.workspaceId,
+    requestedByUserId: input.requestedByUserId,
+    sourceBusinessProfileId: input.sourceBusinessProfileId,
+    outputSummary: input.outputSummary,
+    overallConfidence: input.overallConfidence,
+    model: input.model,
+    createdAt: now.toISOString()
+  };
 }
 
 export async function createDiagnosticJob(record: DiagnosticJobRecord) {

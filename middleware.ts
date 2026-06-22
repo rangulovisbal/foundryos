@@ -1,23 +1,32 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://challenges.cloudflare.com",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https://api.stripe.com https://challenges.cloudflare.com https://eu.i.posthog.com https://app.posthog.com",
-  "frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self' https://checkout.stripe.com"
-].join("; ");
+function createCsp(nonce: string) {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' https://js.stripe.com https://challenges.cloudflare.com`,
+    `style-src 'self' 'nonce-${nonce}'`,
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://api.stripe.com https://challenges.cloudflare.com https://eu.i.posthog.com https://app.posthog.com",
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://checkout.stripe.com"
+  ].join("; ");
+}
 
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+  const nonce = btoa(crypto.randomUUID());
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders
+    }
+  });
 
-  response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("Content-Security-Policy", createCsp(nonce));
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");

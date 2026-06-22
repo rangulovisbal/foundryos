@@ -10,6 +10,7 @@ import {
 import { isConfigurationError } from "@/lib/errors";
 import { applyNoStoreHeaders, noStoreJson } from "@/lib/http";
 import { setLanguageCookie } from "@/lib/language-server";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   let appUrl: string;
@@ -26,6 +27,13 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
   const redirectTo = sanitizeRedirectPath(url.searchParams.get("redirectTo"));
+
+  const ipLimit = await rateLimit(`verify-email:ip:${clientIp(request)}`, 10, 600);
+  if (!ipLimit.ok) {
+    return applyNoStoreHeaders(
+      NextResponse.redirect(new URL("/verify-email?status=rate_limited", appUrl))
+    );
+  }
 
   if (!token) {
     return applyNoStoreHeaders(

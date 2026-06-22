@@ -234,12 +234,12 @@ function buildPriorities(intake: BusinessIntake): SnapshotPriority[] {
   } else if (intake.biggestBottleneck === "analytics") {
     priorities.push(
       {
-        title: "Instrument activation and conversion events",
+        title: "Set up basic analytics and UTM tracking",
         impact: "High",
         effort: "Medium",
-        owner: "Product / Dev",
+        owner: "Founder / Marketing owner",
         rationale:
-          "Without instrumentation, product improvement becomes guesswork."
+          "Without a simple measurement baseline, marketing improvement becomes guesswork."
       },
       {
         title: "Ship a monthly decision review",

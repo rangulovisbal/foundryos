@@ -31,7 +31,6 @@ type ProfileDraft = {
   primaryGoals: string;
   biggestBottlenecks: string;
   evidenceNotes: string;
-  budgetBand: string;
   lifecycleStage: string;
 };
 
@@ -228,10 +227,10 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
       label: copyForLanguage(language, "Business context", "Contexto del negocio"),
       description: copyForLanguage(
         language,
-        "Capture the stage and constraints around the business so the marketing read reflects the real context.",
-        "Captura la etapa y las restricciones del negocio para que la lectura de marketing refleje el contexto real."
+        "Capture the stage and operating context around the business so the marketing read reflects the real situation. Do not enter sensitive private financials during pilot use.",
+        "Captura la etapa y el contexto operativo del negocio para que la lectura de marketing refleje la situación real. No introduzcas información financiera privada sensible durante el piloto."
       ),
-      fields: ["teamSize", "geography", "lifecycleStage", "budgetBand"]
+      fields: ["teamSize", "geography", "lifecycleStage"]
     },
     {
       key: "offer-audience",
@@ -427,7 +426,6 @@ function buildInitialDraft(
     primaryGoals: listToText(profile?.primaryGoals),
     biggestBottlenecks: listToText(profile?.biggestBottlenecks),
     evidenceNotes: evidence.notes,
-    budgetBand: profile?.budgetBand ?? "",
     lifecycleStage: profile?.lifecycleStage ?? ""
   };
 }
@@ -537,8 +535,7 @@ function reviewGroups(draft: ProfileDraft, language: OutputLanguage) {
       items: [
         [copyForLanguage(language, "Team size", "Tamaño del equipo"), compactValue(draft.teamSize, language)] as [string, string],
         [copyForLanguage(language, "Geography", "Geografía"), compactValue(draft.geography, language)] as [string, string],
-        [copyForLanguage(language, "Lifecycle stage", "Etapa del negocio"), compactValue(draft.lifecycleStage, language)] as [string, string],
-        [copyForLanguage(language, "Budget band", "Rango de presupuesto"), compactValue(draft.budgetBand, language)] as [string, string]
+        [copyForLanguage(language, "Lifecycle stage", "Etapa del negocio"), compactValue(draft.lifecycleStage, language)] as [string, string]
       ]
     },
     {
@@ -991,15 +988,6 @@ function renderStepFields({
               options={businessStageOptions}
             />
           </Field>
-          <Field label={copyForLanguage(language, "Budget band", "Rango de presupuesto")}>
-            <input
-              className={inputClass}
-              disabled={!canEdit || loading}
-              onChange={(event) => updateField("budgetBand", event.target.value)}
-              placeholder={copyForLanguage(language, "Under 1k, 1k-5k, 5k+...", "Menos de 1k, 1k-5k, 5k+...")}
-              value={draft.budgetBand}
-            />
-          </Field>
         </div>
       );
     case "offer-audience":
@@ -1330,7 +1318,6 @@ export function BusinessProfileForm({
         primaryGoals: textToList(draft.primaryGoals),
         biggestBottlenecks: textToList(draft.biggestBottlenecks),
         evidenceNotes: buildEvidenceNotesForSave(draft),
-        budgetBand: draft.budgetBand,
         lifecycleStage: draft.lifecycleStage
       })
     });

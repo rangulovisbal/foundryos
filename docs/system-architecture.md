@@ -5,9 +5,9 @@
 ### 1. Acquisition Layer
 
 - Landing page
-- Pricing / assisted pilot access page
+- Pricing page
 - SEO primitives
-- Lead capture
+- Lead/contact capture
 - Optional Cloudflare Turnstile
 
 ### 2. Auth And Workspace Layer
@@ -16,15 +16,15 @@
 - Email verification and password reset
 - HTTP-only session cookies
 - Workspace, membership, invitation, role, plan, and account-state tables
-- One primary workspace per normal user during pilot
+- `ACCESS_MODE=self_serve` by default; optional invite-token restriction
 
 ### 3. Truth And Diagnosis Layer
 
 - Workspace business profile
-- Founder-entered evidence
+- User-entered evidence
 - Deterministic diagnostic engine
-- Confidence and evidence-quality propagation
-- Persisted diagnostic job/result history
+- Authenticated `/api/diagnosis` agentic endpoint
+- Persisted diagnostic job/result history plus encrypted agentic records
 
 ### 4. Planning Layer
 
@@ -40,60 +40,43 @@
 - Source references
 - Output feedback capture
 
-### 6. Operations Layer
+### 6. Billing And Operations Layer
 
 - Internal admin login
 - Workspace/customer visibility
-- Job history
+- Stripe checkout through `/api/billing/checkout`
+- Stripe webhook updates workspace plan/account state when metadata is present
 - Support and deletion request queues
 - Account-state controls
 - Audit logs
-
-### 7. Future Commercial And Integration Layer
-
-- Stripe checkout and webhook path
-- Customer portal
-- Billing-driven provisioning
-- GA4/Search Console evidence
-- CRM/funnel evidence import
-- LLM refinement layer
-- Automation/agentic layer after workflow validation
 
 ## Data Runtime
 
 - Canonical remote persistence: Postgres via `DATABASE_URL`
 - Supported providers: Supabase Postgres, Neon, or compatible managed Postgres
 - Local development fallback: embedded PGlite
-- Legacy marketing lead/subscription fallback: local JSON only where explicitly used
+- Durable rate limiting: `rate_limit_hits`
+- Agentic persistence: `agentic_diagnoses` with encrypted output ciphertext
 
 ## Legacy Internal Keys
 
 - The internal workspace plan key `growth-os` remains for database and entitlement compatibility only.
 - Public UI and customer-facing docs must call that package `FoundryOS Core`.
-- The env var `STRIPE_PRICE_GROWTH_OS` remains compatibility-only while Stripe is disabled.
+- `STRIPE_PRICE_GROWTH_OS` and `STRIPE_PRICE_OPERATOR` remain compatibility fallbacks for `STRIPE_PRICE_MONTHLY` and `STRIPE_PRICE_ASSISTED`.
 - `AI Growth OS`, `AI Snapshot`, and `AI Operator` must not be used as public product or plan names.
 
 ## Current Integration Decisions
 
-- Stripe exists in code but is disabled unless `ENABLE_STRIPE_CHECKOUT=true`.
-- OpenAI helper exists but is disabled unless `ENABLE_LLM_SNAPSHOT_REFINEMENT=true`.
+- Anthropic powers `/api/diagnosis` when `ANTHROPIC_API_KEY` is configured.
+- `FOUNDRYOS_MODEL` defaults to `claude-sonnet-4-6`.
+- Stripe checkout is active only when `ENABLE_STRIPE_CHECKOUT=true` and credentials/price IDs are configured.
 - Supabase Auth is not used.
 - PostHog server-side events are optional.
 - Resend is used for email only when configured.
 
-## Scaling Decisions Already Reflected
+## Security Decisions
 
-- Generated outputs are persisted as structured records, not raw one-off text.
-- Jobs have queued/processing/completed/failed states.
-- Account states protect locked/read-only workspaces.
-- Admin gets feedback, support/deletion, and failed-job visibility.
-- The deterministic truth layer keeps weak evidence from becoming overconfident output.
-
-## Next Evolution Points
-
-1. Align docs and public copy with assisted-pilot reality.
-2. Add copy/export controls for reviewed outputs.
-3. Replace or formalize bootstrap-token admin.
-4. Add production-grade distributed rate limiting.
-5. Add Stripe provisioning only after paid pilot workflow is designed.
-6. Add first evidence integrations after 3-5 pilots prove which evidence matters.
+- `APP_SECRET` signs rate-limit bucket hashes.
+- `ENCRYPTION_KEY` encrypts stored agentic diagnosis outputs.
+- CSP uses per-request nonce and avoids `unsafe-inline` / `unsafe-eval`.
+- Production readiness requires valid env, email, migrations, webhook, and end-to-end verification.

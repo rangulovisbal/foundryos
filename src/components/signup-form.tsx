@@ -8,11 +8,13 @@ import type { OutputLanguage } from "@/lib/foundation";
 import { copyForLanguage } from "@/lib/language";
 
 export function SignupForm({
+  accessToken,
   canSubmit,
   initialEmail,
   language,
   redirectTo
 }: {
+  accessToken: string;
   canSubmit: boolean;
   initialEmail: string;
   language: OutputLanguage;
@@ -53,7 +55,14 @@ export function SignupForm({
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ fullName, email, language, password, redirectTo })
+        body: JSON.stringify({
+          accessToken,
+          fullName,
+          email,
+          language,
+          password,
+          redirectTo
+        })
       });
 
       const payload = (await response.json()) as {
@@ -73,8 +82,8 @@ export function SignupForm({
       setMessage(
         copyForLanguage(
           language,
-          "Pilot account created. Verify your email before entering the workspace.",
-          "Cuenta de piloto creada. Verifica tu correo antes de entrar al espacio."
+          "Account created. Verify your email before entering the workspace.",
+          "Cuenta creada. Verifica tu correo antes de entrar al espacio."
         )
       );
       setPreviewUrl(payload.verificationPreviewUrl ?? null);
@@ -151,8 +160,8 @@ export function SignupForm({
           type="submit"
         >
           {loading
-            ? copyForLanguage(language, "Creating pilot account...", "Creando cuenta de piloto...")
-            : copyForLanguage(language, "Create invited account", "Crear cuenta invitada")}
+            ? copyForLanguage(language, "Creating account...", "Creando cuenta...")
+            : copyForLanguage(language, "Create account", "Crear cuenta")}
         </button>
       </form>
 

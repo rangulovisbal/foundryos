@@ -29,7 +29,6 @@ function profileCompletion(profile: BusinessProfileRecord | null) {
     profile.geography,
     profile.primaryOffer,
     profile.targetAudience,
-    profile.budgetBand,
     profile.lifecycleStage,
     profile.currentChannels.length > 0 ? "channels" : null,
     profile.currentTools.length > 0 ? "tools" : null,

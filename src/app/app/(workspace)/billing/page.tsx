@@ -1,3 +1,4 @@
+import { CheckoutButton } from "@/components/checkout-button";
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import { requireWorkspaceContext } from "@/lib/auth";
 import {
@@ -7,6 +8,7 @@ import {
   isLockedState
 } from "@/lib/foundation";
 import { copyForLanguage, formatDateForLanguage } from "@/lib/language";
+import { isPlanCheckoutConfigured, pricingPlans } from "@/lib/pricing";
 
 export default async function BillingPage() {
   const context = await requireWorkspaceContext("/app/billing");
@@ -29,17 +31,44 @@ export default async function BillingPage() {
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">
           {copyForLanguage(
             language,
-            "Workspace plan state is now enforced internally.",
-            "El estado del plan del espacio ahora se controla internamente."
+            "Workspace plan state and checkout are connected to billing.",
+            "El estado del plan y el checkout están conectados a facturación."
           )}
         </h2>
         <p className="mt-4 body-lg">
           {copyForLanguage(
             language,
-            "Live billing is intentionally disabled. This panel shows the preview plan, account state, and stored usage placeholders that the future Stripe integration will control.",
-            "La facturación en vivo está desactivada de forma intencional. Este panel muestra el plan piloto, el estado de la cuenta y los contadores guardados que controlará la futura integración con Stripe."
+            "When Stripe checkout is enabled for this deployment, paid subscriptions start from this workspace so the webhook can update plan and account state.",
+            "Cuando Stripe checkout está activo en este despliegue, las suscripciones de pago empiezan desde este espacio para que el webhook pueda actualizar el plan y el estado de la cuenta."
           )}
         </p>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-2">
+        {pricingPlans
+          .filter((item) => item.id !== "snapshot")
+          .map((item) => (
+            <article className="surface p-6" key={item.id}>
+              <p className="text-sm uppercase tracking-[0.18em] text-muted">
+                {item.cadence}
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold">{item.name}</h3>
+              <p className="mt-2 text-sm leading-7 text-muted">{item.description}</p>
+              <div className="mt-5">
+                {isPlanCheckoutConfigured(item.id) ? (
+                  <CheckoutButton planId={item.id}>{item.ctaLabel}</CheckoutButton>
+                ) : (
+                  <p className="rounded-2xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-muted">
+                    {copyForLanguage(
+                      language,
+                      "Checkout price is not configured for this plan in the current environment.",
+                      "El precio de checkout no está configurado para este plan en el entorno actual."
+                    )}
+                  </p>
+                )}
+              </div>
+            </article>
+          ))}
       </section>
 
       <section className="foundry-card-grid">

@@ -112,17 +112,17 @@ export function OnboardingForm() {
             <div>
               <span className="eyebrow">Snapshot intake</span>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-                Request an initial Snapshot draft for founder review.
+                Generate an initial Snapshot draft.
               </h1>
               <p className="mt-3 max-w-2xl body-lg">
-                This pilot intake creates an initial draft preview from the
-                context you provide. It is not a final reviewed output; the
-                founder reviews pilot outputs before they are treated as guidance.
+                This intake creates an initial draft preview from the context
+                you provide. It is not a final reviewed output; review the
+                context and evidence before acting on it.
               </p>
               <p className="mt-3 max-w-2xl rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm leading-6 text-coral">
                 Do not enter private financials, customer lists, passwords, or
                 confidential contracts. Optional commercial context should stay
-                high-level enough for a pilot review.
+                high-level enough for a marketing diagnosis draft.
               </p>
             </div>
 

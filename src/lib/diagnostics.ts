@@ -125,7 +125,7 @@ const evidenceLabels: Record<OutputLanguage, Record<EvidenceKey, string>> = {
     conversion_model: "your CTA, pricing, acquisition, and sales-process evidence",
     operating_tools: "your marketing tools and measurement setup",
     goals_bottlenecks: "your stated goals and bottlenecks",
-    stage_budget: "your stage, team, and budget context",
+    stage_budget: "your stage and team context",
     operating_maturity: "your current marketing execution rhythm",
     missing_evidence: "missing or unclear marketing evidence",
     contradictory_evidence: "contradictions between declared state and supporting evidence"
@@ -138,7 +138,7 @@ const evidenceLabels: Record<OutputLanguage, Record<EvidenceKey, string>> = {
     conversion_model: "tu evidencia de CTA, precio, adquisición y proceso comercial",
     operating_tools: "tus herramientas de marketing y medicion",
     goals_bottlenecks: "tus objetivos y cuellos de botella declarados",
-    stage_budget: "tu contexto de etapa, equipo y presupuesto",
+    stage_budget: "tu contexto de etapa y equipo",
     operating_maturity: "tu ritmo actual de ejecucion de marketing",
     missing_evidence: "evidencia de marketing faltante o poco clara",
     contradictory_evidence: "contradicciones entre estado declarado y evidencia de soporte"
@@ -421,7 +421,6 @@ function allText(profile: BusinessProfileRecord) {
     profile.acquisitionMethod,
     profile.salesProcess,
     profile.evidenceNotes,
-    profile.budgetBand,
     profile.lifecycleStage,
     ...profile.channelUrls,
     ...profile.currentChannels,
@@ -454,7 +453,6 @@ function profileCompleteness(profile: BusinessProfileRecord) {
     profile.acquisitionMethod,
     profile.salesProcess,
     profile.evidenceNotes,
-    profile.budgetBand,
     profile.lifecycleStage
   ];
   const listFields = [
@@ -679,18 +677,6 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     detail: string,
     evidenceKeys: EvidenceKey[]
   ) => contradictions.push({ key, title, detail, evidenceKeys });
-
-  if (
-    hasPattern(normalize(profile.budgetBand), /under|<|low|bajo|menos/) &&
-    hasPattern(`${goals} ${offer}`, /enterprise|scale|international|custom integration|global|integracion custom|escala/)
-  ) {
-    addContradiction(
-      "low_budget_high_complexity",
-      "Scale ambition is ahead of current budget",
-      "The profile combines low budget language with enterprise, global, or custom-complexity ambition.",
-      ["stage_budget", "offer_audience", "goals_bottlenecks"]
-    );
-  }
 
   if (profile.currentTools.length === 0 && hasPattern(goals, /data|analytics|report|dashboard|datos|analitica|reporte/)) {
     addContradiction(

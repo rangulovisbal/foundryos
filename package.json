@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.4.4",
+    "@anthropic-ai/sdk": "^0.105.0",
     "@neondatabase/serverless": "^0.10.4",
     "@stripe/stripe-js": "^5.6.0",
     "@supabase/ssr": "^0.5.2",
@@ -44,6 +45,9 @@
   },
   "overrides": {
     "dompurify": "^3.3.4",
+    "next": {
+      "postcss": "^8.5.10"
+    },
     "protobufjs": "^7.5.5"
   }
 }
