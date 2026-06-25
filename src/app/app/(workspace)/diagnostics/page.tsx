@@ -287,7 +287,7 @@ function localizeEvidenceQuality(
 ) {
   const labels = {
     clear: copyForLanguage(language, "Clear evidence", "Evidencia clara"),
-    weak: copyForLanguage(language, "Weak evidence", "Evidencia débil"),
+    weak: copyForLanguage(language, "Assumption to sharpen", "Supuesto por afinar"),
     missing: copyForLanguage(language, "Missing evidence", "Evidencia faltante"),
     contradictory: copyForLanguage(
       language,
@@ -845,13 +845,13 @@ function LatestResult({
         <FoundrySectionCard
           description={copyForLanguage(
             language,
-            "These items must be checked before treating the diagnostic as strong truth instead of directional guidance.",
-            "Estos puntos deben comprobarse antes de tratar el diagnóstico como una verdad fuerte en vez de una orientación."
+            "These assumptions make the diagnosis sharper as the founder learns from real conversations.",
+            "Estos supuestos hacen que el diagnóstico sea más preciso a medida que el fundador aprende de conversaciones reales."
           )}
           title={copyForLanguage(
             language,
-            "What still needs validation",
-            "Qué falta validar"
+            "Assumptions to sharpen",
+            "Supuestos por afinar"
           )}
         >
           <div className="grid gap-3 md:grid-cols-2">
@@ -861,7 +861,7 @@ function LatestResult({
                 key={`${need}-${index}`}
               >
                 <FoundryStatusChip tone="warning">
-                  {copyForLanguage(language, "Needs validation", "Necesita validación")}
+                  {copyForLanguage(language, "Sharpen assumption", "Afinar supuesto")}
                 </FoundryStatusChip>
                 <p className="mt-3 text-sm leading-7 text-muted">{need}</p>
               </article>
@@ -1103,7 +1103,7 @@ function DiagnosticCardGroup({
             {item.needsValidation && item.needsValidation.length > 0 ? (
               <details className="mt-4 rounded-[20px] border border-gold/30 bg-gold/10 p-3 text-sm text-muted">
                 <summary className="cursor-pointer font-semibold text-ink">
-                  {copyForLanguage(language, "Needs validation", "Necesita validación")}
+                  {copyForLanguage(language, "Sharpen assumption", "Afinar supuesto")}
                 </summary>
                 <ul className="mt-3 space-y-2">
                   {item.needsValidation.map((need) => (

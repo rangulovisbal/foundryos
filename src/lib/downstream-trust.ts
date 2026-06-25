@@ -124,8 +124,8 @@ function evidenceGapFromCard(card: DiagnosticEvidenceCard, language: OutputLangu
 
   return sl(
     language,
-    `Weak evidence: ${card.title} - ${card.observation}`,
-    `Evidencia debil: ${card.title} - ${card.observation}`
+    `Assumption to sharpen: ${card.title} - ${card.observation}`,
+    `Supuesto por afinar: ${card.title} - ${card.observation}`
   );
 }
 
@@ -133,8 +133,8 @@ function validationTasksFromGaps(gaps: string[], language: OutputLanguage) {
   return gaps.map((gap) =>
     sl(
       language,
-      `Validate or replace this input before treating downstream advice as final: ${gap}`,
-      `Validar o reemplazar este input antes de tratar las recomendaciones como definitivas: ${gap}`
+      `Sharpen or replace this input while using the downstream recommendation: ${gap}`,
+      `Afinar o reemplazar este input mientras se usa la recomendacion posterior: ${gap}`
     )
   );
 }
@@ -191,9 +191,9 @@ export function resolveDownstreamTrustState({
     level === "contradictory"
       ? sl(language, "Contradiction unresolved", "Contradiccion sin resolver")
       : level === "weak"
-        ? sl(language, "Evidence weak", "Evidencia debil")
+        ? sl(language, "Assumptions need sharpening", "Supuestos por afinar")
         : level === "provisional"
-          ? sl(language, "Provisional", "Provisional")
+          ? sl(language, "Best current read", "Mejor lectura actual")
           : sl(language, "Evidence clear", "Evidencia clara");
   const evidenceGaps = unique(
     [
@@ -231,15 +231,15 @@ export function resolveDownstreamTrustState({
       hasContradiction
         ? sl(
             language,
-            "The downstream plan cannot be treated as strong advice until contradictions are resolved.",
-            "El plan posterior no puede tratarse como recomendacion fuerte hasta resolver contradicciones."
+            "Use the plan as a best read while resolving the contradiction in the next customer conversation.",
+            "Usa el plan como mejor lectura mientras resuelves la contradiccion en la siguiente conversacion con clientes."
           )
         : null,
       hasWeakEvidence
         ? sl(
             language,
-            "Positioning, channel, conversion, and marketing workflow recommendations are provisional until missing evidence is confirmed.",
-            "Las recomendaciones de posicionamiento, canal, conversion y flujos de marketing son provisionales hasta confirmar la evidencia faltante."
+            "Positioning, channel, conversion, and workflow recommendations should be sharpened with the next visible customer signal.",
+            "Las recomendaciones de posicionamiento, canal, conversion y flujos deben afinarse con la siguiente senal visible del cliente."
           )
         : null,
       sl(
@@ -255,8 +255,8 @@ export function resolveDownstreamTrustState({
     mode === "validation_first"
       ? sl(
           language,
-          `${label}: downstream outputs should repair evidence and validate assumptions before becoming a practical marketing plan.`,
-          `${label}: los outputs posteriores deben reparar evidencia y validar supuestos antes de convertirse en plan practico de marketing.`
+          `${label}: downstream outputs give the best current read and name the one assumption to sharpen while executing.`,
+          `${label}: los outputs posteriores dan la mejor lectura actual y nombran el supuesto a afinar mientras se ejecuta.`
         )
       : sl(
           language,
@@ -284,11 +284,11 @@ export function downstreamTrustBadge(state: DownstreamTrustState | null, languag
 
   if (state.mode === "validation_first") {
     return state.hasContradiction
-      ? sl(language, "Needs validation - contradiction unresolved", "Requiere validacion - contradiccion sin resolver")
-      : sl(language, "Needs validation - evidence weak", "Requiere validacion - evidencia debil");
+      ? sl(language, "Sharpen assumption - contradiction", "Afinar supuesto - contradiccion")
+      : sl(language, "Sharpen assumptions - thin evidence", "Afinar supuestos - evidencia limitada");
   }
 
   return state.level === "clear"
     ? sl(language, "Evidence-backed planning draft", "Borrador respaldado por evidencia")
-    : sl(language, "Provisional planning draft", "Borrador provisional");
+    : sl(language, "Best-read planning draft", "Borrador de mejor lectura");
 }

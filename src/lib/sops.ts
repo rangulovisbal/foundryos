@@ -833,16 +833,16 @@ function applySopTrustMode(
     ? trustState.cannotClaim
     : [
         en
-          ? "This SOP is not operationally ready until evidence gaps are closed."
-          : "Este SOP no esta listo para operar hasta cerrar los gaps de evidencia."
+          ? "Use this SOP as the current operating read and sharpen it after the first run."
+          : "Usa este SOP como lectura operativa actual y afinalo despues de la primera ejecucion."
       ];
 
   return {
     ...artifact,
     title: `${prefix}: ${artifact.title}`,
     purpose: en
-      ? `Draft only. ${artifact.purpose} Use after validation confirms the required evidence and ownership.`
-      : `Solo borrador. ${artifact.purpose} Usar despues de que la validacion confirme evidencia y ownership requeridos.`,
+      ? `Working routine. ${artifact.purpose} Adjust after first use clarifies evidence and ownership.`
+      : `Rutina de trabajo. ${artifact.purpose} Ajustar despues del primer uso cuando se aclaren evidencia y ownership.`,
     content: [
       {
         heading: en ? "Trust status" : "Estado de confianza",
@@ -854,11 +854,11 @@ function applySopTrustMode(
         ]
       },
       {
-        heading: en ? "Validate before operationalizing" : "Validar antes de operar",
+        heading: en ? "Sharpen before repeating" : "Afinar antes de repetir",
         items: validationItems.slice(0, 5)
       },
       {
-        heading: en ? "Do not claim yet" : "No afirmar todavia",
+        heading: en ? "Phrase carefully" : "Formular con cuidado",
         items: cannotClaim.slice(0, 4)
       },
       ...artifact.content

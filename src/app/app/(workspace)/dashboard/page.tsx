@@ -645,8 +645,8 @@ export default async function WorkspaceDashboardPage() {
           <PathStepCard
             detail={copyForLanguage(
               language,
-              "Generate the marketing read: what is clear, weak, missing, or needs validation.",
-              "Genera la lectura de marketing: qué está claro, débil, falta o necesita validación."
+              "Generate the marketing read: what is clear, assumed, missing, or ready to act on.",
+              "Genera la lectura de marketing: qué está claro, qué se asume, qué falta y qué se puede ejecutar."
             )}
             href="/app/diagnostics"
             icon={Stethoscope}

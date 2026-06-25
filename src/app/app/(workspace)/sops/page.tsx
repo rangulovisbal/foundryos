@@ -8,11 +8,17 @@ import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
 import {
   getBusinessProfile,
+  getLatestAgenticDiagnosis,
   getLatestDiagnosticResult,
   getLatestSopArtifacts,
   listSopJobsWithArtifacts
 } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
+import {
+  DiagnosisOutput,
+  type DiagnosisOutput as DiagnosisOutputData
+} from "@/lib/agentic/schema";
+import { decryptJson } from "@/lib/crypto";
 import {
   canGenerateSops,
   isLockedState,
@@ -56,15 +62,31 @@ function formatOutputLanguageLabel(language: "en" | "es") {
 
 export default async function SopsPage() {
   const context = await requireWorkspaceContext("/app/sops");
-  const [profile, latestDiagnostic, latestArtifacts, history] = await Promise.all([
+  const [profile, latestDiagnostic, latestAgentic, latestArtifacts, history] = await Promise.all([
     getBusinessProfile(context.workspace.id),
     getLatestDiagnosticResult(context.workspace.id),
+    getLatestAgenticDiagnosis(context.workspace.id),
     getLatestSopArtifacts(context.workspace.id),
     listSopJobsWithArtifacts({ workspaceId: context.workspace.id, limit: 10 })
   ]);
+  let agenticDiagnosis: DiagnosisOutputData | null = null;
 
+  if (latestAgentic) {
+    try {
+      agenticDiagnosis = DiagnosisOutput.parse(
+        decryptJson<unknown>(latestAgentic.outputCiphertext)
+      );
+    } catch {
+      agenticDiagnosis = null;
+    }
+  }
+
+  const hasAgenticSops = Boolean(agenticDiagnosis?.sops.length);
   const canGenerate =
-    canGenerateSops(context) && Boolean(profile) && Boolean(latestDiagnostic);
+    !hasAgenticSops &&
+    canGenerateSops(context) &&
+    Boolean(profile) &&
+    Boolean(latestDiagnostic);
   const disabledReason = resolveDisabledReason(
     context,
     Boolean(profile),
@@ -97,9 +119,13 @@ export default async function SopsPage() {
               campaign setup, content workflow, and approvals. They are not live integrations.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              {latestArtifacts.length > 0 ? (
+              {hasAgenticSops ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#agentic-sop-set">
+                  View routines from diagnosis
+                </Link>
+              ) : latestArtifacts.length > 0 ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#sop-set">
-                  View latest routines
+                  View fallback routines
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/diagnostics">
@@ -113,28 +139,45 @@ export default async function SopsPage() {
               Latest routine set
             </p>
             <p className="mt-4 text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
-              {latestArtifacts.length > 0 ? latestArtifacts.length : "--"}
+              {hasAgenticSops
+                ? agenticDiagnosis?.sops.length
+                : latestArtifacts.length > 0
+                  ? latestArtifacts.length
+                  : "--"}
             </p>
             <p className="mt-4 text-sm leading-6 text-white/68">
-              {latestArtifacts.length > 0
+              {hasAgenticSops && latestAgentic
+                ? `Diagnosis saved ${new Date(latestAgentic.createdAt).toLocaleString()}.`
+                : latestArtifacts.length > 0
                 ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
                 : "Generate after the profile and marketing diagnosis exist."}
             </p>
-            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                Generate
-              </p>
-              <div className="mt-4">
-                <PlanningGenerateButton
-                  canGenerate={canGenerate}
-                  disabledReason={disabledReason}
-                  endpoint="/api/app/sops/generate"
-                  idleLabel="Generate routines"
-                  loadingLabel="Generating routines..."
-                  successLabel="Marketing routines generated and saved."
-                />
+            {hasAgenticSops ? (
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                  Source of truth
+                </p>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  This page is reading `sops` directly from the latest strategic diagnosis.
+                </p>
               </div>
-            </div>
+            ) : (
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                  Fallback generator
+                </p>
+                <div className="mt-4">
+                  <PlanningGenerateButton
+                    canGenerate={canGenerate}
+                    disabledReason={disabledReason}
+                    endpoint="/api/app/sops/generate"
+                    idleLabel="Generate fallback routines"
+                    loadingLabel="Generating fallback routines..."
+                    successLabel="Fallback marketing routines generated and saved."
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -144,22 +187,34 @@ export default async function SopsPage() {
           items={[
             {
               label: "Latest routine set",
-              value:
-                latestArtifacts.length > 0 ? `${latestArtifacts.length} saved` : "Missing",
-              detail:
-                latestArtifacts.length > 0
+              value: hasAgenticSops
+                ? `${agenticDiagnosis?.sops.length ?? 0} from diagnosis`
+                : latestArtifacts.length > 0
+                  ? `${latestArtifacts.length} fallback saved`
+                  : "Missing",
+              detail: hasAgenticSops
+                ? "The latest strategic diagnosis is the source of these routines."
+                : latestArtifacts.length > 0
                   ? `Latest run saved ${new Date(latestArtifacts[0].createdAt).toLocaleString()}.`
                   : "Generate after the profile and marketing diagnosis exist."
             },
             {
               label: "Latest status",
-              value: history[0]?.job.status ?? "none",
-              detail: "The newest marketing-routine generation state for this workspace."
+              value: hasAgenticSops ? "diagnosis" : history[0]?.job.status ?? "none",
+              detail: hasAgenticSops
+                ? "Reading from the strategic diagnosis."
+                : "The newest fallback marketing-routine generation state for this workspace."
             },
             {
               label: "Routine types",
-              value: latestArtifacts.length > 0 ? String(latestArtifacts.length) : "0",
-              detail: "Lead handling, reporting, campaign setup, content, and approvals."
+              value: hasAgenticSops
+                ? String(agenticDiagnosis?.sops.length ?? 0)
+                : latestArtifacts.length > 0
+                  ? String(latestArtifacts.length)
+                  : "0",
+              detail: hasAgenticSops
+                ? "Customer-facing routines returned by the diagnosis."
+                : "Lead handling, reporting, campaign setup, content, and approvals."
             },
             {
               label: "Output language",
@@ -171,19 +226,31 @@ export default async function SopsPage() {
         />
         <PageSectionLinks
           links={[
-            ...(latestArtifacts.length > 0 ? [{ href: "#sop-set", label: "Latest routines" }] : []),
-            { href: "#sop-history", label: "History" }
+            ...(hasAgenticSops
+              ? [{ href: "#agentic-sop-set", label: "Routines from diagnosis" }]
+              : latestArtifacts.length > 0
+                ? [{ href: "#sop-set", label: "Fallback routines" }]
+                : []),
+            ...(!hasAgenticSops ? [{ href: "#sop-history", label: "Fallback history" }] : [])
           ]}
         />
       </section>
 
-      {!profile || !latestDiagnostic ? (
+      {!hasAgenticSops && (!profile || !latestDiagnostic) ? (
         <PrerequisitePanel hasDiagnostic={Boolean(latestDiagnostic)} hasProfile={Boolean(profile)} />
       ) : null}
 
-      <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
+      {!hasAgenticSops ? (
+        <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
+      ) : null}
 
-      {latestArtifacts.length > 0 ? (
+      {hasAgenticSops && agenticDiagnosis ? (
+        <AgenticSopsSection
+          createdAt={latestAgentic?.createdAt}
+          model={latestAgentic?.model}
+          sops={agenticDiagnosis.sops}
+        />
+      ) : latestArtifacts.length > 0 ? (
         <LatestSopsSection artifacts={latestArtifacts} />
       ) : (
         <section className="surface p-5 md:p-7">
@@ -198,7 +265,14 @@ export default async function SopsPage() {
         </section>
       )}
 
-      {latestArtifacts.length > 0 ? (
+      {hasAgenticSops && latestAgentic ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="sops"
+          outputId={latestAgentic.id}
+          language={context.workspace.outputLanguage}
+        />
+      ) : latestArtifacts.length > 0 ? (
         <OutputFeedbackWidget
           workspaceId={context.workspace.id}
           moduleType="sops"
@@ -207,7 +281,7 @@ export default async function SopsPage() {
         />
       ) : null}
 
-      <SopHistoryTable history={history} />
+      {!hasAgenticSops ? <SopHistoryTable history={history} /> : null}
     </div>
   );
 }
@@ -254,6 +328,75 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
     >
       {label}
     </Link>
+  );
+}
+
+function AgenticSopsSection({
+  createdAt,
+  model,
+  sops
+}: {
+  createdAt?: string;
+  model?: string;
+  sops: DiagnosisOutputData["sops"];
+}) {
+  const stepCount = sops.reduce((total, sop) => total + sop.steps.length, 0);
+
+  return (
+    <section className="space-y-6" id="agentic-sop-set">
+      <div className="surface p-5 md:p-7">
+        <span className="eyebrow">Routines from diagnosis</span>
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
+          {sops.length} customer-facing marketing routines from the latest strategic diagnosis.
+        </h2>
+        <p className="mt-4 text-sm text-muted">
+          {createdAt ? `Diagnosis saved ${new Date(createdAt).toLocaleString()}.` : null}
+          {model ? ` Model: ${model}.` : null}
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Routines
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{sops.length}</p>
+          </article>
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Steps
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{stepCount}</p>
+          </article>
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Source
+            </p>
+            <p className="mt-3 text-2xl font-semibold">Diagnosis</p>
+          </article>
+        </div>
+      </div>
+
+      <div className="grid min-w-0 gap-4 2xl:grid-cols-2">
+        {sops.map((sop, index) => (
+          <article
+            className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6 shadow-[0_18px_45px_-32px_rgba(5,26,36,0.65)]"
+            key={`${sop.name}-${index}`}
+          >
+            <div className="flex flex-wrap gap-2">
+              <span className="pill bg-white text-ink">from diagnosis</span>
+              <span className="pill bg-sand text-ink">{sop.steps.length} steps</span>
+            </div>
+            <h3 className="mt-4 text-2xl font-semibold tracking-[-0.03em]">
+              {sop.name}
+            </h3>
+            <ol className="mt-5 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted">
+              {sop.steps.map((step, stepIndex) => (
+                <li key={`${sop.name}-${stepIndex}`}>{step}</li>
+              ))}
+            </ol>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 

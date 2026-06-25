@@ -20,7 +20,7 @@ export function DownstreamTrustPanel({
   const validationFirst = state.mode === "validation_first";
   const details = validationFirst ? state.validationTasks : state.evidenceGaps;
   const detailLabel = validationFirst
-    ? sl(language, "Validate next", "Validar ahora")
+    ? sl(language, "Next best moves", "Siguientes pasos claros")
     : sl(language, "Evidence basis", "Base de evidencia");
 
   return (
@@ -47,7 +47,7 @@ export function DownstreamTrustPanel({
       </div>
       <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
         {validationFirst
-          ? sl(language, "Validate before relying on this output", "Valida antes de confiar en este resultado")
+          ? sl(language, "Best read and next move", "Mejor lectura y siguiente paso")
           : sl(language, "Confidence for this output", "Confianza de este resultado")}
       </h2>
       <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">{state.summary}</p>

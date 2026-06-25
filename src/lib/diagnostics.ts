@@ -308,14 +308,14 @@ const issueCopy: Record<
       detail:
         "The profile has too little structured marketing evidence, visible positioning, conversion context, or customer proof to support a high-confidence diagnosis.",
       risk:
-        "Recommendations may sound plausible but remain provisional until the marketing evidence is validated."
+        "Recommendations are the best current read and should be sharpened as more marketing evidence appears."
     },
     es: {
       title: "La profundidad de evidencia es baja",
       detail:
         "El perfil tiene poca evidencia estructurada de marketing, posicionamiento visible, contexto de conversion o prueba de cliente para sostener un diagnostico de alta confianza.",
       risk:
-        "Las recomendaciones pueden sonar plausibles pero seguir provisionales hasta validar la evidencia de marketing."
+        "Las recomendaciones son la mejor lectura actual y deben afinarse cuando aparezca mas evidencia de marketing."
     }
   },
   contradictory_scale: {
@@ -724,7 +724,7 @@ function analyzeSignals(profile: BusinessProfileRecord): SignalMap {
     addContradiction(
       "visible_positioning_audience_conflict",
       "Visible positioning is broader than the declared target audience",
-      "The stated audience is relatively specific, but the visible positioning evidence still reads broad. The diagnostic treats positioning conclusions as provisional until the homepage or channel message is checked.",
+      "The stated audience is relatively specific, but the visible positioning evidence still reads broad. The diagnostic uses the current positioning read and names the message to sharpen next.",
       ["visible_positioning", "offer_audience", "contradictory_evidence"]
     );
   }
@@ -1180,7 +1180,7 @@ function localizeContradiction(
       visible_positioning_audience_conflict: {
         title: "El posicionamiento visible es mas amplio que la audiencia declarada",
         detail:
-          "La audiencia declarada es relativamente especifica, pero la evidencia visible de posicionamiento sigue sonando amplia. El diagnostico trata las conclusiones de posicionamiento como provisionales hasta revisar homepage o mensajes de canal."
+          "La audiencia declarada es relativamente especifica, pero la evidencia visible de posicionamiento sigue sonando amplia. El diagnostico usa la lectura actual de posicionamiento y nombra el mensaje que debe afinarse despues."
       },
       conversion_without_acquisition_evidence: {
         title: "Hay una accion de conversion sin evidencia de adquisicion suficiente",
@@ -1951,7 +1951,7 @@ function buildEvidence(
         implication:
           signals.hasConversionEvidence
             ? "El diagnostico puede hacer recomendaciones de conversion con mas base."
-            : "Las recomendaciones de conversion y ventas siguen siendo provisionales hasta completar esta evidencia.",
+            : "Las recomendaciones de conversion y ventas son la mejor lectura actual y deben afinarse con mas evidencia.",
         basedOn: evidenceList(language, ["conversion_model", "visible_positioning", "missing_evidence"]),
         signalQuality: signals.hasConversionEvidence ? "strong" : conversionQuality === "missing" ? "weak" : "mixed",
         evidenceQuality: conversionQuality,
@@ -2066,7 +2066,7 @@ function buildEvidence(
       implication:
         signals.hasConversionEvidence
           ? "The diagnostic can make conversion recommendations from a stronger base."
-          : "Conversion and sales recommendations remain provisional until this evidence is filled in.",
+          : "Conversion and sales recommendations are the best current read and should be sharpened with more evidence.",
       basedOn: evidenceList(language, ["conversion_model", "visible_positioning", "missing_evidence"]),
       signalQuality: signals.hasConversionEvidence ? "strong" : conversionQuality === "missing" ? "weak" : "mixed",
       evidenceQuality: conversionQuality,
@@ -2110,10 +2110,10 @@ function buildEvidence(
 
   if (needs.length > 0) {
     cards.push({
-      title: "What still needs validation",
+      title: "Assumptions to sharpen",
       observation: needs.join(" "),
       implication:
-        "These validations separate a useful hypothesis from a strong conclusion for real pilot use.",
+        "These assumptions make the next recommendation sharper as real pilot evidence comes in.",
       basedOn: evidenceList(language, ["missing_evidence", "contradictory_evidence"]),
       signalQuality: "weak",
       evidenceQuality: signals.contradictions.length > 0 ? "contradictory" : "weak",

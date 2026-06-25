@@ -1458,8 +1458,8 @@ export function BusinessProfileForm({
             <p className="mt-4 body-lg">
               {copyForLanguage(
                 language,
-                "The save flow stays the same, but the profile now captures the business context and visible marketing evidence needed to separate stated claims, visible signals, and what still needs validation.",
-                "El guardado sigue funcionando igual, pero el perfil ahora captura el contexto del negocio y la evidencia visible de marketing necesaria para separar declaraciones, señales visibles y lo que todavía necesita validación."
+                "The save flow stays the same, but the profile now captures the business context and visible marketing evidence needed to separate stated claims, visible signals, and what should be sharpened next.",
+                "El guardado sigue funcionando igual, pero el perfil ahora captura el contexto del negocio y la evidencia visible de marketing necesaria para separar declaraciones, señales visibles y lo que debe afinarse después."
               )}
             </p>
           </div>

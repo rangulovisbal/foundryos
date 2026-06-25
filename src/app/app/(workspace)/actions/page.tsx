@@ -8,12 +8,18 @@ import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
 import {
   getBusinessProfile,
+  getLatestAgenticDiagnosis,
   getLatestActionPlan,
   getLatestDiagnosticResult,
   getLatestThirtyDayPlan,
   listPlanningJobsWithArtifacts
 } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
+import {
+  DiagnosisOutput,
+  type DiagnosisOutput as DiagnosisOutputData
+} from "@/lib/agentic/schema";
+import { decryptJson } from "@/lib/crypto";
 import {
   canGenerateThirtyDayPlan,
   isLockedState,
@@ -60,10 +66,11 @@ function formatOutputLanguageLabel(language: "en" | "es") {
 
 export default async function ActionsPage() {
   const context = await requireWorkspaceContext("/app/actions");
-  const [profile, latestDiagnostic, latestActionPlan, latestThirtyDayPlan, history] =
+  const [profile, latestDiagnostic, latestAgentic, latestActionPlan, latestThirtyDayPlan, history] =
     await Promise.all([
       getBusinessProfile(context.workspace.id),
       getLatestDiagnosticResult(context.workspace.id),
+      getLatestAgenticDiagnosis(context.workspace.id),
       getLatestActionPlan(context.workspace.id),
       getLatestThirtyDayPlan(context.workspace.id),
       listPlanningJobsWithArtifacts({
@@ -72,8 +79,24 @@ export default async function ActionsPage() {
         limit: 10
       })
     ]);
+  let agenticDiagnosis: DiagnosisOutputData | null = null;
+
+  if (latestAgentic) {
+    try {
+      agenticDiagnosis = DiagnosisOutput.parse(
+        decryptJson<unknown>(latestAgentic.outputCiphertext)
+      );
+    } catch {
+      agenticDiagnosis = null;
+    }
+  }
+
+  const hasAgenticPlan = Boolean(agenticDiagnosis?.plan_30d.length);
   const canGenerate =
-    canGenerateThirtyDayPlan(context) && Boolean(profile) && Boolean(latestDiagnostic);
+    !hasAgenticPlan &&
+    canGenerateThirtyDayPlan(context) &&
+    Boolean(profile) &&
+    Boolean(latestDiagnostic);
   const disabledReason = resolveDisabledReason(
     context,
     Boolean(profile),
@@ -106,14 +129,18 @@ export default async function ActionsPage() {
               reasoning, and success signals without claiming live delivery or autonomous execution.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              {latestActionPlan ? (
+              {hasAgenticPlan ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#agentic-thirty-day-plan">
+                  View plan from diagnosis
+                </Link>
+              ) : latestActionPlan ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#action-list">
-                  View monthly actions
+                  View fallback actions
                 </Link>
               ) : null}
-              {latestThirtyDayPlan ? (
+              {!hasAgenticPlan && latestThirtyDayPlan ? (
                 <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="#thirty-day-plan">
-                  View 30-day plan
+                  View fallback 30-day plan
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/roadmap">
@@ -127,28 +154,41 @@ export default async function ActionsPage() {
               Latest plan
             </p>
             <p className="mt-4 text-5xl font-semibold leading-none tracking-[-0.06em] text-white">
-              {latestThirtyDayPlan ? "Saved" : "Missing"}
+              {hasAgenticPlan ? "From diagnosis" : latestThirtyDayPlan ? "Fallback saved" : "Missing"}
             </p>
             <p className="mt-4 text-sm leading-6 text-white/68">
-              {latestThirtyDayPlan
+              {hasAgenticPlan && latestAgentic
+                ? `Diagnosis saved ${new Date(latestAgentic.createdAt).toLocaleString()}.`
+                : latestThirtyDayPlan
                 ? new Date(latestThirtyDayPlan.createdAt).toLocaleString()
                 : "Generate after diagnostics."}
             </p>
-            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                Generate
-              </p>
-              <div className="mt-4">
-                <PlanningGenerateButton
-                  canGenerate={canGenerate}
-                  disabledReason={disabledReason}
-                  endpoint="/api/app/actions/generate"
-                  idleLabel="Generate 30-day plan"
-                  loadingLabel="Generating 30-day plan..."
-                  successLabel="30-day marketing plan generated and saved."
-                />
+            {hasAgenticPlan ? (
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                  Source of truth
+                </p>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  This page is reading `plan_30d` directly from the latest strategic diagnosis.
+                </p>
               </div>
-            </div>
+            ) : (
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                  Fallback generator
+                </p>
+                <div className="mt-4">
+                  <PlanningGenerateButton
+                    canGenerate={canGenerate}
+                    disabledReason={disabledReason}
+                    endpoint="/api/app/actions/generate"
+                    idleLabel="Generate fallback 30-day plan"
+                    loadingLabel="Generating fallback 30-day plan..."
+                    successLabel="Fallback 30-day marketing plan generated and saved."
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -158,22 +198,39 @@ export default async function ActionsPage() {
           items={[
             {
               label: "Action cards",
-              value: String(latestActionPlan?.actions.length ?? 0),
-              detail: latestActionPlan
-                ? "Saved action list from the latest marketing-planning run."
-                : "No persisted action list yet."
+              value: hasAgenticPlan
+                ? String(
+                    agenticDiagnosis?.plan_30d.reduce(
+                      (total, week) => total + week.tasks.length,
+                      0
+                    ) ?? 0
+                  )
+                : String(latestActionPlan?.actions.length ?? 0),
+              detail: hasAgenticPlan
+                ? "Tasks from the latest strategic diagnosis."
+                : latestActionPlan
+                  ? "Saved fallback action list from the latest deterministic run."
+                  : "No persisted action list yet."
             },
             {
               label: "30-day plan",
-              value: latestThirtyDayPlan ? "Saved" : "Missing",
-              detail: latestThirtyDayPlan
+              value: hasAgenticPlan ? "From diagnosis" : latestThirtyDayPlan ? "Fallback saved" : "Missing",
+              detail: hasAgenticPlan
+                ? "The diagnosis is the source of truth for this plan."
+                : latestThirtyDayPlan
                 ? latestThirtyDayPlan.monthObjective
                 : "Generate after the marketing diagnosis."
             },
             {
-              label: "Quick wins",
-              value: String(latestThirtyDayPlan?.quickWins.length ?? 0),
-              detail: "Fast marketing execution items surfaced from the latest plan."
+              label: "Weeks",
+              value: hasAgenticPlan
+                ? String(agenticDiagnosis?.plan_30d.length ?? 0)
+                : latestThirtyDayPlan
+                  ? "4"
+                  : "0",
+              detail: hasAgenticPlan
+                ? "Four weeks supplied by the strategic diagnosis."
+                : "Fallback plan weeks from the deterministic generator."
             },
             {
               label: "Output language",
@@ -185,22 +242,34 @@ export default async function ActionsPage() {
         />
         <PageSectionLinks
           links={[
-            ...(latestActionPlan ? [{ href: "#action-list", label: "Monthly actions" }] : []),
-            ...(latestThirtyDayPlan
-              ? [{ href: "#thirty-day-plan", label: "30-day plan" }]
+            ...(hasAgenticPlan
+              ? [{ href: "#agentic-thirty-day-plan", label: "Plan from diagnosis" }]
+              : latestActionPlan
+                ? [{ href: "#action-list", label: "Fallback monthly actions" }]
+                : []),
+            ...(!hasAgenticPlan && latestThirtyDayPlan
+              ? [{ href: "#thirty-day-plan", label: "Fallback 30-day plan" }]
               : []),
-            { href: "#action-history", label: "History" }
+            ...(!hasAgenticPlan ? [{ href: "#action-history", label: "Fallback history" }] : [])
           ]}
         />
       </section>
 
-      {!profile || !latestDiagnostic ? (
+      {!hasAgenticPlan && (!profile || !latestDiagnostic) ? (
         <PrerequisitePanel hasDiagnostic={Boolean(latestDiagnostic)} hasProfile={Boolean(profile)} />
       ) : null}
 
-      <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
+      {!hasAgenticPlan ? (
+        <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
+      ) : null}
 
-      {latestActionPlan ? (
+      {hasAgenticPlan && agenticDiagnosis ? (
+        <AgenticThirtyDayPlanSection
+          createdAt={latestAgentic?.createdAt}
+          model={latestAgentic?.model}
+          plan={agenticDiagnosis.plan_30d}
+        />
+      ) : latestActionPlan ? (
         <ActionPlanSection actionPlan={latestActionPlan} />
       ) : (
         <section className="surface p-5 md:p-7">
@@ -216,10 +285,17 @@ export default async function ActionsPage() {
       )}
 
       {latestThirtyDayPlan ? (
-        <ThirtyDayPlanSection plan={latestThirtyDayPlan} />
+        !hasAgenticPlan ? <ThirtyDayPlanSection plan={latestThirtyDayPlan} /> : null
       ) : null}
 
-      {latestThirtyDayPlan ? (
+      {hasAgenticPlan && latestAgentic ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="plan_30d"
+          outputId={latestAgentic.id}
+          language={context.workspace.outputLanguage}
+        />
+      ) : latestThirtyDayPlan ? (
         <OutputFeedbackWidget
           workspaceId={context.workspace.id}
           moduleType="plan_30d"
@@ -228,8 +304,83 @@ export default async function ActionsPage() {
         />
       ) : null}
 
-      <PlanningHistoryTable history={history} />
+      {!hasAgenticPlan ? <PlanningHistoryTable history={history} /> : null}
     </div>
+  );
+}
+
+function AgenticThirtyDayPlanSection({
+  createdAt,
+  model,
+  plan
+}: {
+  createdAt?: string;
+  model?: string;
+  plan: DiagnosisOutputData["plan_30d"];
+}) {
+  const taskCount = plan.reduce((total, week) => total + week.tasks.length, 0);
+
+  return (
+    <section className="space-y-6" id="agentic-thirty-day-plan">
+      <div className="surface p-5 md:p-7">
+        <span className="eyebrow">30-day plan from diagnosis</span>
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
+          The latest strategic diagnosis is the source of this plan.
+        </h2>
+        <p className="mt-4 text-sm text-muted">
+          {createdAt ? `Diagnosis saved ${new Date(createdAt).toLocaleString()}.` : null}
+          {model ? ` Model: ${model}.` : null}
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Weeks
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{plan.length}</p>
+          </article>
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Tasks
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{taskCount}</p>
+          </article>
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Source
+            </p>
+            <p className="mt-3 text-2xl font-semibold">Diagnosis</p>
+          </article>
+        </div>
+      </div>
+
+      <section className="foundry-week-grid">
+        {plan.map((week) => (
+          <article className="metric-card foundry-readable-card" key={week.week}>
+            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+              Week {week.week}
+            </p>
+            <h3 className="mt-3 text-lg font-semibold leading-7">{week.focus}</h3>
+            <div className="mt-4 space-y-3">
+              {week.tasks.map((task, index) => (
+                <div
+                  className="rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-4"
+                  key={`${week.week}-${task.title}-${index}`}
+                >
+                  <div className="flex flex-wrap gap-2">
+                    <span className="pill bg-white text-ink">Effort {task.effort}</span>
+                  </div>
+                  <h4 className="mt-3 text-sm font-semibold text-ink">{task.title}</h4>
+                  <p className="mt-2 text-sm leading-6 text-muted">{task.why}</p>
+                  <p className="mt-3 text-sm leading-6 text-muted">
+                    <strong className="text-ink">Done when:</strong> {task.done_when}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </section>
+    </section>
   );
 }
 

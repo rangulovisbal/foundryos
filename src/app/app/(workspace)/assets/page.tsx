@@ -8,6 +8,7 @@ import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
 import {
   getBusinessProfile,
+  getLatestAgenticDiagnosis,
   getLatestActionPlan,
   getLatestBusinessAssets,
   getLatestDiagnosticResult,
@@ -16,6 +17,11 @@ import {
   listAssetJobsWithAssets
 } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
+import {
+  DiagnosisOutput,
+  type DiagnosisOutput as DiagnosisOutputData
+} from "@/lib/agentic/schema";
+import { decryptJson } from "@/lib/crypto";
 import {
   canGenerateAssets,
   getUsageCounter,
@@ -73,6 +79,7 @@ export default async function AssetsPage() {
     latestRoadmap,
     latestActionPlan,
     latestThirtyDayPlan,
+    latestAgentic,
     latestAssets,
     history
   ] = await Promise.all([
@@ -81,11 +88,26 @@ export default async function AssetsPage() {
     getLatestRoadmap(context.workspace.id),
     getLatestActionPlan(context.workspace.id),
     getLatestThirtyDayPlan(context.workspace.id),
+    getLatestAgenticDiagnosis(context.workspace.id),
     getLatestBusinessAssets(context.workspace.id),
     listAssetJobsWithAssets({ workspaceId: context.workspace.id, limit: 10 })
   ]);
+  let agenticDiagnosis: DiagnosisOutputData | null = null;
+
+  if (latestAgentic) {
+    try {
+      agenticDiagnosis = DiagnosisOutput.parse(
+        decryptJson<unknown>(latestAgentic.outputCiphertext)
+      );
+    } catch {
+      agenticDiagnosis = null;
+    }
+  }
+
+  const hasAgenticAssets = Boolean(agenticDiagnosis?.assets.length);
   const assetCounter = getUsageCounter(context, "asset_exports");
   const canGenerate =
+    !hasAgenticAssets &&
     canGenerateAssets(context) &&
     Boolean(profile) &&
     Boolean(latestDiagnostic) &&
@@ -127,9 +149,13 @@ export default async function AssetsPage() {
               priority list, and 30-day plan. They are not required before taking the first actions.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              {latestAssets.length > 0 ? (
+              {hasAgenticAssets ? (
+                <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#agentic-asset-set">
+                  View assets from diagnosis
+                </Link>
+              ) : latestAssets.length > 0 ? (
                 <Link className="foundry-primary-button bg-white text-[#051A24] hover:bg-[#F4F2EC]" href="#asset-set">
-                  View latest supporting assets
+                  View fallback supporting assets
                 </Link>
               ) : null}
               <Link className="foundry-secondary-button border-white/15 bg-white/10 text-white hover:bg-white/15" href="/app/actions">
@@ -140,29 +166,46 @@ export default async function AssetsPage() {
 
           <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
-              Asset runs
+              Asset source
             </p>
             <p className="mt-4 text-6xl font-semibold leading-none tracking-[-0.06em] text-white">
-              {assetCounter ? `${assetCounter.usedCount}/${assetCounter.limitCount}` : "n/a"}
+              {hasAgenticAssets
+                ? agenticDiagnosis?.assets.length
+                : assetCounter
+                  ? `${assetCounter.usedCount}/${assetCounter.limitCount}`
+                  : "n/a"}
             </p>
             <p className="mt-4 text-sm leading-6 text-white/68">
-              Usage is tracked as generation runs while export workflows remain preview-only.
+              {hasAgenticAssets
+                ? "Assets are read directly from the latest strategic diagnosis."
+                : "Usage is tracked as generation runs while export workflows remain preview-only."}
             </p>
-            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                Generate
-              </p>
-              <div className="mt-4">
-                <PlanningGenerateButton
-                  canGenerate={canGenerate}
-                  disabledReason={disabledReason}
-                  endpoint="/api/app/assets/generate"
-                  idleLabel="Generate marketing assets"
-                  loadingLabel="Generating marketing assets..."
-                  successLabel="Marketing assets generated and saved."
-                />
+            {hasAgenticAssets ? (
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                  Source of truth
+                </p>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  This page is reading `assets` directly from the latest strategic diagnosis.
+                </p>
               </div>
-            </div>
+            ) : (
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/90 p-4 text-ink">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                  Fallback generator
+                </p>
+                <div className="mt-4">
+                  <PlanningGenerateButton
+                    canGenerate={canGenerate}
+                    disabledReason={disabledReason}
+                    endpoint="/api/app/assets/generate"
+                    idleLabel="Generate fallback marketing assets"
+                    loadingLabel="Generating fallback marketing assets..."
+                    successLabel="Fallback marketing assets generated and saved."
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -172,23 +215,32 @@ export default async function AssetsPage() {
           items={[
             {
               label: "Latest supporting asset set",
-              value: latestAssets.length > 0 ? `${latestAssets.length} saved` : "Missing",
-              detail:
-                latestAssets.length > 0
+              value: hasAgenticAssets
+                ? `${agenticDiagnosis?.assets.length ?? 0} from diagnosis`
+                : latestAssets.length > 0
+                  ? `${latestAssets.length} fallback saved`
+                  : "Missing",
+              detail: hasAgenticAssets
+                ? "The latest strategic diagnosis is the source of these assets."
+                : latestAssets.length > 0
                   ? `Latest run saved ${new Date(latestAssets[0].createdAt).toLocaleString()}.`
                   : "Generate after the profile, diagnosis, priorities, and plan exist."
             },
             {
-              label: "Asset runs",
+              label: "Fallback asset runs",
               value: assetCounter
                 ? `${assetCounter.usedCount}/${assetCounter.limitCount}`
                 : "n/a",
-              detail: "Usage is still measured by generation runs in preview mode."
+              detail: hasAgenticAssets
+                ? "Unused while diagnosis assets are available."
+                : "Usage is still measured by generation runs in preview mode."
             },
             {
               label: "Latest status",
-              value: history[0]?.job.status ?? "none",
-              detail: "The newest marketing-asset job state across this workspace."
+              value: hasAgenticAssets ? "diagnosis" : history[0]?.job.status ?? "none",
+              detail: hasAgenticAssets
+                ? "Reading from the strategic diagnosis."
+                : "The newest fallback marketing-asset job state across this workspace."
             },
             {
               label: "Output language",
@@ -200,19 +252,22 @@ export default async function AssetsPage() {
         />
         <PageSectionLinks
           links={[
-            ...(latestAssets.length > 0
-                  ? [{ href: "#asset-set", label: "Latest supporting assets" }]
+            ...(hasAgenticAssets
+              ? [{ href: "#agentic-asset-set", label: "Assets from diagnosis" }]
+              : latestAssets.length > 0
+                  ? [{ href: "#asset-set", label: "Fallback supporting assets" }]
               : []),
-            { href: "#asset-history", label: "History" }
+            ...(!hasAgenticAssets ? [{ href: "#asset-history", label: "Fallback history" }] : [])
           ]}
         />
       </section>
 
-      {!profile ||
-      !latestDiagnostic ||
-      !latestRoadmap ||
-      !latestActionPlan ||
-      !latestThirtyDayPlan ? (
+      {!hasAgenticAssets &&
+      (!profile ||
+        !latestDiagnostic ||
+        !latestRoadmap ||
+        !latestActionPlan ||
+        !latestThirtyDayPlan) ? (
         <PrerequisitePanel
           hasActionPlan={Boolean(latestActionPlan)}
           hasDiagnostic={Boolean(latestDiagnostic)}
@@ -222,9 +277,17 @@ export default async function AssetsPage() {
         />
       ) : null}
 
-      <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
+      {!hasAgenticAssets ? (
+        <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
+      ) : null}
 
-      {latestAssets.length > 0 ? (
+      {hasAgenticAssets && agenticDiagnosis ? (
+        <AgenticAssetsSection
+          assets={agenticDiagnosis.assets}
+          createdAt={latestAgentic?.createdAt}
+          model={latestAgentic?.model}
+        />
+      ) : latestAssets.length > 0 ? (
         <LatestAssetsSection assets={latestAssets} />
       ) : (
         <section className="surface p-5 md:p-7">
@@ -239,7 +302,14 @@ export default async function AssetsPage() {
         </section>
       )}
 
-      {latestAssets.length > 0 ? (
+      {hasAgenticAssets && latestAgentic ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="assets"
+          outputId={latestAgentic.id}
+          language={context.workspace.outputLanguage}
+        />
+      ) : latestAssets.length > 0 ? (
         <OutputFeedbackWidget
           workspaceId={context.workspace.id}
           moduleType="assets"
@@ -248,7 +318,7 @@ export default async function AssetsPage() {
         />
       ) : null}
 
-      <AssetHistoryTable history={history} />
+      {!hasAgenticAssets ? <AssetHistoryTable history={history} /> : null}
     </div>
   );
 }
@@ -305,6 +375,79 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
     >
       {label}
     </Link>
+  );
+}
+
+function AgenticAssetsSection({
+  assets,
+  createdAt,
+  model
+}: {
+  assets: DiagnosisOutputData["assets"];
+  createdAt?: string;
+  model?: string;
+}) {
+  const assetTypes = Array.from(new Set(assets.map((asset) => formatAgenticAssetType(asset.type))));
+
+  return (
+    <section className="space-y-6" id="agentic-asset-set">
+      <div className="surface p-5 md:p-7">
+        <span className="eyebrow">Assets from diagnosis</span>
+        <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] md:text-3xl">
+          {assets.length} ready-to-use assets from the latest strategic diagnosis.
+        </h2>
+        <p className="mt-4 text-sm text-muted">
+          {createdAt ? `Diagnosis saved ${new Date(createdAt).toLocaleString()}.` : null}
+          {model ? ` Model: ${model}.` : null}
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Asset types
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{assetTypes.length}</p>
+          </article>
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Saved assets
+            </p>
+            <p className="mt-3 text-2xl font-semibold">{assets.length}</p>
+          </article>
+          <article className="metric-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+              Source
+            </p>
+            <p className="mt-3 text-2xl font-semibold">Diagnosis</p>
+          </article>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {assetTypes.map((type) => (
+            <span className="pill bg-white/85 text-ink" key={type}>
+              {type}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid min-w-0 gap-4 2xl:grid-cols-2">
+        {assets.map((asset, index) => (
+          <article
+            className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6 shadow-[0_18px_45px_-32px_rgba(5,26,36,0.65)]"
+            key={`${asset.type}-${index}`}
+          >
+            <div className="flex flex-wrap gap-2">
+              <span className="pill bg-white text-ink">
+                {formatAgenticAssetType(asset.type)}
+              </span>
+              <span className="pill bg-sand text-ink">from diagnosis</span>
+            </div>
+            <p className="mt-5 whitespace-pre-wrap text-base leading-8 text-ink">
+              {asset.text}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -466,5 +609,9 @@ function AssetHistoryTable({ history }: { history: AssetJobWithAssets[] }) {
 }
 
 function formatAssetType(assetType: BusinessAssetRecord["assetType"]) {
+  return assetType.replaceAll("_", " ");
+}
+
+function formatAgenticAssetType(assetType: DiagnosisOutputData["assets"][number]["type"]) {
   return assetType.replaceAll("_", " ");
 }

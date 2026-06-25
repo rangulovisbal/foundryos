@@ -144,7 +144,7 @@ const marketingSignals = [
   {
     label: "Analytics",
     value: sampleIntake.hasAnalytics ? "Present" : "Missing",
-    status: sampleIntake.hasAnalytics ? "usable signal" : "needs validation"
+    status: sampleIntake.hasAnalytics ? "usable signal" : "assumption to sharpen"
   },
   {
     label: "Workflows",

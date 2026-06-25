@@ -738,16 +738,16 @@ function validationRoadmapItems(input: PlanningInput, trustState: DownstreamTrus
     title: item.title,
     description:
       language === "es"
-        ? `Modo validacion primero para este ${businessTypeLabel(type, language)}. Antes de ejecutar el plan de marketing, confirmar: ${item.signal}`
-        : `Validation-first mode for this ${businessTypeLabel(type, language)}. Before executing the marketing plan, confirm: ${item.signal}`,
+        ? `Mejor lectura para este ${businessTypeLabel(type, language)}. Empieza afinando este supuesto: ${item.signal}`
+        : `Best-read plan for this ${businessTypeLabel(type, language)}. Start by sharpening this assumption: ${item.signal}`,
     phase: item.phase,
     categoryTags: [item.category],
     effortLevel: index < 3 ? "low" : "medium",
     expectedImpact: index < 3 ? "high" : "medium",
     dependencies:
       language === "es"
-        ? ["Actualizar el perfil con evidencia visible antes de tratar esto como consejo fuerte."]
-        : ["Update the profile with visible evidence before treating this as strong advice."],
+        ? ["Actualizar el perfil con la señal visible que haga esta recomendacion mas precisa."]
+        : ["Update the profile with the visible signal that makes this recommendation sharper."],
     reasoning:
       language === "es"
         ? `${trustState.label}. Basado en inputs actuales: ${profileSignals}`
@@ -918,8 +918,8 @@ export function buildRoadmap(input: PlanningInput): RoadmapRecord {
     summary:
       validationFirst && trustState
         ? language === "es"
-          ? `Roadmap de validacion primero. ${trustState.summary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
-          : `Validation-first roadmap. ${trustState.summary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`
+          ? `Roadmap de mejor lectura. ${trustState.summary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
+          : `Best-read roadmap. ${trustState.summary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`
         : language === "es"
           ? `${copy(language).roadmapSummary} Plan actual: ${plan.label}. Tipo de negocio: ${businessTypeLabel(type, language)}.`
           : `${copy(language).roadmapSummary} Current plan: ${plan.label}. Business type: ${businessTypeLabel(type, language)}.`,
@@ -1607,30 +1607,30 @@ function buildValidationFirstThirtyDayPlan(
     sourceDiagnosticResultId: input.diagnostic.id,
     monthObjective:
       language === "es"
-        ? `${company}: modo validacion primero. Reparar evidencia antes de tratar el diagnostico como plan de marketing.`
-        : `${company}: validation-first mode. Repair evidence before treating the diagnosis as a marketing plan.`,
+        ? `${company}: mejor lectura actual. Convertir el diagnostico en acciones concretas y afinar los supuestos mientras se ejecuta.`
+        : `${company}: best current read. Turn the diagnosis into concrete actions and sharpen assumptions while executing.`,
     topPriorities: priorities,
     week1: validationWeek({
       title: sl("Week 1: Evidence inventory", "Semana 1: Inventario de evidencia"),
       objective: sl(
-        "List what is known, what is missing, and which marketing claims are unsafe to use.",
-        "Listar que se sabe, que falta y que afirmaciones de marketing no son seguras para usar."
+        "List what is known, what is missing, and the one assumption each marketing claim depends on.",
+        "Listar que se sabe, que falta y el supuesto del que depende cada afirmacion de marketing."
       ),
       actions: [
         tasks[0] ?? priorities[0],
         sl("Capture the current profile gaps in one decision log.", "Capturar los gaps actuales del perfil en un registro de decisiones."),
-        sl("Mark each recommendation as confirmed, provisional, or blocked.", "Marcar cada recomendacion como confirmada, provisional o bloqueada.")
+        sl("Mark each recommendation as ready, needs sharper evidence, or should be revised.", "Marcar cada recomendacion como lista, necesita evidencia mas precisa o debe revisarse.")
       ],
       successSignal: sl(
-        "Evidence gaps and unsafe claims are visible in one reviewable list.",
-        "Los gaps de evidencia y afirmaciones inseguras estan visibles en una lista revisable."
+        "Evidence gaps and the assumptions behind each claim are visible in one reviewable list.",
+        "Los gaps de evidencia y los supuestos detras de cada afirmacion estan visibles en una lista revisable."
       )
     }),
     week2: validationWeek({
-      title: sl("Week 2: Offer and conversion validation", "Semana 2: Validacion de oferta y conversion"),
+      title: sl("Week 2: Offer and conversion signal", "Semana 2: Senal de oferta y conversion"),
       objective: sl(
-        "Confirm whether the offer, audience, CTA, and pricing evidence support the current diagnosis.",
-        "Confirmar si la evidencia de oferta, audiencia, CTA y precio soporta el diagnostico actual."
+        "Check whether the offer, audience, CTA, and pricing evidence support the current diagnosis.",
+        "Comprobar si la evidencia de oferta, audiencia, CTA y precio sostiene el diagnostico actual."
       ),
       actions: [
         tasks[1] ?? priorities[1],
@@ -1638,15 +1638,15 @@ function buildValidationFirstThirtyDayPlan(
         sl("Rewrite only the claims that are backed by visible evidence.", "Reescribir solo las afirmaciones respaldadas por evidencia visible.")
       ],
       successSignal: sl(
-        "Offer, audience, CTA, and pricing claims are either confirmed or explicitly provisional.",
-        "Las afirmaciones de oferta, audiencia, CTA y precio quedan confirmadas o explicitamente provisionales."
+        "Offer, audience, CTA, and pricing claims are either ready to use or clearly marked for revision.",
+        "Las afirmaciones de oferta, audiencia, CTA y precio quedan listas para usar o claramente marcadas para revision."
       )
     }),
     week3: validationWeek({
       title: sl("Week 3: Channel and proof test", "Semana 3: Prueba de canal y prueba"),
       objective: sl(
-        "Validate acquisition source, sales process, proof, measurement, and owner before scaling marketing work.",
-        "Validar fuente de adquisicion, proceso de venta, prueba, medicion y owner antes de escalar trabajo de marketing."
+        "Check acquisition source, sales process, proof, measurement, and owner before scaling marketing work.",
+        "Comprobar fuente de adquisicion, proceso de venta, prueba, medicion y owner antes de escalar trabajo de marketing."
       ),
       actions: [
         tasks[2] ?? priorities[2],
@@ -1670,8 +1670,8 @@ function buildValidationFirstThirtyDayPlan(
         sl("Update the profile before regenerating roadmap, actions, assets, or SOPs.", "Actualizar el perfil antes de regenerar roadmap, acciones, assets o SOPs.")
       ],
       successSignal: sl(
-        "There is a recorded decision on whether to proceed with execution planning or continue validation.",
-        "Existe una decision registrada sobre avanzar a planificacion de ejecucion o continuar validacion."
+        "There is a recorded decision on whether to proceed with execution planning or sharpen the inputs again.",
+        "Existe una decision registrada sobre avanzar a planificacion de ejecucion o volver a afinar los inputs."
       )
     }),
     quickWins: [
@@ -1681,7 +1681,7 @@ function buildValidationFirstThirtyDayPlan(
     ],
     risksToAvoid: trustState.cannotClaim,
     successSignals: [
-      sl("All critical evidence gaps are closed or explicitly marked provisional.", "Todos los gaps criticos de evidencia estan cerrados o marcados como provisionales."),
+      sl("All critical evidence gaps are closed or clearly assigned to the next learning step.", "Todos los gaps criticos de evidencia estan cerrados o asignados claramente al siguiente paso de aprendizaje."),
       sl("Contradictions are resolved before execution advice is accepted.", "Las contradicciones se resuelven antes de aceptar consejos de ejecucion."),
       sl("The next generation run can cite stronger profile evidence.", "La siguiente generacion puede citar evidencia de perfil mas fuerte.")
     ],

@@ -426,7 +426,7 @@ function buildValidationFirstAssets(
   const ns = sl("not specified", "no especificado");
   const prefix = trustState.hasContradiction
     ? sl("Conditional draft", "Borrador condicional")
-    : sl("Provisional draft", "Borrador provisional");
+    : sl("Working asset", "Activo de trabajo");
   const knownSignals = [
     `${sl("Company", "Empresa")}: ${company}`,
     `${sl("Website", "Website")}: ${fallback(profile.website, ns)}`,
@@ -451,8 +451,8 @@ function buildValidationFirstAssets(
     ? trustState.cannotClaim
     : [
         sl(
-          "Do not treat this as final positioning, channel, conversion, or marketing workflow advice yet.",
-          "No tratar esto aun como posicionamiento, canal, conversion o consejo final de flujos de marketing."
+          "Use this as the current working read for positioning, channel, conversion, and workflow decisions.",
+          "Usar esto como la lectura de trabajo actual para posicionamiento, canal, conversion y flujos de marketing."
         )
       ];
   const trustSections = [
@@ -461,8 +461,8 @@ function buildValidationFirstAssets(
       `${sl("Diagnostic confidence", "Confianza diagnostica")}: ${localizeConfidence(diagnostic.confidence, language)}`
     ]),
     section(sl("Known evidence", "Evidencia conocida"), knownSignals),
-    section(sl("Needs validation before use", "Necesita validacion antes de uso"), tasks.slice(0, 5)),
-    section(sl("Do not claim yet", "No afirmar todavia"), cannotClaim.slice(0, 4))
+    section(sl("Assumptions to sharpen while using", "Supuestos a afinar mientras se usa"), tasks.slice(0, 5)),
+    section(sl("Phrase carefully", "Formular con cuidado"), cannotClaim.slice(0, 4))
   ];
   const validationSourceFocus: AssetSourceFocus = {
     profile: knownSignals,
@@ -475,15 +475,15 @@ function buildValidationFirstAssets(
     actionPlan: input.actionPlan.actions.map((action) => `${localizePriority(action.priority, language)}: ${action.title}`).slice(0, 5),
     thirtyDayPlan: [
       `${sl("Objective", "Objetivo")}: ${input.thirtyDayPlan.monthObjective}`,
-      `${sl("Validation metrics", "Metricas de validacion")}: ${joinSignals(input.thirtyDayPlan.metricsToWatch, ns)}`
+      `${sl("Learning metrics", "Metricas de aprendizaje")}: ${joinSignals(input.thirtyDayPlan.metricsToWatch, ns)}`
     ]
   };
-  const provisionalChannelList = profile.currentChannels.length
+  const practicalChannelList = profile.currentChannels.length
     ? profile.currentChannels
     : [
         sl(
-          "No active channel confirmed yet - choose one channel only after evidence is repaired.",
-          "No hay canal activo confirmado - elegir un canal solo despues de reparar evidencia."
+          "No active channel confirmed yet - choose one practical channel for the first focused test.",
+          "No hay canal activo confirmado - elegir un canal practico para la primera prueba enfocada."
         )
       ];
 
@@ -493,20 +493,20 @@ function buildValidationFirstAssets(
       type: "positioning_summary",
       title: `${prefix}: ${assetLabel("positioning_summary", language).title}`,
       purpose: sl(
-        "Capture provisional positioning only; do not use as final market-facing language until evidence is validated.",
-        "Capturar posicionamiento provisional; no usar como lenguaje final de mercado hasta validar evidencia."
+        "Capture the best current positioning; adjust it as customer conversations clarify the buyer.",
+        "Capturar el mejor posicionamiento actual; ajustarlo cuando las conversaciones con clientes aclaren el comprador."
       ),
       sourceFocus: validationSourceFocus,
       content: [
         ...trustSections,
-        section(sl("Conditional positioning frame", "Marco de posicionamiento condicional"), [
+        section(sl("Current positioning read", "Lectura actual de posicionamiento"), [
           sl(
-            `If the offer and audience evidence are confirmed, ${company} can sharpen one promise for one buyer segment.`,
-            `Si se confirma la evidencia de oferta y audiencia, ${company} puede afinar una promesa para un segmento comprador.`
+            `${company} can sharpen one promise for one buyer segment using the offer and audience evidence already captured.`,
+            `${company} puede afinar una promesa para un segmento comprador usando la evidencia de oferta y audiencia ya capturada.`
           ),
           sl(
-            "If validation fails, change the segment, offer, or CTA before increasing acquisition activity.",
-            "Si la validacion falla, cambiar segmento, oferta o CTA antes de aumentar actividad de adquisicion."
+            "If customer conversations point elsewhere, change the segment, offer, or CTA before increasing acquisition activity.",
+            "Si las conversaciones con clientes apuntan a otra cosa, cambiar segmento, oferta o CTA antes de aumentar actividad de adquisicion."
           )
         ])
       ]
@@ -516,13 +516,13 @@ function buildValidationFirstAssets(
       type: "thirty_day_action_plan_summary",
       title: `${prefix}: ${assetLabel("thirty_day_action_plan_summary", language).title}`,
       purpose: sl(
-        "Summarize validation work first, before treating the plan as an execution calendar.",
-        "Resumir primero el trabajo de validacion antes de tratar el plan como calendario de ejecucion."
+        "Summarize the first practical learning moves and turn them into an execution calendar.",
+        "Resumir los primeros movimientos practicos de aprendizaje y convertirlos en calendario de ejecucion."
       ),
       sourceFocus: validationSourceFocus,
       content: [
         ...trustSections,
-        section(sl("Validation-first sequence", "Secuencia de validacion primero"), [
+        section(sl("First learning sequence", "Primera secuencia de aprendizaje"), [
           input.thirtyDayPlan.week1.objective,
           input.thirtyDayPlan.week2.objective,
           input.thirtyDayPlan.week3.objective,
@@ -535,20 +535,20 @@ function buildValidationFirstAssets(
       type: "messaging_framework",
       title: `${prefix}: ${assetLabel("messaging_framework", language).title}`,
       purpose: sl(
-        "Create conditional messaging prompts for testing, not confident public copy.",
-        "Crear prompts condicionales de mensaje para probar, no copy publico definitivo."
+        "Create focused messaging prompts that state the current best read and the assumption to sharpen.",
+        "Crear prompts de mensaje enfocados que expresen la mejor lectura actual y el supuesto a afinar."
       ),
       sourceFocus: validationSourceFocus,
       content: [
         ...trustSections,
-        section(sl("Conditional message tests", "Pruebas condicionales de mensaje"), [
+        section(sl("Focused message tests", "Pruebas enfocadas de mensaje"), [
           sl(
             "Test one pain, one buyer, one promise, and one measurable result before publishing stronger copy.",
             "Probar un dolor, un comprador, una promesa y un resultado medible antes de publicar copy mas fuerte."
           ),
           sl(
-            "Use neutral language such as 'we are testing' or 'we help with' until proof is confirmed.",
-            "Usar lenguaje neutral como 'estamos probando' o 'ayudamos con' hasta confirmar prueba."
+            "Use clear language such as 'we help with' and add proof as soon as it is visible.",
+            "Usar lenguaje claro como 'ayudamos con' y sumar prueba en cuanto sea visible."
           )
         ])
       ]
@@ -558,13 +558,13 @@ function buildValidationFirstAssets(
       type: "basic_channel_plan",
       title: `${prefix}: ${assetLabel("basic_channel_plan", language).title}`,
       purpose: sl(
-        "Treat channels as validation paths until acquisition evidence is confirmed.",
-        "Tratar canales como rutas de validacion hasta confirmar evidencia de adquisicion."
+        "Treat channels as focused learning paths until acquisition evidence is clear.",
+        "Tratar canales como rutas de aprendizaje enfocadas hasta que la evidencia de adquisicion sea clara."
       ),
       sourceFocus: validationSourceFocus,
       content: [
         ...trustSections,
-        section(sl("Channel validation candidates", "Candidatos de validacion de canal"), provisionalChannelList),
+        section(sl("Focused channel candidates", "Candidatos de canal enfocado"), practicalChannelList),
         section(sl("Decision rule", "Regla de decision"), [
           sl(
             "Do not scale channel activity until source, conversion action, owner, and baseline metric are documented.",
