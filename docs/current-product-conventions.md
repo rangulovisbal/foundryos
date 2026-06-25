@@ -1,13 +1,13 @@
 # Current Product Conventions
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 ## Product Framing
 
-- FoundryOS is a self-serve marketing diagnosis and 30-day marketing planning product for early-stage businesses.
+- FoundryOS is a founder-assisted marketing diagnosis and 30-day marketing planning product for early-stage businesses during pilot validation.
 - Safe public promise: diagnose what is missing in marketing and turn that into a clear 30-day action plan.
-- Public CTA should prioritize `Start free` / account creation and `Log in`.
-- Signup is open by default through `ACCESS_MODE=self_serve`.
+- Public CTA should prioritize request access / join pilot and `Log in`.
+- Signup should be framed for invited/manual pilot users until self-serve launch is intentionally re-enabled.
 - Restricted signup remains available through `ACCESS_MODE=invite` plus `SIGNUP_ACCESS_TOKEN`.
 - Do not claim autonomous business intelligence, live website crawling, live social analysis, or guaranteed commercial outcomes.
 - Evidence is user-entered and profile-based unless a specific integration is explicitly implemented.
@@ -50,8 +50,10 @@ Navigation groups:
 ## Agentic Layer
 
 - `/api/diagnosis` is authenticated and workspace-bound.
-- It reads the saved business profile, applies a 5/hour per-user generation limit, calls Anthropic, validates the output with Zod, encrypts the stored result with `ENCRYPTION_KEY`, and persists metadata in Postgres.
-- The deterministic diagnosis/planning modules remain in place and should not be refactored casually.
+- It reads the saved business profile, applies a 5/hour per-user generation limit, tries Anthropic, validates output with Zod, encrypts the stored result with `ENCRYPTION_KEY`, and persists metadata in Postgres.
+- If Anthropic is unavailable or returns unusable output, `/api/diagnosis` must fall back to the FoundryOS deterministic strategist output instead of blocking the customer flow.
+- Every `/api/diagnosis` run must also create a compatible `diagnostic_results` record so roadmap, 30-day plan, assets, and SOP generation keep working from the latest diagnosis.
+- The deterministic diagnosis/planning modules remain in place as the compatibility and evidence layer. Do not refactor them casually.
 
 ## Operational Guardrails
 

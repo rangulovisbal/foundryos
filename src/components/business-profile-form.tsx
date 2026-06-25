@@ -1105,8 +1105,8 @@ function renderStepFields({
           <p className="text-sm text-muted">
             {copyForLanguage(
               language,
-              "Select one or more goals. These goals shape the deterministic diagnosis and first 30-day marketing plan.",
-              "Selecciona uno o más objetivos. Estos objetivos moldean el diagnóstico determinista y el primer plan de marketing de 30 días."
+              "Select one or more goals. These goals shape the marketing diagnosis and first 30-day marketing plan.",
+              "Selecciona uno o más objetivos. Estos objetivos moldean el diagnóstico de marketing y el primer plan de marketing de 30 días."
             )}
           </p>
         </div>

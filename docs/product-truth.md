@@ -1,9 +1,10 @@
 # Product Truth
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
-FoundryOS is a self-serve marketing diagnosis and 30-day planning product for
-early-stage small businesses and founder-led projects.
+FoundryOS is a founder-assisted marketing diagnosis and 30-day planning product
+for early-stage small businesses and founder-led projects during pilot
+validation.
 
 The useful promise is clarity: reflect the business situation, identify the
 main marketing gaps, and turn that into a plan the customer can act on this
@@ -11,13 +12,19 @@ week.
 
 ## Current Capabilities
 
-- Public account creation by default with `ACCESS_MODE=self_serve`.
+- Account creation routes exist, but pilot access should be assisted/manual
+  until self-serve launch is intentionally re-enabled.
 - Custom Postgres-backed auth and workspaces.
 - Structured marketing profile intake.
-- Deterministic diagnosis/planning/assets/SOP workflows remain intact.
-- Authenticated agentic diagnosis endpoint using Anthropic and Zod validation.
+- Deterministic diagnosis/planning/assets/SOP workflows remain intact as the
+  evidence and compatibility layer.
+- Authenticated `/api/diagnosis` endpoint uses Anthropic when configured, falls
+  back to FoundryOS deterministic strategist output when not, validates with
+  Zod, persists encrypted output, and creates a compatible diagnostic result for
+  downstream planning.
 - Durable Postgres rate limiting.
-- Stripe checkout path for configured paid plans.
+- Stripe checkout code exists but should remain disabled until billing,
+  provisioning, and webhook behavior are fully verified.
 
 ## Non-Promises
 

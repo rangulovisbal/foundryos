@@ -1,6 +1,6 @@
 # Production Readiness Checklist
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 ## Environment
 
@@ -17,14 +17,15 @@ Last updated: 2026-06-23
 ## Smoke Flow
 
 - [ ] Home loads.
-- [ ] Header shows Start free and Log in.
-- [ ] Signup works.
+- [ ] Header prioritizes request/join pilot access and Log in.
+- [ ] Signup works for invited/manual pilot users.
 - [ ] Email verification works.
 - [ ] Workspace setup works.
 - [ ] Profile saves without revenue/private financial fields.
 - [ ] `/api/diagnosis` returns a valid `DiagnosisOutput`.
+- [ ] `/api/diagnosis` creates a compatible diagnostic result for downstream modules.
 - [ ] 30-day plan generation works.
-- [ ] Billing checkout works when configured.
+- [ ] Billing checkout remains disabled until configured and verified.
 - [ ] Webhook marks workspace active for paid subscriptions.
 
 ## Safety

@@ -1,12 +1,12 @@
 # Product Requirements
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 ## Objective
 
-Build FoundryOS as a self-serve marketing diagnosis and 30-day planning product
-for early-stage small businesses with a real offer and no internal marketing
-team.
+Build FoundryOS as a founder-assisted marketing diagnosis and 30-day planning
+product for early-stage small businesses with a real offer and no internal
+marketing team. Self-serve SaaS can come after pilot validation.
 
 ## Core User
 
@@ -15,24 +15,26 @@ business, or early founder who needs marketing clarity.
 
 ## Primary Workflow
 
-1. Create account.
+1. Request/invite account access.
 2. Verify email.
 3. Create workspace.
 4. Complete marketing profile.
 5. Run diagnosis.
 6. Generate 30-day plan.
 7. Review supporting assets/routines.
-8. Upgrade through billing when checkout is configured.
+8. Move into paid/manual onboarding only when billing and provisioning are
+   verified.
 
 ## Requirements
 
 - FoundryOS naming only in public UI.
-- `ACCESS_MODE=self_serve` default, with optional invite-token mode.
+- Access should be framed as assisted pilot/design-partner access until launch.
 - No required revenue/private-financial fields.
 - Durable Postgres rate limiting on auth, snapshot, diagnosis, and billing paths.
 - `/api/diagnosis` must be authenticated, workspace-bound, rate limited, Zod
-  validated, and persisted encrypted.
+  validated, persisted encrypted, and must create a compatible diagnostic result
+  for downstream planning.
 - Stripe checkout must attach user/workspace metadata so webhooks can update
-  plan/account state.
+  plan/account state. Keep checkout disabled until verified.
 - Customer-facing output must avoid recommending internal implementation stack
   choices as marketing advice.

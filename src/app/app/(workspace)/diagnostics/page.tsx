@@ -14,6 +14,7 @@ import {
   Users
 } from "lucide-react";
 
+import { AgenticDiagnosisView } from "@/components/agentic-diagnosis-view";
 import { DiagnosticsRunButton } from "@/components/diagnostics-run-button";
 import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
 import {
@@ -27,9 +28,12 @@ import {
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import {
   getBusinessProfile,
+  getLatestAgenticDiagnosis,
   getLatestDiagnosticResult,
   listDiagnosticJobsWithResults
 } from "@/db/foundation";
+import { DiagnosisOutput } from "@/lib/agentic/schema";
+import { decryptJson } from "@/lib/crypto";
 import { requireWorkspaceContext } from "@/lib/auth";
 import {
   canManageWorkspace,
@@ -180,8 +184,8 @@ function trustNote(result: DiagnosticResultRecord, language: OutputLanguage) {
   }
 
   return language === "es"
-    ? "Esta lectura se genera de forma determinista a partir del perfil guardado; no es telemetría en vivo ni comprensión autónoma del negocio."
-    : "This read is generated deterministically from the saved profile; it is not live telemetry or autonomous business understanding.";
+    ? "Esta lectura se apoya en el perfil guardado y una capa de evidencia interna; no es telemetría en vivo ni comprensión autónoma del negocio."
+    : "This read is grounded in the saved profile and an internal evidence layer; it is not live telemetry or autonomous business understanding.";
 }
 
 function maturityNarrative(result: DiagnosticResultRecord, language: OutputLanguage) {
@@ -343,11 +347,28 @@ function localizeFindingSeverity(
 export default async function DiagnosticsPage() {
   const context = await requireWorkspaceContext("/app/diagnostics");
   const language = context.workspace.outputLanguage;
-  const [profile, latestResult, history] = await Promise.all([
+  const [profile, latestResult, latestAgentic, history] = await Promise.all([
     getBusinessProfile(context.workspace.id),
     getLatestDiagnosticResult(context.workspace.id),
+    getLatestAgenticDiagnosis(context.workspace.id),
     listDiagnosticJobsWithResults(context.workspace.id, 10)
   ]);
+
+  let agenticDiagnosis: DiagnosisOutput | null = null;
+  let agenticModel: string | undefined;
+  let agenticCreatedAtLabel: string | undefined;
+  if (latestAgentic) {
+    try {
+      agenticDiagnosis = DiagnosisOutput.parse(
+        decryptJson<unknown>(latestAgentic.outputCiphertext)
+      );
+      agenticModel = latestAgentic.model;
+      agenticCreatedAtLabel = formatDateTimeForLanguage(language, latestAgentic.createdAt);
+    } catch {
+      agenticDiagnosis = null;
+    }
+  }
+
   const counter = getUsageCounter(context, "diagnostic_runs");
   const canRun = canRunDiagnostics(context) && Boolean(profile);
   const disabledReason = resolveDisabledReason(context, Boolean(profile), language);
@@ -389,8 +410,8 @@ export default async function DiagnosticsPage() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
               {copyForLanguage(
                 language,
-                  "The diagnosis remains deterministic, but the presentation now separates score, evidence quality, uncertainty, and validation needs before anything feels like strong truth.",
-                  "El diagnóstico sigue siendo determinista, pero la presentación separa puntuación, calidad de evidencia, incertidumbre y validaciones pendientes antes de tratar algo como verdad fuerte."
+                  "The primary read is now strategic, while the evidence layer keeps score, uncertainty, and validation needs visible before anything feels like strong truth.",
+                  "La lectura principal ahora es estratégica, mientras la capa de evidencia mantiene visibles puntuación, incertidumbre y validaciones pendientes antes de tratar algo como verdad fuerte."
                 )}
               </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -552,15 +573,53 @@ export default async function DiagnosticsPage() {
         </FoundrySectionCard>
       ) : null}
 
-      {latestResult ? <LatestResult language={language} result={latestResult} /> : null}
+      {agenticDiagnosis ? (
+        <AgenticDiagnosisView
+          diagnosis={agenticDiagnosis}
+          language={language}
+          model={agenticModel}
+          createdAtLabel={agenticCreatedAtLabel}
+        />
+      ) : null}
 
-      {latestResult ? (
+      {latestAgentic ? (
+        <OutputFeedbackWidget
+          workspaceId={context.workspace.id}
+          moduleType="agentic_diagnosis"
+          outputId={latestAgentic.id}
+          language={language}
+        />
+      ) : latestResult ? (
         <OutputFeedbackWidget
           workspaceId={context.workspace.id}
           moduleType="diagnostic"
           outputId={latestResult.id}
           language={language}
         />
+      ) : null}
+
+      {latestResult ? (
+        <details className="surface overflow-hidden" id="deterministic-scoring">
+          <summary className="cursor-pointer px-6 py-5 text-left md:px-8">
+            <p className="text-sm uppercase tracking-[0.18em] text-muted">
+              {copyForLanguage(
+                language,
+                "Scoring & evidence detail (deterministic)",
+                "Detalle de scoring y evidencia (determinista)"
+              )}
+            </p>
+            <p className="mt-2 text-sm text-muted">
+              {copyForLanguage(
+                language,
+                "Expand for the deterministic scoring layer: category breakdown, evidence quality, and validation needs.",
+                "Despliega para la capa determinista de scoring: desglose por categorías, calidad de evidencia y validaciones pendientes."
+              )}
+            </p>
+          </summary>
+          <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <LatestResult language={language} result={latestResult} />
+          </div>
+        </details>
       ) : null}
 
       <details className="surface overflow-hidden" id="diagnostic-history">
@@ -687,8 +746,8 @@ function LatestResult({
         <FoundryMetricCard
           detail={copyForLanguage(
             language,
-            "Immediate actions suggested by the deterministic scoring layer.",
-            "Las acciones inmediatas sugeridas por la capa determinista de puntuación."
+            "Immediate actions suggested by the evidence scoring layer.",
+            "Las acciones inmediatas sugeridas por la capa de puntuación de evidencia."
           )}
           icon={RefreshCw}
           label={copyForLanguage(language, "Next 30 days", "Siguiente 30 días")}

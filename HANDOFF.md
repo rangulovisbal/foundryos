@@ -1,82 +1,73 @@
 # HANDOFF
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 ## 1. What Was Completed
 
-- Applied the FoundryOS agentic/self-serve alignment package through code and docs.
-- Added Anthropic dependency and production audit override cleanup.
-- Added durable Postgres rate limiting with `rate_limit_hits`.
-- Added `ACCESS_MODE=self_serve` default and optional invite-token signup mode.
-- Removed `budgetBand` / monthly revenue-style intake from the app model.
-- Added authenticated `/api/diagnosis` with Anthropic, Zod validation, 5/hour user limit, encrypted persistence, and workspace/user linkage.
-- Added authenticated `/api/billing/checkout` and Stripe webhook workspace activation updates.
-- Updated public CTAs/copy to Start free + Log in.
-- Updated CSP to nonce-based policy without `unsafe-inline` / `unsafe-eval`.
-- Added backup/restore, secret-rotation, and agentic execution docs.
+- Sharpened the FoundryOS agentic system prompt for senior marketing diagnosis.
+- Added a customer-facing agentic diagnosis view in the workspace diagnostics page.
+- Changed the diagnostics run button to call `/api/diagnosis`.
+- Added `getLatestAgenticDiagnosis()` and decrypt/display logic for saved agentic output.
+- Added `src/lib/agentic/fallback.ts`: a structured FoundryOS fallback that returns the same 7-dimension diagnosis schema when Anthropic is unavailable.
+- Updated `/api/diagnosis` so every run also creates a compatible deterministic `diagnostic_results` record. This unblocks roadmap, 30-day plan, assets, and SOP generation after the new agentic diagnosis path.
+- Added server logging when the Anthropic provider fails and the fallback is used.
+- Updated core docs for the agentic/fallback/compatibility behavior.
 
 ## 2. Current Project Status
 
-- Branch: `main`
-- Working tree has local changes for this package.
-- `npm run typecheck`: passed.
-- `npm run lint`: passed with no warnings.
-- `npm run build`: passed.
-- `npm audit --omit=dev`: passed with `found 0 vulnerabilities`.
-- Public smoke passed for `/`, `/signup`, `/onboarding`, `/pricing`, and `/api/snapshot`.
-- SQL migration file exists: `drizzle/0013_rate_limit_and_agentic.sql`.
-- Migration could not be applied yet because the Vercel `DATABASE_URL` currently fails provider authentication with `tenant/user ... not found`.
+- Branch: `main`.
+- Core smoke passed locally against the pulled production `DATABASE_URL` with a temporary test user that was deleted after the run.
+- Smoke path passed: home -> signup -> preview verify -> workspace -> profile -> `/api/diagnosis` -> `/api/app/actions/generate` -> `/app/diagnostics`.
+- `/api/diagnosis` returned `source: deterministic_fallback` because `ANTHROPIC_API_KEY` is empty in the pulled production env and local shell.
+- The fallback still produced a valid saved diagnosis, a compatible `diagnosticResultId`, and a 4-week 30-day plan.
+- Confirmed DB tables exist: `rate_limit_hits`, `agentic_diagnoses`, `diagnostic_jobs`, `diagnostic_results`, `planning_jobs`, `action_plans`, `thirty_day_plans`.
 
 ## 3. Pending Tasks
 
-- Fix `DATABASE_URL` in Vercel/local env.
-- Re-run the SQL migration and confirm `rate_limit_hits` exists.
-- Smoke test signup -> verify -> workspace -> profile -> `/api/diagnosis` -> plan -> checkout after DB config is fixed.
-- Verify Stripe webhook events update workspace plan/account state in production.
+- Set a real `ANTHROPIC_API_KEY` in Vercel production and preview if the LLM strategist layer should run instead of fallback.
+- Set `ENCRYPTION_KEY` and `APP_SECRET` in Vercel preview; production has them, preview does not.
+- Decide whether the default model `claude-sonnet-4-6` should stay or be replaced after Anthropic is actually configured and tested.
+- Re-run smoke after Anthropic is configured and confirm `/api/diagnosis` returns `source: anthropic`.
+- Public-site access copy still needs a separate review if assisted-pilot framing should replace remaining `Start free` / self-serve language.
 
 ## 4. Important Architectural Decisions
 
 - Auth remains custom Postgres-backed auth, not Supabase Auth.
 - Postgres via `DATABASE_URL` is canonical.
-- Internal plan key `growth-os` remains compatibility-only for FoundryOS Core.
-- `APP_SECRET` is used to HMAC-hash rate-limit buckets.
-- `ENCRYPTION_KEY` encrypts persisted agentic diagnosis output.
-- Deterministic diagnosis/planning/assets/SOP logic remains intact.
-- Agentic output is a controlled layer behind auth, rate limits, Zod schema, and encrypted persistence.
+- `agentic_diagnoses` stores encrypted strategic diagnosis output with `ENCRYPTION_KEY`.
+- `/api/diagnosis` is now the primary run path, but it also writes a deterministic compatibility diagnostic result.
+- The deterministic diagnosis/planning modules remain the evidence and compatibility layer for downstream modules.
+- Anthropic is preferred when configured; FoundryOS deterministic fallback keeps the product usable when the provider is unavailable.
+- Internal plan key `growth-os` remains compatibility-only.
 
 ## 5. Files Modified
 
-Major areas:
-
-- package/dependency files
-- `.env.example`
-- `drizzle/0013_rate_limit_and_agentic.sql`
-- `src/db/schema.ts`
+- `src/app/api/diagnosis/route.ts`
+- `src/lib/agentic/fallback.ts`
+- `src/components/agentic-diagnosis-view.tsx`
+- `src/components/diagnostics-run-button.tsx`
 - `src/db/foundation.ts`
-- `src/lib/rate-limit.ts`
-- `src/lib/access.ts`
-- `src/lib/crypto.ts`
-- `src/lib/agentic/*`
-- auth API routes
-- `/api/diagnosis`
-- billing checkout/webhook code
-- profile/onboarding/public/pricing/header/footer copy
-- CSP middleware
-- docs and runbooks
+- `src/app/app/(workspace)/diagnostics/page.tsx`
+- `src/app/app/(workspace)/dashboard/page.tsx`
+- `src/components/business-profile-form.tsx`
+- `docs/agentic-execution.md`
+- `docs/current-product-conventions.md`
+- `HANDOFF.md`
+- `docs/RICARDO-NEXT-STEPS.md`
+- `AGENTS.md`
+- `CLAUDE.md`
 
 ## 6. Known Issues Or Blockers
 
-- The pulled Vercel production and preview env both expose a `DATABASE_URL`, but connecting fails with the provider error `tenant/user ... not found`.
-- Local `.env.local` has an empty `DATABASE_URL`; the embedded PGlite data directory currently aborts when opened, so local signup POST could not be fully smoked without resetting local dev data.
-- Because of that external DB config issue, `rate_limit_hits` has not been confirmed in the target database yet.
-- `/api/diagnosis` requires `ANTHROPIC_API_KEY` and `ENCRYPTION_KEY` at runtime.
-- Paid checkout requires Stripe env, price IDs, and webhook secret before `ENABLE_STRIPE_CHECKOUT=true`.
+- Anthropic is not active in the tested env because `ANTHROPIC_API_KEY` is empty.
+- Preview env is missing `ENCRYPTION_KEY` and `APP_SECRET`, so `/api/diagnosis` cannot persist encrypted output there until those are set.
+- Local `.env.local` still has empty `DATABASE_URL` and `ANTHROPIC_API_KEY`, so local unaided app usage falls back or blocks depending on route.
+- Stripe remains disabled/not verified for live billing. Do not enable checkout until billing/provisioning/webhooks are fully tested.
 
 ## 7. Recommended Next Steps
 
-1. Correct `DATABASE_URL`.
-2. Apply `drizzle/0013_rate_limit_and_agentic.sql`.
-3. Confirm `rate_limit_hits` exists.
-4. Re-run full validation after DB fix if code changes.
-5. Run authenticated browser/API smoke tests.
-6. Commit and push once the DB blocker is accepted or resolved.
+1. Add `ANTHROPIC_API_KEY` to production and preview.
+2. Add `ENCRYPTION_KEY` and `APP_SECRET` to preview.
+3. Re-run `/api/diagnosis` smoke and verify `source: anthropic`.
+4. Review one real Spanish pilot output for specificity, evidence honesty, and useful 30-day sequencing.
+5. Run a focused public-access copy pass if the current deployment must read as assisted pilot rather than self-serve.

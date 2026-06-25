@@ -482,8 +482,8 @@ export default async function WorkspaceDashboardPage() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
               {copyForLanguage(
                 language,
-                "A summary-first view of the latest saved profile, deterministic marketing diagnosis, planning artifacts, and evidence basis. No mock data, no hidden integrations.",
-                "Una vista primero-resumen del perfil guardado, diagnóstico de marketing determinista, artefactos de planificación y base de evidencia. Sin datos simulados ni integraciones ocultas."
+                "A summary-first view of the latest saved profile, marketing diagnosis, planning artifacts, and evidence basis. No mock data, no hidden integrations.",
+                "Una vista primero-resumen del perfil guardado, diagnóstico de marketing, artefactos de planificación y base de evidencia. Sin datos simulados ni integraciones ocultas."
               )}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -565,8 +565,8 @@ export default async function WorkspaceDashboardPage() {
           }
           detail={copyForLanguage(
             language,
-            "Overall maturity reflects the latest deterministic marketing diagnosis.",
-            "La madurez general refleja el último diagnóstico de marketing determinista."
+            "Overall maturity reflects the latest saved diagnostic baseline.",
+            "La madurez general refleja la última línea base diagnóstica guardada."
           )}
           icon={Activity}
           label={copyForLanguage(language, "Health score", "Puntuación general")}
@@ -959,8 +959,8 @@ export default async function WorkspaceDashboardPage() {
               <p className="mt-4 text-sm leading-7 text-muted">
                 {copyForLanguage(
                   language,
-                  "This dashboard uses the saved profile, deterministic diagnostic scoring, and the latest planning artifacts. It is not using live telemetry or hidden external data.",
-                  "Este panel usa el perfil guardado, la puntuación diagnóstica determinista y los últimos artefactos de planificación. No usa telemetría en vivo ni datos externos ocultos."
+                  "This dashboard uses the saved profile, the diagnostic evidence layer, and the latest planning artifacts. It is not using live telemetry or hidden external data.",
+                  "Este panel usa el perfil guardado, la capa de evidencia diagnóstica y los últimos artefactos de planificación. No usa telemetría en vivo ni datos externos ocultos."
                 )}
               </p>
             </>

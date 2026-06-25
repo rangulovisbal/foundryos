@@ -1,14 +1,29 @@
 import { z } from "zod";
 
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import {
   createAgenticDiagnosisRecord,
-  getBusinessProfile
+  createDiagnosticJob,
+  createDiagnosticResult,
+  getBusinessProfile,
+  incrementWorkspaceUsageCounter,
+  updateDiagnosticJob
 } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
 import type { IntakeProfile } from "@/lib/agentic/schema";
+import { buildFallbackDiagnosisOutput } from "@/lib/agentic/fallback";
 import { runAgenticDiagnosis } from "@/lib/agentic/engine";
 import { encryptJson } from "@/lib/crypto";
-import { canAccessWorkspace } from "@/lib/foundation";
+import { buildDiagnosticResult } from "@/lib/diagnostics";
+import { getErrorMessage } from "@/lib/errors";
+import {
+  canAccessWorkspace,
+  canRunDiagnostics,
+  getUsageCounter,
+  type BusinessProfileRecord,
+  type DiagnosticJobRecord,
+  type WorkspaceRecord
+} from "@/lib/foundation";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { noStoreJson, publicErrorJson } from "@/lib/http";
 
@@ -79,12 +94,83 @@ function rateLimitResponse(result: Awaited<ReturnType<typeof rateLimit>>) {
   );
 }
 
+async function createCompatibilityDiagnosticResult({
+  workspace,
+  requestedByUserId,
+  profile
+}: {
+  workspace: WorkspaceRecord;
+  requestedByUserId: string | null;
+  profile: BusinessProfileRecord;
+}) {
+  const now = new Date().toISOString();
+  const job: DiagnosticJobRecord = {
+    id: crypto.randomUUID(),
+    workspaceId: workspace.id,
+    requestedByUserId,
+    status: "queued",
+    jobType: "agentic_diagnosis_compatibility",
+    error: null,
+    startedAt: null,
+    completedAt: null,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  await createDiagnosticJob(job);
+
+  try {
+    await updateDiagnosticJob(job.id, {
+      status: "processing",
+      startedAt: new Date().toISOString()
+    });
+
+    const result = buildDiagnosticResult({
+      jobId: job.id,
+      workspace,
+      profile
+    });
+
+    await createDiagnosticResult(result);
+    await updateDiagnosticJob(job.id, {
+      status: "completed",
+      completedAt: new Date().toISOString()
+    });
+
+    return result;
+  } catch (error) {
+    await updateDiagnosticJob(job.id, {
+      status: "failed",
+      error: getErrorMessage(error, "Agentic diagnosis compatibility layer failed."),
+      completedAt: new Date().toISOString()
+    });
+    throw error;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const context = await getCurrentWorkspaceContext();
 
     if (!context || !canAccessWorkspace(context.workspace.accountState)) {
       return noStoreJson({ error: "Authentication required." }, { status: 401 });
+    }
+
+    if (!canRunDiagnostics(context)) {
+      const counter = getUsageCounter(context, "diagnostic_runs");
+      const limitMessage = counter
+        ? `Diagnostic run limit reached: ${counter.usedCount}/${counter.limitCount}.`
+        : "Diagnostic run entitlement is missing for this workspace.";
+
+      return noStoreJson(
+        {
+          error:
+            context.workspace.accountState === "past_due"
+              ? "Diagnostics are read-only while the workspace is past due."
+              : limitMessage
+        },
+        { status: 403 }
+      );
     }
 
     const ipLimit = await rateLimit(`diagnosis:ip:${clientIp(request)}`, 20, 3600);
@@ -127,7 +213,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await runAgenticDiagnosis(intake);
+    let result: Awaited<ReturnType<typeof runAgenticDiagnosis>>;
+    let source: "anthropic" | "deterministic_fallback" = "anthropic";
+
+    try {
+      result = await runAgenticDiagnosis(intake);
+    } catch (error) {
+      console.warn("Agentic diagnosis provider failed; using FoundryOS fallback.", {
+        message: getErrorMessage(error, "Agentic provider unavailable.")
+      });
+      source = "deterministic_fallback";
+      result = {
+        model: "foundryos-deterministic-fallback",
+        output: buildFallbackDiagnosisOutput({
+          profile,
+          workspace: context.workspace,
+          intake
+        })
+      };
+    }
+
+    const diagnosticResult = await createCompatibilityDiagnosticResult({
+      workspace: context.workspace,
+      requestedByUserId: context.user.id,
+      profile
+    });
+
     const record = await createAgenticDiagnosisRecord({
       workspaceId: context.workspace.id,
       requestedByUserId: context.user.id,
@@ -139,10 +250,33 @@ export async function POST(request: Request) {
       model: result.model
     });
 
+    await incrementWorkspaceUsageCounter(context.workspace.id, "diagnostic_runs");
+
+    await captureAnalyticsEvent({
+      event: "diagnostic_generated",
+      distinctId: context.user.id,
+      properties: {
+        user_id: context.user.id,
+        workspace_id: context.workspace.id,
+        job_id: diagnosticResult.jobId,
+        workspace_plan: context.workspace.plan,
+        account_state: context.workspace.accountState,
+        output_language: context.workspace.outputLanguage,
+        overall_maturity_score: diagnosticResult.overallMaturityScore,
+        confidence: diagnosticResult.confidence,
+        agentic_record_id: record.id,
+        agentic_model: result.model,
+        agentic_source: source,
+        agentic_confidence: result.output.overall_confidence
+      }
+    });
+
     return noStoreJson({
       ok: true,
       diagnosis: result.output,
       recordId: record.id,
+      diagnosticResultId: diagnosticResult.id,
+      source,
       model: result.model
     });
   } catch (error) {

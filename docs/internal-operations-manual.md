@@ -1,11 +1,12 @@
 # Internal Operations Manual
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 ## Normal Access
 
-FoundryOS uses self-serve account creation by default. Use `ACCESS_MODE=invite`
-only when a deployment needs restricted access.
+FoundryOS should run as assisted/manual pilot access until self-serve launch is
+intentionally re-enabled. Keep signup framed for invited or manually onboarded
+pilot users.
 
 ## Support
 
@@ -18,6 +19,7 @@ credentials exist, price IDs are configured, and the webhook has been verified.
 
 ## Diagnosis Review
 
-The product can generate deterministic and agentic outputs. Review customer
-outputs for specificity, evidence linkage, and overconfidence, especially while
-the workflow is still being validated.
+The product can generate Anthropic-backed or deterministic-fallback strategic
+diagnosis output. Review customer outputs for specificity, evidence linkage,
+useful 30-day sequencing, and overconfidence while the workflow is still being
+validated.

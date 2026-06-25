@@ -29,7 +29,7 @@ Initial pilots should include creators, service businesses, boutique projects, l
 
 ### Free Assisted Pilot
 
-- self-serve starter validation
+- assisted design-partner validation
 - guided intake
 - deterministic draft generation
 - founder review

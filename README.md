@@ -1,19 +1,21 @@
 # FoundryOS
 
-Self-serve marketing diagnosis and 30-day marketing planning for early-stage
-small businesses and founder-led projects.
+Founder-assisted marketing diagnosis and 30-day marketing planning for
+early-stage small businesses and founder-led projects.
 
-FoundryOS uses structured business intake, deterministic product workflows, and
-an optional agentic diagnosis endpoint to turn saved marketing context into a
-clear diagnosis, first plan, supporting assets, and customer-facing routines.
+FoundryOS uses structured business intake, a strategic diagnosis endpoint,
+deterministic evidence/planning workflows, and optional Anthropic refinement to
+turn saved marketing context into a clear diagnosis, first plan, supporting
+assets, and customer-facing routines.
 
-Public access is self-serve by default through `ACCESS_MODE=self_serve`. Signup
-can still be restricted with `ACCESS_MODE=invite` and `SIGNUP_ACCESS_TOKEN` when
-a deployment needs controlled access.
+Pilot access should remain assisted/design-partner oriented until real customer
+outputs prove the workflow. Signup routes can still support invited users.
 
-Production deployment exists, but production readiness still depends on a valid
-`DATABASE_URL`, email delivery, database migrations, Stripe price/webhook
-configuration when checkout is enabled, and end-to-end flow verification.
+Production deployment exists. The core diagnosis-to-plan smoke path has passed
+against the pulled production database. Full production readiness still depends
+on final environment configuration, email delivery, Anthropic configuration,
+Stripe price/webhook verification when checkout is enabled, and repeated
+end-to-end flow verification.
 
 ## Local Development
 

@@ -31,10 +31,13 @@ export function DiagnosticsRunButton({
     setMessage(null);
 
     try {
-      const response = await fetch("/api/app/diagnostics/run", {
+      const response = await fetch("/api/diagnosis", {
         method: "POST"
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = (await response.json()) as {
+        error?: string;
+        source?: "anthropic" | "deterministic_fallback";
+      };
 
       if (!response.ok) {
         throw new Error(
@@ -45,11 +48,17 @@ export function DiagnosticsRunButton({
 
       setMessageTone("success");
       setMessage(
-        copyForLanguage(
-          language,
-          "Marketing diagnosis completed and saved.",
-          "El diagnóstico de marketing se completó y quedó guardado."
-        )
+        payload.source === "deterministic_fallback"
+          ? copyForLanguage(
+              language,
+              "Marketing diagnosis completed with the FoundryOS fallback and saved.",
+              "El diagnóstico de marketing se completó con el fallback de FoundryOS y quedó guardado."
+            )
+          : copyForLanguage(
+              language,
+              "Marketing diagnosis completed and saved.",
+              "El diagnóstico de marketing se completó y quedó guardado."
+            )
       );
       router.refresh();
     } catch (error) {

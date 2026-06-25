@@ -16,7 +16,8 @@
 - Email verification and password reset
 - HTTP-only session cookies
 - Workspace, membership, invitation, role, plan, and account-state tables
-- `ACCESS_MODE=self_serve` by default; optional invite-token restriction
+- Signup routes exist, but pilot access should be assisted/invited until
+  self-serve launch is intentionally re-enabled.
 
 ### 3. Truth And Diagnosis Layer
 
@@ -57,6 +58,8 @@
 - Local development fallback: embedded PGlite
 - Durable rate limiting: `rate_limit_hits`
 - Agentic persistence: `agentic_diagnoses` with encrypted output ciphertext
+- Compatibility baseline: `/api/diagnosis` also writes `diagnostic_results` so
+  planning, assets, and SOPs can keep using the existing deterministic pipeline.
 
 ## Legacy Internal Keys
 
@@ -68,6 +71,8 @@
 ## Current Integration Decisions
 
 - Anthropic powers `/api/diagnosis` when `ANTHROPIC_API_KEY` is configured.
+  If it is unavailable, FoundryOS returns a structured deterministic fallback
+  diagnosis instead of blocking the workflow.
 - `FOUNDRYOS_MODEL` defaults to `claude-sonnet-4-6`.
 - Stripe checkout is active only when `ENABLE_STRIPE_CHECKOUT=true` and credentials/price IDs are configured.
 - Supabase Auth is not used.

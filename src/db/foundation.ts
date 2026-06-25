@@ -1178,6 +1178,31 @@ export async function createAgenticDiagnosisRecord(input: {
   };
 }
 
+export async function getLatestAgenticDiagnosis(workspaceId: string) {
+  const db = await requireDb("agentic diagnosis lookup");
+  const rows = await db
+    .select()
+    .from(agenticDiagnoses)
+    .where(eq(agenticDiagnoses.workspaceId, workspaceId))
+    .orderBy(desc(agenticDiagnoses.createdAt))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    outputCiphertext: row.outputCiphertext,
+    outputSummary: row.outputSummary,
+    overallConfidence: row.overallConfidence,
+    model: row.model,
+    createdAt:
+      row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt)
+  };
+}
+
 export async function createDiagnosticJob(record: DiagnosticJobRecord) {
   const db = await requireDb("diagnostic job persistence");
 
