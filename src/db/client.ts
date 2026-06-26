@@ -81,7 +81,13 @@ async function createDb() {
 
 export async function getDb() {
   if (!dbPromise) {
-    dbPromise = createDb();
+    dbPromise = createDb().catch((error) => {
+      // Don't cache a rejected connection: a transient failure (network blip,
+      // PGlite data dir abort, momentary auth error) would otherwise poison this
+      // instance permanently. Reset so the next call retries.
+      dbPromise = null;
+      throw error;
+    });
   }
 
   return dbPromise;

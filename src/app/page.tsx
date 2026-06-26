@@ -240,6 +240,10 @@ export default async function HomePage() {
       <script
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         nonce={nonce}
+        // React 19 clears the nonce attribute on the client for security, so the
+        // server (nonce set) and client (nonce blanked) markup differ. This is a
+        // benign, expected mismatch for a non-executed JSON-LD data block.
+        suppressHydrationWarning
         type="application/ld+json"
       />
 
