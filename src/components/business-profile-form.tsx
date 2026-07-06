@@ -211,8 +211,8 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
       label: copyForLanguage(language, "Message, CTA, and proof", "Mensaje, CTA y evidencia"),
       description: copyForLanguage(
         language,
-        "Add the visible message, CTA, and public channel evidence a reviewer would check first. This does not fetch or verify live data yet.",
-        "Añade el mensaje visible, el CTA y la evidencia pública de canales que un revisor miraría primero. Todavía no se consulta ni verifica información en vivo."
+        "Add the visible message, CTA, and public channel evidence a reviewer would check first. FoundryOS will read this page to ground your diagnosis.",
+        "Añade el mensaje visible, el CTA y la evidencia pública de canales que un revisor miraría primero. FoundryOS leerá esta página para fundamentar tu diagnóstico."
       ),
       fields: [
         "positioningStatement",
@@ -938,8 +938,8 @@ function renderStepFields({
           <p className="text-sm text-muted">
             {copyForLanguage(
               language,
-              "These fields are user-entered evidence only. FoundryOS does not crawl or verify the URLs yet.",
-              "Estos campos son evidencia introducida por el usuario. FoundryOS todavía no rastrea ni verifica las URLs."
+              "FoundryOS will read this page to ground your diagnosis.",
+              "FoundryOS leerá esta página para fundamentar tu diagnóstico."
             )}
           </p>
         </div>

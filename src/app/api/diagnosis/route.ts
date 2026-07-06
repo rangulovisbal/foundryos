@@ -12,6 +12,7 @@ import {
 import { getCurrentWorkspaceContext } from "@/lib/auth";
 import type { IntakeProfile } from "@/lib/agentic/schema";
 import { buildFallbackDiagnosisOutput } from "@/lib/agentic/fallback";
+import { fetchEvidenceFromUrl } from "@/lib/agentic/evidence";
 import { runAgenticDiagnosis } from "@/lib/agentic/engine";
 import { encryptJson } from "@/lib/crypto";
 import { buildDiagnosticResult } from "@/lib/diagnostics";
@@ -78,6 +79,28 @@ function buildIntakeProfile(
     ]),
     language
   };
+}
+
+async function appendFetchedWebsiteEvidence(
+  intake: IntakeProfile,
+  profile: BusinessProfileRecord
+) {
+  const urls = [profile.website, profile.channelUrls[0]]
+    .map((value) => value?.trim())
+    .filter((value): value is string =>
+      Boolean(value && /^https?:\/\//i.test(value))
+    )
+    .slice(0, 2);
+
+  const fetched = await Promise.all(
+    urls.map(async (url) => ({ url, text: await fetchEvidenceFromUrl(url) }))
+  );
+
+  for (const { url, text } of fetched) {
+    if (text) {
+      intake.evidence.push(`Observed website content (fetched from ${url}): ${text}`);
+    }
+  }
 }
 
 function rateLimitResponse(result: Awaited<ReturnType<typeof rateLimit>>) {
@@ -212,6 +235,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    await appendFetchedWebsiteEvidence(intake, profile);
 
     let result: Awaited<ReturnType<typeof runAgenticDiagnosis>>;
     let source: "anthropic" | "deterministic_fallback" = "anthropic";
