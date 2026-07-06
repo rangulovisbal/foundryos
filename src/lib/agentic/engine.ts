@@ -47,6 +47,18 @@ ANTI-PATTERNS (never do these):
 
 Return only valid JSON for the requested schema. Write in the intake language (Spanish intake -> Spanish output).`;
 
+const REVIEWER = `You are the quality reviewer for FoundryOS marketing diagnoses. You receive the founder's intake and a draft diagnosis JSON. Your job is to make the draft meet FoundryOS quality bars, rewriting whatever falls short, and return ONLY the corrected JSON in the same schema.
+
+QUALITY BARS - check each one:
+1. SPECIFICITY: every finding, bottleneck and task must name something concrete about THIS business (its offer, audience, channel, stage, geography). Rewrite anything that could apply to any business.
+2. FOUNDER'S QUESTIONS: every challenge the founder stated (e.g. "I don't know what to post", "I don't know how to price it") must be answered concretely somewhere in the summary, bottlenecks, plan or assets. If the schema includes a founder_answers array, it must contain one entry per stated challenge, each with a concrete answer.
+3. PASTEABLE ASSETS: every asset must be finished copy usable today - a real one-liner, a real CTA, a real post, a real email with subject and body. Rewrite frameworks, descriptions or placeholders into the actual words.
+4. EXECUTABLE PLAN: every task doable by one person, with an objective done_when. Sequence: foundations -> proof/conversion -> reach -> measurement closing the loop.
+5. NO HEDGING: remove any variant of "validate first", "evidence weak", "do not claim", "provisional". Assumptions are stated once, in one short clause, then the advice proceeds.
+6. LANGUAGE: the output language matches the intake language.
+
+Do not add commentary. Return only the corrected JSON.`;
+
 function getAnthropicClient() {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -108,30 +120,30 @@ function parseOutput(text: string): DiagnosisOutput {
   return DiagnosisOutput.parse(JSON.parse(text.slice(start, end + 1)));
 }
 
-export async function runAgenticDiagnosis(intake: IntakeProfile) {
-  const client = getAnthropicClient();
-  const model = getAgenticModel();
-  const userPrompt = promptForIntake(intake);
+const MAX_TOKENS = 5000;
 
+async function createAndParse(
+  client: Anthropic,
+  model: string,
+  system: string,
+  userPrompt: string
+) {
   const first = await client.messages.create({
     model,
-    max_tokens: 5000,
+    max_tokens: MAX_TOKENS,
     temperature: 0.2,
-    system: SYSTEM,
+    system,
     messages: [{ role: "user", content: userPrompt }]
   });
 
   try {
-    return {
-      model,
-      output: parseOutput(extractText(first.content))
-    };
+    return parseOutput(extractText(first.content));
   } catch (firstError) {
     const repair = await client.messages.create({
       model,
-      max_tokens: 5000,
+      max_tokens: MAX_TOKENS,
       temperature: 0,
-      system: SYSTEM,
+      system,
       messages: [
         { role: "user", content: userPrompt },
         {
@@ -147,12 +159,30 @@ export async function runAgenticDiagnosis(intake: IntakeProfile) {
     });
 
     try {
-      return {
-        model,
-        output: parseOutput(extractText(repair.content))
-      };
+      return parseOutput(extractText(repair.content));
     } catch {
       throw firstError;
     }
+  }
+}
+
+export async function runAgenticDiagnosis(intake: IntakeProfile) {
+  const client = getAnthropicClient();
+  const model = getAgenticModel();
+
+  const draft = await createAndParse(client, model, SYSTEM, promptForIntake(intake));
+
+  try {
+    const reviewed = await createAndParse(
+      client,
+      model,
+      REVIEWER,
+      `Intake:\n${JSON.stringify(intake, null, 2)}\n\nDraft:\n${JSON.stringify(draft)}`
+    );
+
+    return { model, output: reviewed };
+  } catch {
+    // The review pass must never make the result worse than the draft.
+    return { model, output: draft };
   }
 }
