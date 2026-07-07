@@ -6,15 +6,17 @@ import {
   createDiagnosticJob,
   createDiagnosticResult,
   getBusinessProfile,
+  getLatestAgenticDiagnosis,
   incrementWorkspaceUsageCounter,
+  listWorkspaceOutputFeedback,
   updateDiagnosticJob
 } from "@/db/foundation";
 import { getCurrentWorkspaceContext } from "@/lib/auth";
-import type { IntakeProfile } from "@/lib/agentic/schema";
+import { DiagnosisOutput, type IntakeProfile } from "@/lib/agentic/schema";
 import { buildFallbackDiagnosisOutput } from "@/lib/agentic/fallback";
 import { fetchEvidenceFromUrl } from "@/lib/agentic/evidence";
 import { runAgenticDiagnosis } from "@/lib/agentic/engine";
-import { encryptJson } from "@/lib/crypto";
+import { decryptJson, encryptJson } from "@/lib/crypto";
 import { buildDiagnosticResult } from "@/lib/diagnostics";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -101,6 +103,63 @@ async function appendFetchedWebsiteEvidence(
       intake.evidence.push(`Observed website content (fetched from ${url}): ${text}`);
     }
   }
+}
+
+async function buildPreviousCycleBlock(workspaceId: string) {
+  let previous: Awaited<ReturnType<typeof getLatestAgenticDiagnosis>>;
+
+  try {
+    previous = await getLatestAgenticDiagnosis(workspaceId);
+  } catch {
+    return null;
+  }
+
+  if (!previous) {
+    return null;
+  }
+
+  const lines = [
+    "PREVIOUS CYCLE (use to adapt, not to repeat):",
+    `- Prior summary: ${previous.outputSummary}`
+  ];
+
+  try {
+    const parsed = DiagnosisOutput.safeParse(decryptJson(previous.outputCiphertext));
+    if (parsed.success) {
+      lines.push(
+        `- Prior scores: ${parsed.data.scores
+          .map((score) => `${score.dimension} ${score.score}`)
+          .join(", ")}`
+      );
+    }
+  } catch {
+    // Prior record could not be decrypted; continue without scores.
+  }
+
+  try {
+    const feedback = await listWorkspaceOutputFeedback(workspaceId);
+    const latestByModule = new Map<string, string>();
+    for (const item of feedback) {
+      if (!latestByModule.has(item.moduleType)) {
+        latestByModule.set(item.moduleType, item.label);
+      }
+    }
+    if (latestByModule.size > 0) {
+      lines.push(
+        `- Founder feedback on modules: ${[...latestByModule.entries()]
+          .map(([moduleType, label]) => `${moduleType}=${label}`)
+          .join(", ")}`
+      );
+    }
+  } catch {
+    // Feedback lookup failed; continue without it.
+  }
+
+  lines.push(
+    '- Guidance: acknowledge progress since the last cycle, never repeat identical advice, go deeper wherever feedback said "generic", and widen scope where the founder executed.'
+  );
+
+  return lines.join("\n");
 }
 
 function rateLimitResponse(result: Awaited<ReturnType<typeof rateLimit>>) {
@@ -237,12 +296,13 @@ export async function POST(request: Request) {
     }
 
     await appendFetchedWebsiteEvidence(intake, profile);
+    const previousCycle = await buildPreviousCycleBlock(context.workspace.id);
 
     let result: Awaited<ReturnType<typeof runAgenticDiagnosis>>;
     let source: "anthropic" | "deterministic_fallback" = "anthropic";
 
     try {
-      result = await runAgenticDiagnosis(intake);
+      result = await runAgenticDiagnosis(intake, previousCycle);
     } catch (error) {
       console.warn("Agentic diagnosis provider failed; using FoundryOS fallback.", {
         message: getErrorMessage(error, "Agentic provider unavailable.")

@@ -2075,6 +2075,26 @@ export async function listAdminOutputFeedback(limit = 20) {
   );
 }
 
+export async function listWorkspaceOutputFeedback(workspaceId: string, limit = 50) {
+  const db = await requireDb("workspace output feedback lookup");
+  const rows = await db
+    .select({
+      moduleType: outputFeedback.moduleType,
+      label: outputFeedback.label,
+      submittedAt: outputFeedback.submittedAt
+    })
+    .from(outputFeedback)
+    .where(eq(outputFeedback.workspaceId, workspaceId))
+    .orderBy(desc(outputFeedback.submittedAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    moduleType: row.moduleType,
+    label: row.label,
+    submittedAt: row.submittedAt.toISOString()
+  }));
+}
+
 export async function listAdminDiagnosticJobs(limit = 20) {
   const db = await requireDb("admin diagnostic job lookup");
   const rows = await db

@@ -73,7 +73,7 @@ export function getAgenticModel() {
   return process.env.FOUNDRYOS_MODEL || "claude-sonnet-4-6";
 }
 
-function promptForIntake(intake: IntakeProfile) {
+function promptForIntake(intake: IntakeProfile, previousCycle?: string | null) {
   return `Create a FoundryOS diagnosis as JSON.
 
 Schema:
@@ -99,7 +99,7 @@ Rules:
 Important: The founder's stated challenges and 30-day goal are your brief - address them directly in the summary, bottlenecks and plan. If offer or audience are missing, assume the most likely one from the rest, say so in one clause, and still give concrete guidance. Assets must be finished copy the founder can paste today, not descriptions or frameworks.
 
 Intake:
-${JSON.stringify(intake, null, 2)}`;
+${JSON.stringify(intake, null, 2)}${previousCycle ? `\n\n${previousCycle}` : ""}`;
 }
 
 function extractText(content: Anthropic.Messages.Message["content"]) {
@@ -166,11 +166,19 @@ async function createAndParse(
   }
 }
 
-export async function runAgenticDiagnosis(intake: IntakeProfile) {
+export async function runAgenticDiagnosis(
+  intake: IntakeProfile,
+  previousCycle?: string | null
+) {
   const client = getAnthropicClient();
   const model = getAgenticModel();
 
-  const draft = await createAndParse(client, model, SYSTEM, promptForIntake(intake));
+  const draft = await createAndParse(
+    client,
+    model,
+    SYSTEM,
+    promptForIntake(intake, previousCycle)
+  );
 
   try {
     const reviewed = await createAndParse(
