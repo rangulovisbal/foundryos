@@ -1,73 +1,36 @@
 # HANDOFF
 
-Last updated: 2026-06-25
+Last updated: 2026-07-07
 
-## 1. What Was Completed
+## 1. What Was Completed (Cerebro v3 + UX pass)
 
-- Sharpened the FoundryOS agentic system prompt for senior marketing diagnosis.
-- Added a customer-facing agentic diagnosis view in the workspace diagnostics page.
-- Changed the diagnostics run button to call `/api/diagnosis`.
-- Added `getLatestAgenticDiagnosis()` and decrypt/display logic for saved agentic output.
-- Added `src/lib/agentic/fallback.ts`: a structured FoundryOS fallback that returns the same 7-dimension diagnosis schema when Anthropic is unavailable.
-- Updated `/api/diagnosis` so every run also creates a compatible deterministic `diagnostic_results` record. This unblocks roadmap, 30-day plan, assets, and SOP generation after the new agentic diagnosis path.
-- Added server logging when the Anthropic provider fails and the fallback is used.
-- Updated core docs for the agentic/fallback/compatibility behavior.
+- Added a second self-review pass (`REVIEWER` prompt) to `src/lib/agentic/engine.ts`. The reviewer receives intake + draft, enforces quality bars, and the pipeline falls back to the first draft if the review pass fails — never worse than before.
+- Added `src/lib/agentic/evidence.ts`: `/api/diagnosis` now fetches up to 2 founder URLs (profile website + first channel URL) and appends the page text to the intake evidence. Intake copy updated ("FoundryOS leerá esta página para fundamentar tu diagnóstico.").
+- Added cycle memory: `/api/diagnosis` builds a `PREVIOUS CYCLE` block (prior summary, prior 7 scores from the decrypted last record, latest per-module founder feedback, tasks marked done) and appends it to the engine user prompt on re-runs. First run per workspace is unchanged.
+- Added `founder_answers` to `DiagnosisOutput` (with `.default([])` so old encrypted records still parse), the engine prompt, and the deterministic fallback (one concrete answer per stated challenge).
+- Rebuilt `/app/diagnostics` UX to be verdict-first: Veredicto → 3 cuellos de botella → Esta semana (week-1 tasks with `done_when` + CTA to `/app/actions`) → Respuestas a tus dudas → 7 dimensiones → Punto de partida (discreet average). The hero never shows the deterministic score when an agentic record exists; the deterministic detail stays collapsed at the end.
+- Assets page: each agentic asset card now has a Copiar/Copy button (clipboard, "Copiado ✓" ~2s).
+- Actions page: each agentic plan task shows `done_when` plus a persisted "hecho" checkbox backed by the new `plan_task_progress` table (`drizzle/0014_plan_task_progress.sql`), `POST /api/app/plan/task-done`, and `listPlanTaskProgress`/`setPlanTaskDone` helpers. Done tasks feed the next cycle's PREVIOUS CYCLE block.
+- Intake step 4 (Oferta y audiencia) got the subtitle "Esto es lo que más mejora tu diagnóstico".
+- `FOUNDRYOS_MODEL=claude-fable-5` set in Vercel Production and Preview via CLI (the variable existed but was empty).
 
 ## 2. Current Project Status
 
-- Branch: `main`.
-- Core smoke passed locally against the pulled production `DATABASE_URL` with a temporary test user that was deleted after the run.
-- Smoke path passed: home -> signup -> preview verify -> workspace -> profile -> `/api/diagnosis` -> `/api/app/actions/generate` -> `/app/diagnostics`.
-- `/api/diagnosis` returned `source: deterministic_fallback` because `ANTHROPIC_API_KEY` is empty in the pulled production env and local shell.
-- The fallback still produced a valid saved diagnosis, a compatible `diagnosticResultId`, and a 4-week 30-day plan.
-- Confirmed DB tables exist: `rate_limit_hits`, `agentic_diagnoses`, `diagnostic_jobs`, `diagnostic_results`, `planning_jobs`, `action_plans`, `thirty_day_plans`.
+- Branch `main`, pushed; Vercel production deploy is Ready.
+- Full local smoke passed on a fresh embedded DB: signup → preview verify → workspace → profile (with challenges + website) → `/api/diagnosis` → `source: deterministic_fallback` with 7 scores, 4 weeks, assets, SOPs, and 2 `founder_answers` → task-done checkbox persisted → diagnostics/actions/assets pages render the new UX. Second run exercised the PREVIOUS CYCLE path without errors. Temp user removed with the throwaway DB.
+- `typecheck`, `lint`, `build`, and `npm audit --omit=dev` all green.
 
-## 3. Pending Tasks
+## 3. Known Issues Or Blockers
 
-- Set a real `ANTHROPIC_API_KEY` in Vercel production and preview if the LLM strategist layer should run instead of fallback.
-- Set `ENCRYPTION_KEY` and `APP_SECRET` in Vercel preview; production has them, preview does not.
-- Decide whether the default model `claude-sonnet-4-6` should stay or be replaced after Anthropic is actually configured and tested.
-- Re-run smoke after Anthropic is configured and confirm `/api/diagnosis` returns `source: anthropic`.
-- Public-site access copy still needs a separate review if assisted-pilot framing should replace remaining `Start free` / self-serve language.
+- **Production database is unreachable.** The Supabase project `psqputuljgqfmvmhvizy` does not resolve (NXDOMAIN) and the pooler answers `(ENOTFOUND) tenant/user postgres.psqputuljgqfmvmhvizy not found` — the project appears paused or deleted. Production signup/diagnosis will fail until Ricardo restores it in the Supabase dashboard (or points `DATABASE_URL` at a live database).
+- **Migration `0014_plan_task_progress.sql` is NOT applied to the remote database** for the same reason. Apply it once the DB is back (script pattern: execute the SQL statements from the migration file against `DATABASE_URL`).
+- `ANTHROPIC_API_KEY` exists in Vercel but its value is an **empty string**, so `/api/diagnosis` always falls back deterministically. Set the real key (plus credits) to activate the LLM strategist + reviewer passes.
+- Local `data/foundation-db` (PGlite) is corrupt from an earlier session (`Aborted()` on first query). Delete the folder to let dev recreate it if local embedded runs are needed.
+- Preview env still missing `ENCRYPTION_KEY` and `APP_SECRET`. Stripe remains disabled.
 
-## 4. Important Architectural Decisions
+## 4. Recommended Next Steps
 
-- Auth remains custom Postgres-backed auth, not Supabase Auth.
-- Postgres via `DATABASE_URL` is canonical.
-- `agentic_diagnoses` stores encrypted strategic diagnosis output with `ENCRYPTION_KEY`.
-- `/api/diagnosis` is now the primary run path, but it also writes a deterministic compatibility diagnostic result.
-- The deterministic diagnosis/planning modules remain the evidence and compatibility layer for downstream modules.
-- Anthropic is preferred when configured; FoundryOS deterministic fallback keeps the product usable when the provider is unavailable.
-- Internal plan key `growth-os` remains compatibility-only.
-
-## 5. Files Modified
-
-- `src/app/api/diagnosis/route.ts`
-- `src/lib/agentic/fallback.ts`
-- `src/components/agentic-diagnosis-view.tsx`
-- `src/components/diagnostics-run-button.tsx`
-- `src/db/foundation.ts`
-- `src/app/app/(workspace)/diagnostics/page.tsx`
-- `src/app/app/(workspace)/dashboard/page.tsx`
-- `src/components/business-profile-form.tsx`
-- `docs/agentic-execution.md`
-- `docs/current-product-conventions.md`
-- `HANDOFF.md`
-- `docs/RICARDO-NEXT-STEPS.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-
-## 6. Known Issues Or Blockers
-
-- Anthropic is not active in the tested env because `ANTHROPIC_API_KEY` is empty.
-- Preview env is missing `ENCRYPTION_KEY` and `APP_SECRET`, so `/api/diagnosis` cannot persist encrypted output there until those are set.
-- Local `.env.local` still has empty `DATABASE_URL` and `ANTHROPIC_API_KEY`, so local unaided app usage falls back or blocks depending on route.
-- Stripe remains disabled/not verified for live billing. Do not enable checkout until billing/provisioning/webhooks are fully tested.
-
-## 7. Recommended Next Steps
-
-1. Add `ANTHROPIC_API_KEY` to production and preview.
-2. Add `ENCRYPTION_KEY` and `APP_SECRET` to preview.
-3. Re-run `/api/diagnosis` smoke and verify `source: anthropic`.
-4. Review one real Spanish pilot output for specificity, evidence honesty, and useful 30-day sequencing.
-5. Run a focused public-access copy pass if the current deployment must read as assisted pilot rather than self-serve.
+1. Restore/unpause the Supabase project (or provision a new Postgres and update `DATABASE_URL` in Vercel).
+2. Apply `drizzle/0014_plan_task_progress.sql` to the restored database.
+3. Set a real `ANTHROPIC_API_KEY` value in production and preview.
+4. Re-run the production smoke and confirm `source: anthropic` plus a reviewed, specific Spanish output.
