@@ -8,6 +8,7 @@ import {
   getBusinessProfile,
   getLatestAgenticDiagnosis,
   incrementWorkspaceUsageCounter,
+  listPlanTaskProgress,
   listWorkspaceOutputFeedback,
   updateDiagnosticJob
 } from "@/db/foundation";
@@ -153,6 +154,20 @@ async function buildPreviousCycleBlock(workspaceId: string) {
     }
   } catch {
     // Feedback lookup failed; continue without it.
+  }
+
+  try {
+    const progress = await listPlanTaskProgress(workspaceId, previous.id);
+    const doneTitles = progress
+      .filter((entry) => entry.done)
+      .map((entry) => entry.taskTitle);
+    if (doneTitles.length > 0) {
+      lines.push(
+        `- Tasks the founder marked done last cycle: ${doneTitles.join(", ")}`
+      );
+    }
+  } catch {
+    // Task progress lookup failed; continue without it.
   }
 
   lines.push(

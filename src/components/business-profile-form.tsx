@@ -63,6 +63,7 @@ type ProfileStepKey =
 type StepDefinition = {
   key: ProfileStepKey;
   label: string;
+  subtitle?: string;
   description: string;
   fields: Array<keyof ProfileDraft>;
 };
@@ -235,6 +236,11 @@ function getWizardSteps(language: OutputLanguage): StepDefinition[] {
     {
       key: "offer-audience",
       label: copyForLanguage(language, "Offer and audience", "Oferta y audiencia"),
+      subtitle: copyForLanguage(
+        language,
+        "This is what most improves your diagnosis",
+        "Esto es lo que más mejora tu diagnóstico"
+      ),
       description: copyForLanguage(
         language,
         "Describe what the company sells, who it is built for, and how the buyer sees the price or ticket model.",
@@ -1576,6 +1582,11 @@ export function BusinessProfileForm({
                 <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
                   {activeDefinition.label}
                 </h3>
+                {activeDefinition.subtitle ? (
+                  <p className="mt-2 text-sm font-semibold text-ink">
+                    {activeDefinition.subtitle}
+                  </p>
+                ) : null}
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
                   {activeDefinition.description}
                 </p>

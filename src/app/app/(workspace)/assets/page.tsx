@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CopyTextButton } from "@/components/copy-text-button";
 import { DownstreamTrustPanel } from "@/components/downstream-trust-panel";
 import { LockedStatePanel } from "@/components/locked-state-panel";
 import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
@@ -285,6 +286,7 @@ export default async function AssetsPage() {
         <AgenticAssetsSection
           assets={agenticDiagnosis.assets}
           createdAt={latestAgentic?.createdAt}
+          language={context.workspace.outputLanguage}
           model={latestAgentic?.model}
         />
       ) : latestAssets.length > 0 ? (
@@ -381,10 +383,12 @@ function SecondaryLink({ href, label }: { href: string; label: string }) {
 function AgenticAssetsSection({
   assets,
   createdAt,
+  language,
   model
 }: {
   assets: DiagnosisOutputData["assets"];
   createdAt?: string;
+  language: "en" | "es";
   model?: string;
 }) {
   const assetTypes = Array.from(new Set(assets.map((asset) => formatAgenticAssetType(asset.type))));
@@ -435,11 +439,20 @@ function AgenticAssetsSection({
             className="rounded-[28px] border border-[color:var(--border)] bg-white/90 p-6 shadow-[0_18px_45px_-32px_rgba(5,26,36,0.65)]"
             key={`${asset.type}-${index}`}
           >
-            <div className="flex flex-wrap gap-2">
-              <span className="pill bg-white text-ink">
-                {formatAgenticAssetType(asset.type)}
-              </span>
-              <span className="pill bg-sand text-ink">from diagnosis</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                <span className="pill bg-white text-ink">
+                  {formatAgenticAssetType(asset.type)}
+                </span>
+                <span className="pill bg-sand text-ink">
+                  {language === "es" ? "del diagnóstico" : "from diagnosis"}
+                </span>
+              </div>
+              <CopyTextButton
+                copiedLabel={language === "es" ? "Copiado ✓" : "Copied ✓"}
+                label={language === "es" ? "Copiar" : "Copy"}
+                text={asset.text}
+              />
             </div>
             <p className="mt-5 whitespace-pre-wrap text-base leading-8 text-ink">
               {asset.text}

@@ -41,6 +41,11 @@ export const Sop = z.object({
   steps: z.array(z.string()).min(2)
 });
 
+export const FounderAnswer = z.object({
+  question: z.string(),
+  answer: z.string()
+});
+
 export const DiagnosisOutput = z.object({
   summary: z.string(),
   overall_confidence: z.enum(["low", "medium", "high"]),
@@ -48,7 +53,8 @@ export const DiagnosisOutput = z.object({
   top_bottlenecks: z.array(z.string()).min(1).max(3),
   plan_30d: z.array(PlanWeek).length(4),
   assets: z.array(Asset).min(3),
-  sops: z.array(Sop).min(1)
+  sops: z.array(Sop).min(1),
+  founder_answers: z.array(FounderAnswer).default([])
 });
 
 export type DiagnosisOutput = z.infer<typeof DiagnosisOutput>;

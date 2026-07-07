@@ -86,12 +86,14 @@ Schema:
   "top_bottlenecks": string[1..3],
   "plan_30d": [{"week": 1-4, "focus": string, "tasks": [{"title": string, "why": string, "effort": "S" | "M" | "L", "done_when": string}]}],
   "assets": [{"type": "one_liner" | "cta" | "headline" | "content_idea" | "email", "text": string}],
-  "sops": [{"name": string, "steps": string[]}]
+  "sops": [{"name": string, "steps": string[]}],
+  "founder_answers": [{"question": string, "answer": string}]
 }
 
 Rules:
 - Return exactly seven scores: offer, audience, message, channel, conversion, social_proof, measurement.
 - Return exactly four plan_30d weeks.
+- founder_answers: one entry per challenge the founder stated in the intake, each answer concrete and specific to this business.
 - Keep the plan actionable for this week and the next 30 days.
 - Recommended tools should be customer-facing marketing and measurement basics: simple landing page, Instagram/LinkedIn/WhatsApp follow-up, email list or waitlist, basic analytics/UTM tracking, feedback collection, or a simple CRM/sheet only when relevant.
 - Do not recommend Next.js, Vercel, Postgres, Stripe, PostHog, n8n, Supabase, Neon, or developer infrastructure unless directly requested.

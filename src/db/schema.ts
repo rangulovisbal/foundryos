@@ -292,6 +292,34 @@ export const agenticDiagnoses = pgTable(
   ]
 );
 
+export const planTaskProgress = pgTable(
+  "plan_task_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    agenticDiagnosisId: uuid("agentic_diagnosis_id")
+      .notNull()
+      .references(() => agenticDiagnoses.id, { onDelete: "cascade" }),
+    week: integer("week").notNull(),
+    taskTitle: text("task_title").notNull(),
+    done: boolean("done").default(false).notNull(),
+    updatedByUserId: uuid("updated_by_user_id").references(() => appUsers.id, {
+      onDelete: "set null"
+    }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("plan_task_progress_task_idx").on(
+      table.agenticDiagnosisId,
+      table.week,
+      table.taskTitle
+    ),
+    index("plan_task_progress_workspace_idx").on(table.workspaceId)
+  ]
+);
+
 export const diagnosticJobs = pgTable(
   "diagnostic_jobs",
   {

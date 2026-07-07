@@ -1,9 +1,10 @@
+import Link from "next/link";
+
 import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
-  FileText,
-  Megaphone,
+  MessageCircleQuestion,
   Sparkles
 } from "lucide-react";
 
@@ -33,17 +34,6 @@ const dimensionLabels: Record<
   measurement: { en: "Measurement", es: "Medición" }
 };
 
-const assetLabels: Record<
-  DiagnosisOutput["assets"][number]["type"],
-  { en: string; es: string }
-> = {
-  one_liner: { en: "One-liner", es: "Frase clave" },
-  cta: { en: "CTA", es: "Llamada a la acción" },
-  headline: { en: "Headline", es: "Titular" },
-  content_idea: { en: "Content idea", es: "Idea de contenido" },
-  email: { en: "Email", es: "Email" }
-};
-
 function scoreTone(score: number): FoundryStatusTone {
   if (score >= 75) return "success";
   if (score >= 50) return "warning";
@@ -70,6 +60,13 @@ function localizeEffort(effort: Effort, language: OutputLanguage) {
   return effort === "S" ? "Low" : effort === "M" ? "Medium" : "High";
 }
 
+function averageScore(scores: DiagnosisOutput["scores"]) {
+  if (scores.length === 0) return 0;
+  return Math.round(
+    scores.reduce((total, score) => total + score.score, 0) / scores.length
+  );
+}
+
 export function AgenticDiagnosisView({
   diagnosis,
   language,
@@ -81,14 +78,17 @@ export function AgenticDiagnosisView({
   model?: string;
   createdAtLabel?: string;
 }) {
+  const weekOne = diagnosis.plan_30d.find((week) => week.week === 1);
+  const startingPoint = averageScore(diagnosis.scores);
+
   return (
     <section className="space-y-6" id="agentic-diagnosis">
       <FoundrySectionCard
-        title={copyForLanguage(language, "Strategic diagnosis", "Diagnóstico estratégico")}
+        title={copyForLanguage(language, "Verdict", "Veredicto")}
         description={copyForLanguage(
           language,
-          "Senior-strategist read of this specific business: cause over symptom, sequenced plan, and honest confidence.",
-          "Lectura de estratega senior para este negocio concreto: causa sobre síntoma, plan secuenciado y confianza honesta."
+          "Senior-strategist read of this specific business: cause over symptom.",
+          "Lectura de estratega senior para este negocio concreto: causa sobre síntoma."
         )}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -103,39 +103,132 @@ export function AgenticDiagnosisView({
           </div>
         }
       >
-        <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-5">
+        <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 p-6">
           <div className="flex items-center gap-2 text-muted">
             <Sparkles className="h-4 w-4" />
             <p className="text-xs font-semibold uppercase tracking-[0.18em]">
-              {copyForLanguage(language, "Summary", "Resumen")}
+              {copyForLanguage(language, "The verdict", "El veredicto")}
             </p>
           </div>
-          <p className="mt-3 text-base leading-7 text-ink">{diagnosis.summary}</p>
+          <p className="mt-4 text-xl font-medium leading-9 tracking-[-0.01em] text-ink md:text-2xl md:leading-10">
+            {diagnosis.summary}
+          </p>
         </div>
-
-        {diagnosis.top_bottlenecks.length > 0 ? (
-          <div className="mt-5">
-            <div className="flex items-center gap-2 text-muted">
-              <AlertTriangle className="h-4 w-4" />
-              <p className="text-xs font-semibold uppercase tracking-[0.18em]">
-                {copyForLanguage(language, "Top bottlenecks", "Cuellos de botella principales")}
-              </p>
-            </div>
-            <div className="mt-3 grid gap-3 md:grid-cols-3">
-              {diagnosis.top_bottlenecks.map((bottleneck, index) => (
-                <article
-                  className="rounded-[22px] border border-gold/30 bg-gold/10 p-4"
-                  key={`bottleneck-${index}`}
-                >
-                  <p className="text-sm font-semibold leading-6 text-ink">
-                    {index + 1}. {bottleneck}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        ) : null}
       </FoundrySectionCard>
+
+      {diagnosis.top_bottlenecks.length > 0 ? (
+        <FoundrySectionCard
+          title={copyForLanguage(
+            language,
+            "Your 3 bottlenecks",
+            "Tus 3 cuellos de botella"
+          )}
+          description={copyForLanguage(
+            language,
+            "The blockers that actually move the needle for this business.",
+            "Los bloqueos que de verdad mueven la aguja en este negocio."
+          )}
+        >
+          <div className="grid gap-3 md:grid-cols-3">
+            {diagnosis.top_bottlenecks.map((bottleneck, index) => (
+              <article
+                className="rounded-[22px] border border-gold/30 bg-gold/10 p-5"
+                key={`bottleneck-${index}`}
+              >
+                <div className="flex items-center gap-2 text-muted">
+                  <AlertTriangle className="h-4 w-4" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em]">
+                    {index + 1}
+                  </p>
+                </div>
+                <p className="mt-3 text-sm font-semibold leading-6 text-ink">
+                  {bottleneck}
+                </p>
+              </article>
+            ))}
+          </div>
+        </FoundrySectionCard>
+      ) : null}
+
+      {weekOne ? (
+        <FoundrySectionCard
+          title={copyForLanguage(language, "This week", "Esta semana")}
+          description={weekOne.focus}
+          actions={
+            <Link
+              className="inline-flex items-center rounded-[24px] bg-ink px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-sand"
+              href="/app/actions"
+            >
+              {copyForLanguage(language, "View full plan", "Ver plan completo")}
+            </Link>
+          }
+        >
+          <div className="grid gap-3 md:grid-cols-3">
+            {weekOne.tasks.map((task, index) => (
+              <article
+                className="rounded-[22px] border border-[color:var(--border)] bg-white/90 p-5"
+                key={`week1-task-${index}`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-muted">
+                    <CalendarDays className="h-4 w-4" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em]">
+                      {copyForLanguage(language, "Week 1", "Semana 1")}
+                    </p>
+                  </div>
+                  <FoundryStatusChip tone="neutral">
+                    {copyForLanguage(language, "Effort", "Esfuerzo")}:{" "}
+                    {localizeEffort(task.effort, language)}
+                  </FoundryStatusChip>
+                </div>
+                <h3 className="mt-3 text-sm font-semibold text-ink">{task.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{task.why}</p>
+                <div className="mt-3 flex items-start gap-2 text-sm leading-6 text-ink">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                  <p>
+                    <span className="font-semibold">
+                      {copyForLanguage(language, "Done when", "Hecho cuando")}:
+                    </span>{" "}
+                    {task.done_when}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </FoundrySectionCard>
+      ) : null}
+
+      {diagnosis.founder_answers.length > 0 ? (
+        <FoundrySectionCard
+          title={copyForLanguage(
+            language,
+            "Answers to your questions",
+            "Respuestas a tus dudas"
+          )}
+          description={copyForLanguage(
+            language,
+            "Each challenge you named, answered concretely for this business.",
+            "Cada duda que marcaste, respondida en concreto para este negocio."
+          )}
+        >
+          <div className="grid gap-3 md:grid-cols-2">
+            {diagnosis.founder_answers.map((entry, index) => (
+              <article
+                className="rounded-[22px] border border-[color:var(--border)] bg-white/90 p-5"
+                key={`founder-answer-${index}`}
+              >
+                <div className="flex items-start gap-2 text-muted">
+                  <MessageCircleQuestion className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p className="text-sm font-semibold leading-6 text-ink">
+                    {entry.question}
+                  </p>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-muted">{entry.answer}</p>
+              </article>
+            ))}
+          </div>
+        </FoundrySectionCard>
+      ) : null}
 
       <FoundrySectionCard
         title={copyForLanguage(language, "The 7 dimensions", "Las 7 dimensiones")}
@@ -184,119 +277,22 @@ export function AgenticDiagnosisView({
         </div>
       </FoundrySectionCard>
 
-      <FoundrySectionCard
-        title={copyForLanguage(language, "30-day plan", "Plan de 30 días")}
-        description={copyForLanguage(
-          language,
-          "Sequenced by dependency: foundations first, then proof and conversion, then reach, with measurement closing the loop.",
-          "Secuenciado por dependencia: primero los fundamentos, luego prueba y conversión, después alcance, con la medición cerrando el ciclo."
-        )}
-      >
-        <div className="space-y-4">
-          {diagnosis.plan_30d.map((week) => (
-            <div
-              className="rounded-[24px] border border-[color:var(--border)] bg-white/90 p-5"
-              key={`week-${week.week}`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl border border-[color:var(--border)] bg-sand/60 p-2.5 text-ink">
-                  <CalendarDays className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-                    {copyForLanguage(language, "Week", "Semana")} {week.week}
-                  </p>
-                  <h3 className="text-base font-semibold text-ink">{week.focus}</h3>
-                </div>
-              </div>
-              <div className="mt-4 space-y-3">
-                {week.tasks.map((task, index) => (
-                  <article
-                    className="rounded-[20px] border border-[color:var(--border)] bg-sand/45 p-4"
-                    key={`week-${week.week}-task-${index}`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 className="text-sm font-semibold text-ink">{task.title}</h4>
-                      <FoundryStatusChip tone="neutral">
-                        {copyForLanguage(language, "Effort", "Esfuerzo")}:{" "}
-                        {localizeEffort(task.effort, language)}
-                      </FoundryStatusChip>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-muted">{task.why}</p>
-                    <div className="mt-3 flex items-start gap-2 text-sm leading-6 text-ink">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                      <p>
-                        <span className="font-semibold">
-                          {copyForLanguage(language, "Done when", "Hecho cuando")}:
-                        </span>{" "}
-                        {task.done_when}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          ))}
+      <div className="rounded-[24px] border border-[color:var(--border)] bg-white/85 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+            {copyForLanguage(language, "Starting point", "Punto de partida")}
+          </p>
+          <FoundryStatusChip tone={scoreTone(startingPoint)}>
+            {startingPoint}/100
+          </FoundryStatusChip>
+          <p className="text-sm leading-6 text-muted">
+            {copyForLanguage(
+              language,
+              "Average of the 7 dimensions. It exists to measure progress between cycles, not to judge the business.",
+              "Media de las 7 dimensiones. Sirve para medir progreso entre ciclos, no para juzgar el negocio."
+            )}
+          </p>
         </div>
-      </FoundrySectionCard>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <FoundrySectionCard
-          title={copyForLanguage(language, "Ready-to-use assets", "Activos listos para usar")}
-          description={copyForLanguage(
-            language,
-            "Copy you can paste today, written for this business.",
-            "Textos que puedes pegar hoy, escritos para este negocio."
-          )}
-        >
-          <div className="space-y-3">
-            {diagnosis.assets.map((asset, index) => {
-              const label = assetLabels[asset.type];
-              return (
-                <article
-                  className="rounded-[20px] border border-[color:var(--border)] bg-white/90 p-4"
-                  key={`asset-${index}`}
-                >
-                  <div className="flex items-center gap-2 text-muted">
-                    <Megaphone className="h-4 w-4" />
-                    <FoundryStatusChip tone="info">
-                      {language === "es" ? label.es : label.en}
-                    </FoundryStatusChip>
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-ink">{asset.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </FoundrySectionCard>
-
-        <FoundrySectionCard
-          title={copyForLanguage(language, "Standard operating procedures", "Procedimientos (SOPs)")}
-          description={copyForLanguage(
-            language,
-            "Repeatable routines the owner can run alone.",
-            "Rutinas repetibles que el dueño puede ejecutar solo."
-          )}
-        >
-          <div className="space-y-3">
-            {diagnosis.sops.map((sop, index) => (
-              <article
-                className="rounded-[20px] border border-[color:var(--border)] bg-white/90 p-4"
-                key={`sop-${index}`}
-              >
-                <div className="flex items-center gap-2 text-ink">
-                  <FileText className="h-4 w-4 text-muted" />
-                  <h3 className="text-sm font-semibold">{sop.name}</h3>
-                </div>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-muted">
-                  {sop.steps.map((step, stepIndex) => (
-                    <li key={`sop-${index}-step-${stepIndex}`}>{step}</li>
-                  ))}
-                </ol>
-              </article>
-            ))}
-          </div>
-        </FoundrySectionCard>
       </div>
     </section>
   );

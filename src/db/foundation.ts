@@ -18,6 +18,7 @@ import {
   outputFeedback,
   passwordResetTokens,
   planningJobs,
+  planTaskProgress,
   roadmaps,
   sopArtifacts,
   sopJobs,
@@ -2073,6 +2074,64 @@ export async function listAdminOutputFeedback(limit = 20) {
         : null
     })
   );
+}
+
+export async function listPlanTaskProgress(
+  workspaceId: string,
+  agenticDiagnosisId: string
+) {
+  const db = await requireDb("plan task progress lookup");
+  const rows = await db
+    .select({
+      week: planTaskProgress.week,
+      taskTitle: planTaskProgress.taskTitle,
+      done: planTaskProgress.done
+    })
+    .from(planTaskProgress)
+    .where(
+      and(
+        eq(planTaskProgress.workspaceId, workspaceId),
+        eq(planTaskProgress.agenticDiagnosisId, agenticDiagnosisId)
+      )
+    );
+
+  return rows;
+}
+
+export async function setPlanTaskDone(input: {
+  workspaceId: string;
+  agenticDiagnosisId: string;
+  week: number;
+  taskTitle: string;
+  done: boolean;
+  updatedByUserId: string | null;
+}) {
+  const db = await requireDb("plan task progress persistence");
+  const now = new Date();
+
+  await db
+    .insert(planTaskProgress)
+    .values({
+      workspaceId: input.workspaceId,
+      agenticDiagnosisId: input.agenticDiagnosisId,
+      week: input.week,
+      taskTitle: input.taskTitle,
+      done: input.done,
+      updatedByUserId: input.updatedByUserId,
+      updatedAt: now
+    })
+    .onConflictDoUpdate({
+      target: [
+        planTaskProgress.agenticDiagnosisId,
+        planTaskProgress.week,
+        planTaskProgress.taskTitle
+      ],
+      set: {
+        done: input.done,
+        updatedByUserId: input.updatedByUserId,
+        updatedAt: now
+      }
+    });
 }
 
 export async function listWorkspaceOutputFeedback(workspaceId: string, limit = 50) {

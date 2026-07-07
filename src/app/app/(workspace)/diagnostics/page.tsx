@@ -435,7 +435,35 @@ export default async function DiagnosticsPage() {
           </div>
 
           <div className="rounded-[30px] border border-white/10 bg-white/[0.09] p-5 backdrop-blur">
-            {latestResult ? (
+            {agenticDiagnosis ? (
+              <div className="space-y-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
+                    {copyForLanguage(
+                      language,
+                      "Latest strategic diagnosis",
+                      "Último diagnóstico estratégico"
+                    )}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+                    {localizeConfidence(agenticDiagnosis.overall_confidence, language)}{" "}
+                    {copyForLanguage(language, "confidence", "de confianza")}
+                  </h2>
+                  {agenticCreatedAtLabel ? (
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      {agenticCreatedAtLabel}
+                    </p>
+                  ) : null}
+                </div>
+                <p className="text-sm leading-7 text-white/68">
+                  {copyForLanguage(
+                    language,
+                    "The verdict, your bottlenecks, and this week's tasks are just below.",
+                    "El veredicto, tus cuellos de botella y las tareas de esta semana están justo debajo."
+                  )}
+                </p>
+              </div>
+            ) : latestResult ? (
               <div className="space-y-5">
                 <div className="flex items-center gap-5">
                   <div className="rounded-[28px] border border-white/10 bg-white/90 p-3 text-ink">

@@ -650,6 +650,67 @@ function buildSops(input: {
   ];
 }
 
+function buildFounderAnswers(input: {
+  challenges: string[];
+  offer: string;
+  audience: string;
+  channel: string;
+  language: IntakeProfile["language"];
+}): DiagnosisOutputValue["founder_answers"] {
+  const { challenges, offer, audience, channel, language } = input;
+  const es = language === "es";
+
+  return challenges
+    .map((challenge) => challenge.trim())
+    .filter(Boolean)
+    .map((challenge) => {
+      const normalized = challenge.toLowerCase();
+
+      if (/post|publicar|contenido|content|qué decir|what to say/.test(normalized)) {
+        return {
+          question: challenge,
+          answer: es
+            ? `Publica en ${channel} sobre un solo dolor real de ${audience} por pieza: el problema, cómo ${offer} lo resuelve y una pregunta que abra conversación. Tres piezas por semana con ese patrón bastan para empezar.`
+            : `Post on ${channel} about one real ${audience} pain per piece: the problem, how ${offer} addresses it, and a question that opens a conversation. Three pieces a week with that pattern is enough to start.`
+        };
+      }
+
+      if (/preci|pricing|price|cobrar|charge|tarifa/.test(normalized)) {
+        return {
+          question: challenge,
+          answer: es
+            ? `Fija un precio ancla para ${offer} basado en el valor del resultado para ${audience}, ofrécelo a los tres próximos interesados y ajusta según la objeción real que aparezca; no según la intuición.`
+            : `Set an anchor price for ${offer} based on the value of the outcome for ${audience}, offer it to the next three interested people, and adjust based on the real objection that appears, not on gut feel.`
+        };
+      }
+
+      if (/canal|channel|d[oó]nde|where/.test(normalized)) {
+        return {
+          question: challenge,
+          answer: es
+            ? `Concentra el esfuerzo en ${channel}: es donde ${audience} ya está. Usa ese canal para capturar contacto con un CTA único y repite lo que genere conversación real.`
+            : `Concentrate effort on ${channel}: it is where ${audience} already is. Use that channel to capture contact with one CTA and repeat whatever creates a real conversation.`
+        };
+      }
+
+      if (/explicar|explain|mensaje|message|comunicar|describe/.test(normalized)) {
+        return {
+          question: challenge,
+          answer: es
+            ? `Explica ${offer} en una frase con comprador, dolor y resultado: "Ayudo a ${audience} a resolver su bloqueo principal con ${offer}". Usa esa frase igual en web, bio y mensajes hasta validar una mejor.`
+            : `Explain ${offer} in one sentence with buyer, pain, and outcome: "I help ${audience} solve their main blocker with ${offer}". Use that same sentence on the site, bio, and messages until a better one is proven.`
+        };
+      }
+
+      return {
+        question: challenge,
+        answer: es
+          ? `Trátalo como un problema de secuencia: primero deja nítida la oferta "${offer}" para ${audience}, luego junta prueba visible y un CTA único en ${channel}, y mide qué conversación aparece. El plan de 30 días ordena exactamente esos pasos.`
+          : `Treat it as a sequencing problem: first sharpen the offer "${offer}" for ${audience}, then add visible proof and one CTA on ${channel}, and measure which conversations appear. The 30-day plan sequences exactly those steps.`
+      };
+    });
+}
+
 function overallConfidence(scores: DiagnosisOutputValue["scores"]): Confidence {
   const value = scores.reduce((total, score) => {
     if (score.confidence === "high") return total + 2;
@@ -717,6 +778,13 @@ export function buildFallbackDiagnosisOutput({
     sops: buildSops({
       offer,
       audience,
+      language
+    }),
+    founder_answers: buildFounderAnswers({
+      challenges: profile.biggestBottlenecks,
+      offer,
+      audience,
+      channel,
       language
     })
   };

@@ -6,13 +6,15 @@ import { OutputFeedbackWidget } from "@/components/output-feedback-widget";
 import { PageSectionLinks } from "@/components/page-section-links";
 import { PageSummaryGrid } from "@/components/page-summary-grid";
 import { PlanningGenerateButton } from "@/components/planning-generate-button";
+import { PlanTaskDoneCheckbox } from "@/components/plan-task-done-checkbox";
 import {
   getBusinessProfile,
   getLatestAgenticDiagnosis,
   getLatestActionPlan,
   getLatestDiagnosticResult,
   getLatestThirtyDayPlan,
-  listPlanningJobsWithArtifacts
+  listPlanningJobsWithArtifacts,
+  listPlanTaskProgress
 } from "@/db/foundation";
 import { requireWorkspaceContext } from "@/lib/auth";
 import {
@@ -92,6 +94,16 @@ export default async function ActionsPage() {
   }
 
   const hasAgenticPlan = Boolean(agenticDiagnosis?.plan_30d.length);
+
+  let taskProgress: Awaited<ReturnType<typeof listPlanTaskProgress>> = [];
+  if (hasAgenticPlan && latestAgentic) {
+    try {
+      taskProgress = await listPlanTaskProgress(context.workspace.id, latestAgentic.id);
+    } catch {
+      // Progress table unavailable; render the plan without saved checkmarks.
+    }
+  }
+
   const canGenerate =
     !hasAgenticPlan &&
     canGenerateThirtyDayPlan(context) &&
@@ -263,11 +275,14 @@ export default async function ActionsPage() {
         <DownstreamTrustPanel language={context.workspace.outputLanguage} state={trustState} />
       ) : null}
 
-      {hasAgenticPlan && agenticDiagnosis ? (
+      {hasAgenticPlan && agenticDiagnosis && latestAgentic ? (
         <AgenticThirtyDayPlanSection
-          createdAt={latestAgentic?.createdAt}
-          model={latestAgentic?.model}
+          createdAt={latestAgentic.createdAt}
+          diagnosisId={latestAgentic.id}
+          language={context.workspace.outputLanguage}
+          model={latestAgentic.model}
           plan={agenticDiagnosis.plan_30d}
+          taskProgress={taskProgress}
         />
       ) : latestActionPlan ? (
         <ActionPlanSection actionPlan={latestActionPlan} />
@@ -311,14 +326,23 @@ export default async function ActionsPage() {
 
 function AgenticThirtyDayPlanSection({
   createdAt,
+  diagnosisId,
+  language,
   model,
-  plan
+  plan,
+  taskProgress
 }: {
   createdAt?: string;
+  diagnosisId: string;
+  language: "en" | "es";
   model?: string;
   plan: DiagnosisOutputData["plan_30d"];
+  taskProgress: Array<{ week: number; taskTitle: string; done: boolean }>;
 }) {
   const taskCount = plan.reduce((total, week) => total + week.tasks.length, 0);
+  const doneByKey = new Map(
+    taskProgress.map((entry) => [`${entry.week}::${entry.taskTitle}`, entry.done])
+  );
 
   return (
     <section className="space-y-6" id="agentic-thirty-day-plan">
@@ -372,8 +396,18 @@ function AgenticThirtyDayPlanSection({
                   <h4 className="mt-3 text-sm font-semibold text-ink">{task.title}</h4>
                   <p className="mt-2 text-sm leading-6 text-muted">{task.why}</p>
                   <p className="mt-3 text-sm leading-6 text-muted">
-                    <strong className="text-ink">Done when:</strong> {task.done_when}
+                    <strong className="text-ink">
+                      {language === "es" ? "Hecho cuando:" : "Done when:"}
+                    </strong>{" "}
+                    {task.done_when}
                   </p>
+                  <PlanTaskDoneCheckbox
+                    diagnosisId={diagnosisId}
+                    initialDone={doneByKey.get(`${week.week}::${task.title}`) ?? false}
+                    label={language === "es" ? "hecho" : "done"}
+                    taskTitle={task.title}
+                    week={week.week}
+                  />
                 </div>
               ))}
             </div>
