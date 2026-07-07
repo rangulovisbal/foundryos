@@ -19,18 +19,17 @@ Last updated: 2026-07-07
 - Branch `main`, pushed; Vercel production deploy is Ready.
 - Full local smoke passed on a fresh embedded DB: signup → preview verify → workspace → profile (with challenges + website) → `/api/diagnosis` → `source: deterministic_fallback` with 7 scores, 4 weeks, assets, SOPs, and 2 `founder_answers` → task-done checkbox persisted → diagnostics/actions/assets pages render the new UX. Second run exercised the PREVIOUS CYCLE path without errors. Temp user removed with the throwaway DB.
 - `typecheck`, `lint`, `build`, and `npm audit --omit=dev` all green.
+- **Production verified end-to-end (2026-07-07).** After Ricardo restored the Supabase project and set the real `ANTHROPIC_API_KEY`: migration `0014_plan_task_progress.sql` applied to the production DB (table confirmed), and the full smoke (temp user → verify → workspace → profile → `POST /api/diagnosis` on production) returned `source: anthropic`, `model: claude-fable-5` in ~139s with a high-quality Spanish diagnosis (7 scores, 4 weeks, 7 assets, 2 SOPs, 2 founder_answers, website evidence detected). Temp user deleted afterwards.
+- Two production fixes were required for Claude Fable 5: the model rejects sampling params, so `temperature` was removed from both engine calls in favor of `output_config: {effort: "low"}` (`d03ab9b`), and the two-pass run exceeds 60s, so `/api/diagnosis` `maxDuration` was raised to 300 (`717001e`).
 
 ## 3. Known Issues Or Blockers
 
-- **Production database is unreachable.** The Supabase project `psqputuljgqfmvmhvizy` does not resolve (NXDOMAIN) and the pooler answers `(ENOTFOUND) tenant/user postgres.psqputuljgqfmvmhvizy not found` — the project appears paused or deleted. Production signup/diagnosis will fail until Ricardo restores it in the Supabase dashboard (or points `DATABASE_URL` at a live database).
-- **Migration `0014_plan_task_progress.sql` is NOT applied to the remote database** for the same reason. Apply it once the DB is back (script pattern: execute the SQL statements from the migration file against `DATABASE_URL`).
-- `ANTHROPIC_API_KEY` exists in Vercel but its value is an **empty string**, so `/api/diagnosis` always falls back deterministically. Set the real key (plus credits) to activate the LLM strategist + reviewer passes.
 - Local `data/foundation-db` (PGlite) is corrupt from an earlier session (`Aborted()` on first query). Delete the folder to let dev recreate it if local embedded runs are needed.
 - Preview env still missing `ENCRYPTION_KEY` and `APP_SECRET`. Stripe remains disabled.
+- A Fable diagnosis run takes ~2-3 minutes; the diagnostics run button UX should eventually communicate that wait.
 
 ## 4. Recommended Next Steps
 
-1. Restore/unpause the Supabase project (or provision a new Postgres and update `DATABASE_URL` in Vercel).
-2. Apply `drizzle/0014_plan_task_progress.sql` to the restored database.
-3. Set a real `ANTHROPIC_API_KEY` value in production and preview.
-4. Re-run the production smoke and confirm `source: anthropic` plus a reviewed, specific Spanish output.
+1. Run one real Spanish pilot and review the verdict-first UX with live data.
+2. Set `ENCRYPTION_KEY` and `APP_SECRET` in Vercel preview.
+3. Consider a progress/wait state for the diagnosis run button given ~2-3 minute Fable runs.
