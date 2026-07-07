@@ -32,7 +32,9 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { noStoreJson, publicErrorJson } from "@/lib/http";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+// Two sequential Claude Fable 5 passes (draft + review) with always-on
+// thinking regularly exceed 60s; 300s is the Hobby/Fluid ceiling.
+export const maxDuration = 300;
 
 const diagnosisRequestSchema = z
   .object({
