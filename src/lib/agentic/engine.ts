@@ -122,7 +122,13 @@ function parseOutput(text: string): DiagnosisOutput {
   return DiagnosisOutput.parse(JSON.parse(text.slice(start, end + 1)));
 }
 
-const MAX_TOKENS = 5000;
+const MAX_TOKENS = 8000;
+
+// Claude Fable 5 rejects sampling params (`temperature` returns 400) and runs
+// always-on thinking that counts against max_tokens, so both calls omit
+// temperature and cap latency with low effort to fit two passes in the
+// route's 60s maxDuration.
+const OUTPUT_CONFIG = { effort: "low" as const };
 
 async function createAndParse(
   client: Anthropic,
@@ -133,7 +139,7 @@ async function createAndParse(
   const first = await client.messages.create({
     model,
     max_tokens: MAX_TOKENS,
-    temperature: 0.2,
+    output_config: OUTPUT_CONFIG,
     system,
     messages: [{ role: "user", content: userPrompt }]
   });
@@ -144,7 +150,7 @@ async function createAndParse(
     const repair = await client.messages.create({
       model,
       max_tokens: MAX_TOKENS,
-      temperature: 0,
+      output_config: OUTPUT_CONFIG,
       system,
       messages: [
         { role: "user", content: userPrompt },
