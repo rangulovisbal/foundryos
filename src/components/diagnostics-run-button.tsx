@@ -50,9 +50,12 @@ const PHASES: PhaseCopy[] = [
   }
 ];
 
+// Precomputed once; phaseForElapsed runs every second while the run is live.
+const PHASES_DESC = [...PHASES].reverse();
+
 function phaseForElapsed(seconds: number, language: OutputLanguage) {
   const phase =
-    [...PHASES].reverse().find((entry) => seconds >= entry.atSeconds) ?? PHASES[0];
+    PHASES_DESC.find((entry) => seconds >= entry.atSeconds) ?? PHASES[0];
   return copyForLanguage(language, phase.en, phase.es);
 }
 

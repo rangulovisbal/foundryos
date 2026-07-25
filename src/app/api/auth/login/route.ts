@@ -45,8 +45,11 @@ export async function POST(request: Request) {
         redirectTo: z.string().optional()
       })
       .parse(body);
+    // Scoped to email+IP so a single attacker cannot lock a victim out of
+    // their own login by burning the email bucket from elsewhere. The per-IP
+    // limit above still throttles broad attempts from one source.
     const emailLimit = await rateLimit(
-      `login:email:${payload.email.trim().toLowerCase()}`,
+      `login:email:${payload.email.trim().toLowerCase()}:ip:${clientIp(request)}`,
       5,
       900
     );

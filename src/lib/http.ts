@@ -41,11 +41,14 @@ export function publicErrorJson(
 }
 
 export function getClientIp(request: Request) {
+  // Only trust headers the hosting platform (Vercel) sets itself. Vercel
+  // overwrites x-real-ip and x-forwarded-for with the real client IP, while
+  // headers like cf-connecting-ip pass through untouched and can be spoofed
+  // by any client to rotate identities and bypass per-IP rate limits.
   const forwardedFor = request.headers.get("x-forwarded-for");
   return (
-    request.headers.get("cf-connecting-ip") ??
-    forwardedFor?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip") ??
+    forwardedFor?.split(",")[0]?.trim() ??
     "local"
   );
 }

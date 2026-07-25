@@ -15,8 +15,9 @@ import {
   type DiagnosticJobRecord
 } from "@/lib/foundation";
 import { noStoreJson, publicErrorJson } from "@/lib/http";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
-export async function POST() {
+export async function POST(request: Request) {
   let job: DiagnosticJobRecord | null = null;
 
   try {
@@ -24,6 +25,21 @@ export async function POST() {
 
     if (!context) {
       return noStoreJson({ error: "Authentication required." }, { status: 401 });
+    }
+
+    // Same protections as /api/diagnosis: this legacy path consumes the same
+    // diagnostic_runs counter and must not be the cheap unmetered bypass.
+    const ipLimit = await rateLimit(`diagnostics-run:ip:${clientIp(request)}`, 20, 3600);
+    const userLimit = await rateLimit(`diagnostics-run:user:${context.user.id}`, 5, 3600);
+    if (!ipLimit.ok || !userLimit.ok) {
+      const result = ipLimit.ok ? userLimit : ipLimit;
+      return noStoreJson(
+        { error: "Generation limit reached. Try again after the current window resets." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(result.retryAfterSec) }
+        }
+      );
     }
 
     if (!canRunDiagnostics(context)) {

@@ -3,7 +3,7 @@ import { forgotPasswordSchema } from "@/lib/foundation";
 import { noStoreJson, publicErrorJson } from "@/lib/http";
 import { copyForLanguage } from "@/lib/language";
 import { getCookieLanguage } from "@/lib/language-server";
-import { rateLimit } from "@/lib/rate-limit";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 function limited(result: Awaited<ReturnType<typeof rateLimit>>, language: "en" | "es") {
   return noStoreJson(
@@ -27,6 +27,18 @@ export async function POST(request: Request) {
   try {
     const appUrl = getRequestAppUrl(request);
     const payload = forgotPasswordSchema.parse(await request.json());
+
+    // Per-IP limit first: without it an attacker rotating target emails can
+    // spray reset emails across the user base and burn the email quota.
+    const ipLimit = await rateLimit(
+      `password-reset-request:ip:${clientIp(request)}`,
+      10,
+      3600
+    );
+    if (!ipLimit.ok) {
+      return limited(ipLimit, language);
+    }
+
     const emailLimit = await rateLimit(
       `password-reset-request:email:${payload.email.trim().toLowerCase()}`,
       3,

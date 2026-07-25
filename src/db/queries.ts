@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import { leads, subscriptions } from "@/db/schema";
@@ -70,28 +70,36 @@ export async function upsertSubscriptionRecord(record: SubscriptionInsert) {
   }
 
   if (record.stripeSubscriptionId) {
-    const existing = await db
-      .select()
-      .from(subscriptions)
-      .where(eq(subscriptions.stripeSubscriptionId, record.stripeSubscriptionId))
-      .limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(subscriptions)
-        .set({
-          email: record.email,
-          company: record.company,
-          planId: record.planId,
-          status: record.status,
-          stripeCustomerId: record.stripeCustomerId,
-          metadata: record.metadata ?? null,
+    // Atomic upsert onto the partial unique index. COALESCE keeps existing
+    // values when a later event (e.g. subscription.updated) carries nulls, so
+    // checkout-provided email/company are never wiped by follow-up webhooks.
+    await db
+      .insert(subscriptions)
+      .values({
+        id: crypto.randomUUID(),
+        email: record.email,
+        company: record.company,
+        planId: record.planId,
+        status: record.status,
+        stripeCustomerId: record.stripeCustomerId,
+        stripeSubscriptionId: record.stripeSubscriptionId,
+        metadata: record.metadata ?? null
+      })
+      .onConflictDoUpdate({
+        target: subscriptions.stripeSubscriptionId,
+        targetWhere: sql`stripe_subscription_id is not null`,
+        set: {
+          email: sql`coalesce(excluded.email, ${subscriptions.email})`,
+          company: sql`coalesce(excluded.company, ${subscriptions.company})`,
+          planId: sql`coalesce(excluded.plan_id, ${subscriptions.planId})`,
+          status: sql`excluded.status`,
+          stripeCustomerId: sql`coalesce(excluded.stripe_customer_id, ${subscriptions.stripeCustomerId})`,
+          metadata: sql`coalesce(excluded.metadata, ${subscriptions.metadata})`,
           updatedAt: new Date()
-        })
-        .where(eq(subscriptions.stripeSubscriptionId, record.stripeSubscriptionId));
+        }
+      });
 
-      return { storage: "database" as const };
-    }
+    return { storage: "database" as const };
   }
 
   await db.insert(subscriptions).values({

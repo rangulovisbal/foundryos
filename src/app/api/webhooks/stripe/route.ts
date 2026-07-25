@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 import { updateWorkspace } from "@/db/foundation";
 import { upsertSubscriptionRecord } from "@/db/queries";
+import { env } from "@/lib/env";
 import type { WorkspaceAccountState, WorkspacePlan } from "@/lib/foundation";
 import { noStoreJson } from "@/lib/http";
 import { getStripeClient } from "@/lib/payments";
@@ -85,6 +86,11 @@ export async function POST(request: Request) {
     const body = await request.text();
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
 
+    // Test-mode events must never mutate production entitlements.
+    if (env.isProduction && !event.livemode) {
+      return noStoreJson({ received: true, ignored: "test-mode-event" });
+    }
+
     if (
       event.type === "checkout.session.completed" ||
       event.type === "customer.subscription.updated" ||
@@ -118,11 +124,17 @@ export async function POST(request: Request) {
             typeof object.subscription === "string" ? object.subscription : null,
           metadata: object.metadata ?? {}
         });
-        await updateWorkspaceFromStripe({
-          workspaceId,
-          planId,
-          subscriptionStatus: "active"
-        });
+
+        // Async payment methods can complete a session with payment_status
+        // "unpaid"; only paid sessions activate the workspace. Subscription
+        // events reconcile the state either way.
+        if (object.payment_status === "paid") {
+          await updateWorkspaceFromStripe({
+            workspaceId,
+            planId,
+            subscriptionStatus: "active"
+          });
+        }
       } else {
         const planId =
           normalizePlanId(object.metadata?.planId) ??

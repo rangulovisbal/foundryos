@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gt, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import { requireDb } from "@/db/client";
 import {
@@ -685,23 +685,23 @@ export async function createEmailVerification(record: EmailVerificationRecord) {
 export async function consumeEmailVerification(tokenHash: string) {
   const db = await requireDb("email verification consumption");
 
+  // Atomic delete-and-return: a select-then-delete pair would let two
+  // concurrent requests both consume the same token.
   const rows = await db
-    .select()
-    .from(emailVerificationTokens)
+    .delete(emailVerificationTokens)
     .where(
       and(
         eq(emailVerificationTokens.tokenHash, tokenHash),
         gt(emailVerificationTokens.expiresAt, new Date())
       )
     )
-    .limit(1);
+    .returning();
 
   const row = rows[0];
   if (!row) {
     return null;
   }
 
-  await db.delete(emailVerificationTokens).where(eq(emailVerificationTokens.id, row.id));
   return mapEmailVerification(row);
 }
 
@@ -724,23 +724,22 @@ export async function createPasswordReset(record: PasswordResetRecord) {
 export async function consumePasswordReset(tokenHash: string) {
   const db = await requireDb("password reset consumption");
 
+  // Atomic delete-and-return; see consumeEmailVerification.
   const rows = await db
-    .select()
-    .from(passwordResetTokens)
+    .delete(passwordResetTokens)
     .where(
       and(
         eq(passwordResetTokens.tokenHash, tokenHash),
         gt(passwordResetTokens.expiresAt, new Date())
       )
     )
-    .limit(1);
+    .returning();
 
   const row = rows[0];
   if (!row) {
     return null;
   }
 
-  await db.delete(passwordResetTokens).where(eq(passwordResetTokens.id, row.id));
   return mapPasswordReset(row);
 }
 
@@ -804,6 +803,12 @@ export async function createWorkspaceBundle({
 export async function findWorkspaceById(workspaceId: string) {
   const db = await requireDb("workspace lookup");
   const rows = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).limit(1);
+  return rows[0] ? mapWorkspace(rows[0]) : null;
+}
+
+export async function findWorkspaceBySlug(slug: string) {
+  const db = await requireDb("workspace slug lookup");
+  const rows = await db.select().from(workspaces).where(eq(workspaces.slug, slug)).limit(1);
   return rows[0] ? mapWorkspace(rows[0]) : null;
 }
 
@@ -1054,20 +1059,26 @@ export async function incrementWorkspaceUsageCounter(
   metricKey: UsageCounterRecord["metricKey"]
 ) {
   const db = await requireDb("workspace usage updates");
-  const usage = await listWorkspaceUsage(workspaceId);
-  const counter = usage.find((item) => item.metricKey === metricKey);
 
-  if (!counter) {
-    throw new Error(`Missing usage counter for ${metricKey}.`);
-  }
-
-  await db
+  // Atomic SQL increment: a read-modify-write here would lose counts under
+  // concurrent runs and let workspaces slip past their plan limits.
+  const updated = await db
     .update(workspaceUsageCounters)
     .set({
-      usedCount: counter.usedCount + 1,
+      usedCount: sql`${workspaceUsageCounters.usedCount} + 1`,
       updatedAt: new Date()
     })
-    .where(eq(workspaceUsageCounters.id, counter.id));
+    .where(
+      and(
+        eq(workspaceUsageCounters.workspaceId, workspaceId),
+        eq(workspaceUsageCounters.metricKey, metricKey)
+      )
+    )
+    .returning();
+
+  if (updated.length === 0) {
+    throw new Error(`Missing usage counter for ${metricKey}.`);
+  }
 
   return listWorkspaceUsage(workspaceId);
 }

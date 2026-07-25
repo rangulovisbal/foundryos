@@ -1,20 +1,22 @@
 import { bootstrapInternalAdminFromToken, getCurrentUserSession } from "@/lib/auth";
 import { adminBootstrapRequestSchema, adminBootstrapSchema } from "@/lib/foundation";
 import { getClientIp, noStoreJson, publicErrorJson } from "@/lib/http";
-import { consumeRateLimit } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const rateLimit = consumeRateLimit(`admin-login:${ip}`, {
-      max: 5,
-      windowMs: 5 * 60_000
-    });
+    // Durable (DB-backed) limit: the in-memory fallback resets on every cold
+    // serverless instance, which is useless against admin-token brute force.
+    const ipLimit = await rateLimit(`admin-login:ip:${ip}`, 5, 300);
 
-    if (!rateLimit.success) {
+    if (!ipLimit.ok) {
       return noStoreJson(
         { error: "Too many admin login attempts. Try again shortly." },
-        { status: 429 }
+        {
+          status: 429,
+          headers: { "Retry-After": String(ipLimit.retryAfterSec) }
+        }
       );
     }
 

@@ -20,6 +20,7 @@ import {
   deleteSessionByTokenHash,
   findInvitationByTokenHash,
   findWorkspaceById,
+  findWorkspaceBySlug,
   findWorkspaceMembership,
   findSessionByTokenHash,
   findUserByEmail,
@@ -27,7 +28,6 @@ import {
   listUserWorkspaceMemberships,
   listWorkspaceMembers,
   listWorkspaceUsage,
-  listWorkspaces,
   syncSeatUsage,
   updateUser
 } from "@/db/foundation";
@@ -747,11 +747,11 @@ export async function resetPasswordFromToken(
 
 async function createUniqueWorkspaceSlug(name: string) {
   const base = slugifyWorkspaceName(name) || "workspace";
-  const existing = await listWorkspaces();
   let slug = base;
   let counter = 1;
 
-  while (existing.some((workspace) => workspace.slug === slug)) {
+  // Indexed lookups per candidate instead of loading every workspace row.
+  while (await findWorkspaceBySlug(slug)) {
     counter += 1;
     slug = `${base}-${counter}`;
   }

@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -52,7 +53,14 @@ export const subscriptions = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
   },
-  (table) => [index("subscriptions_customer_idx").on(table.stripeCustomerId)]
+  (table) => [
+    index("subscriptions_customer_idx").on(table.stripeCustomerId),
+    // Partial unique index so concurrent Stripe webhooks upsert onto one row
+    // per subscription instead of racing select-then-insert into duplicates.
+    uniqueIndex("subscriptions_stripe_subscription_id_unique")
+      .on(table.stripeSubscriptionId)
+      .where(sql`stripe_subscription_id is not null`)
+  ]
 );
 
 export const rateLimitHits = pgTable(

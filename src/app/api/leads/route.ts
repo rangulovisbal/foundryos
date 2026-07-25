@@ -3,22 +3,22 @@ import { verifyTurnstile } from "@/lib/cloudflare";
 import { sendLeadNotifications } from "@/lib/email";
 import { getClientIp, noStoreJson, publicErrorJson } from "@/lib/http";
 import { type LeadRecord, leadCaptureSchema } from "@/lib/leads";
-import { consumeRateLimit } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const rateLimit = consumeRateLimit(`lead:${ip}`, {
-      max: 6,
-      windowMs: 60_000
-    });
+    const ipLimit = await rateLimit(`lead:ip:${ip}`, 6, 60);
 
-    if (!rateLimit.success) {
+    if (!ipLimit.ok) {
       return noStoreJson(
         { error: "Too many lead submissions. Try again shortly." },
-        { status: 429 }
+        {
+          status: 429,
+          headers: { "Retry-After": String(ipLimit.retryAfterSec) }
+        }
       );
     }
 
