@@ -1,6 +1,25 @@
 # HANDOFF
 
-Last updated: 2026-07-07
+Last updated: 2026-07-25
+
+## 0. Resume here first
+
+**Pending manual action — apply migration 0015 to production before enabling Stripe.**
+The security audit (commit `f199b49`, see `docs/SECURITY-AUDIT-FIXES-2026-07.md`)
+added `drizzle/0015_subscriptions_unique_sub_id.sql` (partial unique index on
+`subscriptions.stripe_subscription_id`). The Stripe webhook's atomic upsert depends
+on it. It self-applies on the embedded dev DB via the journal, but production must
+be migrated by hand (same method as 0014):
+
+```
+psql "$DATABASE_URL" -f drizzle/0015_subscriptions_unique_sub_id.sql
+```
+
+Not urgent — Stripe checkout is still disabled — but do it before turning Stripe on.
+
+Everything else from the 2026-07 audit is fixed, committed, and pushed. Remaining
+accepted risk: 2 `sharp` high CVEs pinned by Next 15 (fix = Next 14 downgrade,
+rejected). Full detail in `docs/SECURITY-AUDIT-FIXES-2026-07.md`.
 
 ## 1. What Was Completed (Cerebro v3 + UX pass)
 
